@@ -4,6 +4,9 @@ import Base.+, Base.-, Base.*, Base./, Base.dot, Base.cross, Base.isnan, Base.in
 import Base.getindex
 import Base.convert
 
+export VectorLike, Vector3, Normal3, Point3
+export Transformation, translation, scaling, rotation, look_at
+
 abstract type VectorLike end
 
 # Three kinds of vectors are represented with different types: points in space, vectors between
@@ -62,21 +65,21 @@ convert(::Type{Point3}, v::Normal3) = Point3(v.x, v.y, v.z)
 
 
 
-struct Transform
+struct Transformation
     M::Array{Float64,2}
     MInv::Array{Float64,2}
 end
 
-Transform(M::Array{Float64,2}) = Transform(M, inv(M))
-Transform(M::Array{T,2}) where {T<:Real} = Transform(convert(Array{Float64,2}, M))
-inv(T::Transform) = Transform(T.mInv, T.m)
+Transformation(M::Array{Float64,2}) = Transformation(M, inv(M))
+Transformation(M::Array{T,2}) where {T<:Real} = Transformation(convert(Array{Float64,2}, M))
+inv(T::Transformation) = Transformation(T.mInv, T.m)
 
 function translation(delta::Vector3)
     M = eye(4)
     M[1,4] = delta.x
     M[2,4] = delta.y
     M[3,4] = delta.z
-    return Transform(M)
+    return Transformation(M)
 end
 
 function scaling(scale::Vector3)
@@ -85,7 +88,7 @@ function scaling(scale::Vector3)
     M[2,2] = scale.y
     M[3,3] = scale.z
     println(M)
-    return Transform(M)
+    return Transformation(M)
 end
 
 function rotation(axis::Vector3, angle::Number)
@@ -108,7 +111,7 @@ function rotation(axis::Vector3, angle::Number)
     M[3,3] = a.z * a.z + (1.0 - a.z * a.z) * c
     M[3,4] = 0
     
-    return Transform(M)
+    return Transformation(M)
 end
 
 function look_at(camera::Vector3, target::Vector3, up::Vector3)
@@ -131,7 +134,7 @@ function look_at(camera::Vector3, target::Vector3, up::Vector3)
     return M
 end
 
-function (T::Transform)(v::Vector3)
+function (T::Transformation)(v::Vector3)
     return Vector3(
         T.M[1,1]*v.x + T.M[1,2]*v.y + T.M[1,3]*v.z,
         T.M[2,1]*v.x + T.M[2,2]*v.y + T.M[2,3]*v.z,
@@ -139,7 +142,7 @@ function (T::Transform)(v::Vector3)
     )
 end
 
-function (T::Transform)(v::Point3)
+function (T::Transformation)(v::Point3)
     return Point3(
         T.M[1,1]*v.x + T.M[1,2]*v.y + T.M[1,3]*v.z + T.M[1,4],
         T.M[2,1]*v.x + T.M[2,2]*v.y + T.M[2,3]*v.z + T.M[2,4],
@@ -147,7 +150,7 @@ function (T::Transform)(v::Point3)
     ) /(T.M[4,1]*v.x + T.M[4,2]*v.y + T.M[4,3]*v.z + T.M[4,4])
 end
 
-function (T::Transform)(v::Normal3)
+function (T::Transformation)(v::Normal3)
     return Normal3(
         T.MInv[1,1]*v.x + T.MInv[2,1]*v.y + T.MInv[3,1]*v.z,
         T.MInv[1,2]*v.x + T.MInv[2,2]*v.y + T.MInv[3,2]*v.z,
