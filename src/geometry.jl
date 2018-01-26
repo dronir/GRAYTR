@@ -1,8 +1,9 @@
 module Geometry
 
 import Base.+, Base.-, Base.*, Base./, Base.dot, Base.cross, Base.isnan, Base.inv
-import Base.getindex
+import Base.getindex, Base.min, Base.max
 import Base.convert, Base.normalize, Base.isapprox
+#import Base.AbstractArray
 
 export VectorLike, Vector3, Normal3, Point3
 export Transformation, translation, scaling, rotation, look_at
@@ -34,6 +35,8 @@ struct Normal3 <: VectorLike
     z::Float64
 end
 
+size(A::VectorLike) = 3
+
 +(A::Point3, B::Vector3) = Point3(A.x+B.x, A.y+B.y, A.z+B.z)
 +(B::Vector3, A::Point3) = A+B
 +(v::Vector3, u::Vector3) = Vector3(v.x+u.x, v.y+u.y, v.z+u.z)
@@ -44,6 +47,9 @@ dot(A::Vector3, B::Vector3) = A.x*B.x + A.y*B.y + A.z*B.z
 cross(A::Vector3, B::Vector3) = Vector3(A.y*B.z - A.z*B.y, A.z*B.x - A.x*B.z, A.x*B.y - A.y*B.x)
 norm(A::VectorLike) = sqrt(A.x^2 + A.y^2 + A.z^2)
 normalize(A::VectorLike) = A / norm(A)
+
+min(A::T, B::T) where {T<:VectorLike} = T(min(A.x,B.x), min(A.y,B.y), min(A.z,B.z))
+max(A::T, B::T) where {T<:VectorLike} = T(max(A.x,B.x), max(A.y,B.y), max(A.z,B.z))
 
 isapprox(a::T, b::T) where {T<:VectorLike} = a.x ≈ b.x && a.y ≈ b.y && a.z ≈ b.z
 

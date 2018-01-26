@@ -41,6 +41,13 @@ function test_vector3()
             u = Vector3(2, 1, 1)
             @test dot(v, u) ≈ 0.0
         end
+        
+        @testset "Min/max" begin
+            v = Vector3(-1, 0, 2)
+            u = Vector3(0, -1, 0)
+            @test min(v,u) ≈ Vector3(-1, -1, 0)
+            @test max(u,v) ≈ Vector3(0, 0, 2)
+        end
     end
 end
 
