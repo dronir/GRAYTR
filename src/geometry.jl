@@ -2,7 +2,7 @@ module Geometry
 
 import Base.+, Base.-, Base.*, Base./, Base.dot, Base.cross, Base.isnan, Base.inv
 import Base.getindex
-import Base.convert
+import Base.convert, Base.normalize, Base.isapprox
 
 export VectorLike, Vector3, Normal3, Point3
 export Transformation, translation, scaling, rotation, look_at
@@ -44,6 +44,9 @@ dot(A::Vector3, B::Vector3) = A.x*B.x + A.y*B.y + A.z*B.z
 cross(A::Vector3, B::Vector3) = Vector3(A.y*B.z - A.z*B.y, A.z*B.x - A.x*B.z, A.x*B.y - A.y*B.x)
 norm(A::VectorLike) = sqrt(A.x^2 + A.y^2 + A.z^2)
 normalize(A::VectorLike) = A / norm(A)
+
+isapprox(a::T, b::T) where {T<:VectorLike} = a.x ≈ b.x && a.y ≈ b.y && a.z ≈ b.z
+
 
 *(a::Number, v::T) where {T<:VectorLike} = T(a*v.x, a*v.y, a*v.z)
 *(v::VectorLike, a::Number) = a*v
