@@ -87,6 +87,9 @@ convert(::Type{Point3}, v::Vector3) = Point3(v.x, v.y, v.z)
 convert(::Type{Point3}, v::Normal3) = Point3(v.x, v.y, v.z)
 
 
+####################################
+# TRANSFORMATIONS
+
 
 struct Transformation
     M::Array{Float64,2}
