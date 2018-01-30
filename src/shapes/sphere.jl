@@ -9,9 +9,12 @@ struct Sphere <: Shape
     world_to_obj::Transformation
 end
 
+Sphere(id::Int64, r::Real, T::Transformation) = Sphere(id, r, false, T, inv(T))
+Sphere(id::Int64, r::Real, inverted::Bool, T::Transformation) = Sphere(id, r, inverted, T, inv(T))
+
 can_intersect(s::Sphere) = true
 
-area(s::Sphere) = 4π * r^2
+area(s::Sphere) = 4π * s.radius^2
 
 function object_bounds(s::Sphere)
     v = Point3(s.radius, s.radius, s.radius)
