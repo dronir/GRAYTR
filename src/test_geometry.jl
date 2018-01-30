@@ -81,10 +81,14 @@ function test_transformations()
             point = Point3(0)
             T = translation(1, 0, 0)
             @test T(point) ≈ Point3(1.0, 0.0, 0.0)
+            U = inv(T)
+            @test U(T(point)) ≈ point
 
             point = Point3(-1.0, 0.0, 2.0)
             T = translation(1, 2, 5)
             @test T(point) ≈ Point3(0.0, 2.0, 7.0)
+            U = inv(T)
+            @test U(T(point)) ≈ point
         end
         @testset "Rotation" begin
             X = Vector3(1, 0, 0)
@@ -94,21 +98,33 @@ function test_transformations()
             point = Point3(1,0,0)
             T = rotation(X, pi/2)
             @test T(point) ≈ Point3(1.0, 0.0, 0.0)
+            U = inv(T)
+            @test U(T(point)) ≈ point
             
             point = Point3(1.0, 0.0, 0.0)
             T = rotation(Z, pi/2)
             @test isapprox(T(point), Point3(0.0, 1.0, 0.0) ; atol=1e-16)
+            U = inv(T)
+            @test U(T(point)) ≈ point
             T = rotation(Y, pi/2)
             @test isapprox(T(point), Point3(0.0, 0.0, -1.0) ; atol=1e-16)
+            U = inv(T)
+            @test U(T(point)) ≈ point
         end
         @testset "Scaling" begin
             P = Point3(-1, 1, 2)
             T = scaling(2, 1, 1)
             @test T(P) ≈ Point3(-2, 1, 2)
+            U = inv(T)
+            @test U(T(P)) ≈ P
             T = scaling(1, 2, 1)
             @test T(P) ≈ Point3(-1, 2, 2)
+            U = inv(T)
+            @test U(T(P)) ≈ P
             T = scaling(1, 1, 2)
             @test T(P) ≈ Point3(-1, 1, 4)
+            U = inv(T)
+            @test U(T(P)) ≈ P
             
         end
     end
