@@ -5,11 +5,6 @@ module RayTracer
 include("geometry.jl")
 using .Geometry
 
-# Things we want to check ray intersections with
-abstract type Intersectable end
-abstract type SceneObject <: Intersectable end
-abstract type BoundingGeometry <: Intersectable end
-
 abstract type Camera end
 
 struct RayIntersection
