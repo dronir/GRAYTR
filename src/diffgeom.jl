@@ -20,12 +20,12 @@ struct DifferentialGeometry
 end
 
 # Constructor that computes the normal vector.
-function DifferentialGeometry(p::Point3, u::Float64, v::Float64,
+function DifferentialGeometry(p::Point3, u::Float64, v::Float64, sh::Shape,
                               dpdu::Vector3, dpdv::Vector3, 
-                              dndu::Normal3, dndv::Normal3, sh::Shape)
-    normal = normalize(cross(dndu, dndv))
+                              dndu::Normal3, dndv::Normal3)
+    normal = normalize(cross(dpdu, dpdv))
     if sh.inverted ⊻ swaps_handedness(sh.obj_to_world)
-        normal -= normal
+        normal = -normal
     end
     DifferentialGeometry(p, normal, u, v, sh, dpdu, dpdv, dndu, dndv)
 end
