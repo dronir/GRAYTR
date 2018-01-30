@@ -97,40 +97,52 @@ function test_intersections()
     end
     @testset "Complicated ray intersection" begin
         @testset "Regular sphere" begin
-            Sph = Sphere(1, 1.0, Transformation())
+            Sph = Sphere(1, 1.0, scaling(1,1,1))
+            @test !swaps_handedness(Sph.obj_to_world)
+            @test !Sph.inverted
             ray = Ray(Point3(2, 0, 0), Vector3(-1, 0, 0))
             DG_maybe, t, ray_eps = intersect(ray, Sph)
             @test !isnull(DG_maybe)
             @test t ≈ 1.0
+            DG = get(DG_maybe)
+            @test DG.p ≈ Point3(1, 0, 0)
+            @test DG.n ≈ Normal3(1, 0, 0)
+            println(DG)
             
             ray = Ray(Point3(2, 2, 0), Vector3(-1, 0, 0))
             DG_maybe, t, ray_eps = intersect(ray, Sph)
             @test isnull(DG_maybe)
         end
-        @testset "Shifted sphere" begin
-            shift = translation(1, 0, 0)
-            Sph = Sphere(1, 1.0, shift)
-            ray = Ray(Point3(10, 0, 0), Vector3(-1, 0, 0))
-            DG_maybe, t, ray_eps = intersect(ray, Sph)
-            @test !isnull(DG_maybe)
-            @test t ≈ 8.0
-            
-            ray = Ray(Point3(2, 2, 0), Vector3(-1, 0, 0))
-            DG_maybe, t, ray_eps = intersect(ray, Sph)
-            @test isnull(DG_maybe)
-        end
-        @testset "Stretched sphere" begin
-            shift = scaling(2, 1, 1)
-            Sph = Sphere(1, 1.0, shift)
-            ray = Ray(Point3(10, 0, 0), Vector3(-1, 0, 0))
-            DG_maybe, t, ray_eps = intersect(ray, Sph)
-            @test !isnull(DG_maybe)
-            @test t ≈ 8.0
-            
-            ray = Ray(Point3(2, 2, 0), Vector3(-1, 0, 0))
-            DG_maybe, t, ray_eps = intersect(ray, Sph)
-            @test isnull(DG_maybe)
-        end
+#        @testset "Shifted sphere" begin
+#            shift = translation(1, 0, 0)
+#            Sph = Sphere(1, 1.0, shift)
+#            ray = Ray(Point3(10, 0, 0), Vector3(-1, 0, 0))
+#            DG_maybe, t, ray_eps = intersect(ray, Sph)
+#            @test !isnull(DG_maybe)
+#            @test t ≈ 8.0
+#            DG = get(DG_maybe)
+#            @test DG.p ≈ Point3(2, 0, 0)
+#            @test DG.n ≈ Normal3(1, 0, 0)
+#            
+#            ray = Ray(Point3(2, 2, 0), Vector3(-1, 0, 0))
+#            DG_maybe, t, ray_eps = intersect(ray, Sph)
+#            @test isnull(DG_maybe)
+#        end
+#        @testset "Stretched sphere" begin
+#            shift = scaling(2, 1, 1)
+#            Sph = Sphere(1, 1.0, shift)
+#            ray = Ray(Point3(10, 0, 0), Vector3(-1, 0, 0))
+#            DG_maybe, t, ray_eps = intersect(ray, Sph)
+#            @test !isnull(DG_maybe)
+#            @test t ≈ 8.0
+#            DG = get(DG_maybe)
+#            @test DG.p ≈ Point3(2, 0, 0)
+#            @test DG.n ≈ Normal3(2, 0, 0)
+#            
+#            ray = Ray(Point3(2, 2, 0), Vector3(-1, 0, 0))
+#            DG_maybe, t, ray_eps = intersect(ray, Sph)
+#            @test isnull(DG_maybe)
+#        end
     end
 end
 
