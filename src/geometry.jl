@@ -35,7 +35,9 @@ struct Normal3 <: VectorLike
     z::Float64
 end
 
-
+Vector3(x::Real) = Vector3(x,x,x)
+Point3(x::Real) = Point3(x,x,x)
+Normal3(x::Real) = Normal3(x,x,x)
 
 size(A::VectorLike) = 3
 
