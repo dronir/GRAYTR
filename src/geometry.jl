@@ -35,6 +35,8 @@ struct Normal3 <: VectorLike
     z::Float64
 end
 
+
+
 size(A::VectorLike) = 3
 
 +(A::Point3, B::Vector3) = Point3(A.x+B.x, A.y+B.y, A.z+B.z)
@@ -82,6 +84,9 @@ end
 Transformation(M::Array{Float64,2}) = Transformation(M, inv(M))
 Transformation(M::Array{T,2}) where {T<:Real} = Transformation(convert(Array{Float64,2}, M))
 inv(T::Transformation) = Transformation(T.mInv, T.m)
+
+swaps_handedness(T::Transformation) = det(T.M[1:3, 1:3]) < 0.0
+
 
 function translation(delta::Vector3)
     M = eye(4)
