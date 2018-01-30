@@ -47,7 +47,7 @@ size(A::VectorLike) = 3
 -(v::Vector3, u::Vector3) = Vector3(v.x-u.x, v.y-u.y, v.z-u.z)
 -(A::T) where {T<:VectorLike} = T(-A.x, -A.y, -A.z)
 
-dot(A::Vector3, B::Vector3) = A.x*B.x + A.y*B.y + A.z*B.z
+dot(A::VectorLike, B::VectorLike) = A.x*B.x + A.y*B.y + A.z*B.z
 cross(A::Vector3, B::Vector3) = Vector3(A.y*B.z - A.z*B.y, A.z*B.x - A.x*B.z, A.x*B.y - A.y*B.x)
 norm(A::VectorLike) = sqrt(A.x^2 + A.y^2 + A.z^2)
 normalize(A::VectorLike) = A / norm(A)
@@ -83,6 +83,7 @@ struct Transformation
     MInv::Array{Float64,2}
 end
 
+Transformation() = Transformation(eye(4), eye(4))
 Transformation(M::Array{Float64,2}) = Transformation(M, inv(M))
 Transformation(M::Array{T,2}) where {T<:Real} = Transformation(convert(Array{Float64,2}, M))
 inv(T::Transformation) = Transformation(T.mInv, T.m)
