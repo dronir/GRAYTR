@@ -53,20 +53,19 @@ function intersect(r::Ray, sph::Sphere)
     P = ray(t)
     
     # Local coordinates
-    X = P.x == 0.0 && P.y == 0.0 ? 1e-10*sph.radius : P.x
-    phi = atan2(P.y, X)
+    phi = atan2(P.y, P.x)
     u = phi >= 0 ? phi / 2π : phi/2π + 1.0
     v = acos(clamp(P.z / sph.radius, -1.0, 1.0)) / π
     
     # Position vector partial derivatives
-    zradius = sqrt(X^2 + P.y^2)
-    cosphi = X / zradius
-    sinphi = P.y / zradius
-    dpdu = Vector3(-2π*P.y, 2π*X, 0.0)
+    zradius = sqrt(P.x^2 + P.y^2)
+    cosphi = zradius ≈ 0.0 ? 1.0 : P.x / zradius
+    sinphi = zradius ≈ 0.0 ? 0.0 : P.y / zradius
+    dpdu = Vector3(-2π*P.y, 2π*P.x, 0.0)
     dpdv = π * Vector3(P.z * cosphi, P.z * sinphi, -sph.radius * sin(v*π))
     
     # Normal vector partial derivatives through second derivatives of point
-    dpduu = -4π^2 * Vector3(X, P.y, 0.0)
+    dpduu = -4π^2 * Vector3(P.x, P.y, 0.0)
     dpduv = 2pi^2 * P.z * Vector3(-sinphi, cosphi, 0.0)
     dpdvv = -π^2 * P
     E = dot(dpdu, dpdu)
@@ -84,12 +83,11 @@ function intersect(r::Ray, sph::Sphere)
     
     DG = Nullable(DifferentialGeometry(
         sph.obj_to_world(P),
-        sph.obj_to_world(N),
         u, v, sph,
         sph.obj_to_world(dpdu),
-        sph.obj_to_world(dpdu),
+        sph.obj_to_world(dpdv),
         sph.obj_to_world(dndu),
-        sph.obj_to_world(dndu)
+        sph.obj_to_world(dndv)
     ))
     return DG, t, 5e-4 * t
 end
