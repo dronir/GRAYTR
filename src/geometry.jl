@@ -3,10 +3,11 @@ module Geometry
 import Base.+, Base.-, Base.*, Base./, Base.dot, Base.cross, Base.isnan, Base.inv
 import Base.getindex, Base.min, Base.max
 import Base.convert, Base.normalize, Base.isapprox
+import Base.start, Base.next, Base.done, Base.size, Base.length
 #import Base.AbstractArray
 
 export VectorLike, Vector3, Normal3, Point3
-export Transformation, translation, scaling, rotation, look_at
+export Transformation, translation, scaling, rotation, look_at, swaps_handedness
 
 abstract type VectorLike end
 
@@ -40,6 +41,7 @@ Point3(x::Real) = Point3(x,x,x)
 Normal3(x::Real) = Normal3(x,x,x)
 
 size(A::VectorLike) = 3
+length(A::VectorLike) = 3
 
 +(A::Point3, B::Vector3) = Point3(A.x+B.x, A.y+B.y, A.z+B.z)
 +(B::Vector3, A::Point3) = A+B
@@ -48,15 +50,18 @@ size(A::VectorLike) = 3
 -(A::T) where {T<:VectorLike} = T(-A.x, -A.y, -A.z)
 
 dot(A::VectorLike, B::VectorLike) = A.x*B.x + A.y*B.y + A.z*B.z
-cross(A::Vector3, B::Vector3) = Vector3(A.y*B.z - A.z*B.y, A.z*B.x - A.x*B.z, A.x*B.y - A.y*B.x)
+cross(A::VectorLike, B::VectorLike) = Vector3(A.y*B.z - A.z*B.y, A.z*B.x - A.x*B.z, A.x*B.y - A.y*B.x)
 norm(A::VectorLike) = sqrt(A.x^2 + A.y^2 + A.z^2)
 normalize(A::VectorLike) = A / norm(A)
 
 min(A::T, B::T) where {T<:VectorLike} = T(min(A.x,B.x), min(A.y,B.y), min(A.z,B.z))
 max(A::T, B::T) where {T<:VectorLike} = T(max(A.x,B.x), max(A.y,B.y), max(A.z,B.z))
 
-isapprox(a::T, b::T) where {T<:VectorLike} = a.x ≈ b.x && a.y ≈ b.y && a.z ≈ b.z
-
+function isapprox(A::T, B::T; rtol::Real=sqrt(eps(Float64)), atol::Real=0) where {T<:VectorLike}
+    return (isapprox(A.x, B.x; rtol=rtol, atol=atol) &&
+    isapprox(A.y, B.y; rtol=rtol, atol=atol) &&
+    isapprox(A.z, B.z; rtol=rtol, atol=atol))
+end
 
 *(a::Number, v::T) where {T<:VectorLike} = T(a*v.x, a*v.y, a*v.z)
 *(v::VectorLike, a::Number) = a*v
@@ -66,9 +71,14 @@ isnan(v::VectorLike) = isnan(v.x) || isnan(v.y) || isnan(v.z)
 
 getindex(v::VectorLike, i::Integer) = i==1 ? v.x : i==2 ? v.y : i==3 ? v.z : throw(BoundsError())
 
-convert(::Type{Vector3}, x::Array{T,1}) where {T<:Number} = Vector3(x[1], x[2], x[3])
-convert(::Type{Normal3}, x::Array{T,1}) where {T<:Number} = Normal3(x[1], x[2], x[3])
-convert(::Type{Point3}, x::Array{T,1}) where {T<:Number} = Point3(x[1], x[2], x[3])
+start(V::VectorLike) = 1
+next(V::VectorLike, state::Int64) = (getindex(V,state), state+1)
+done(V::VectorLike, state::Int64) = state == 4
+
+
+convert(::Type{Vector3}, x::Array{T,1}) where {T<:Number} = Vector3(x...)
+convert(::Type{Normal3}, x::Array{T,1}) where {T<:Number} = Normal3(x...)
+convert(::Type{Point3}, x::Array{T,1}) where {T<:Number} = Point3(x...)
 convert(::Type{Vector3}, v::Normal3) = Vector3(v.x, v.y, v.z)
 convert(::Type{Vector3}, v::Point3) = Vector3(v.x, v.y, v.z)
 convert(::Type{Normal3}, v::Vector3) = Normal3(v.x, v.y, v.z)
@@ -90,7 +100,7 @@ inv(T::Transformation) = Transformation(T.MInv, T.M)
 
 swaps_handedness(T::Transformation) = det(T.M[1:3, 1:3]) < 0.0
 
-
+translation(x::Real, y::Real, z::Real) = translation(Vector3(x,y,z))
 function translation(delta::Vector3)
     M = eye(4)
     M[1,4] = delta.x
@@ -99,12 +109,12 @@ function translation(delta::Vector3)
     return Transformation(M)
 end
 
+scaling(x::Real, y::Real, z::Real) = scaling(Vector3(x,y,z))
 function scaling(scale::Vector3)
     M = eye(4)
     M[1,1] = scale.x
     M[2,2] = scale.y
     M[3,3] = scale.z
-    println(M)
     return Transformation(M)
 end
 

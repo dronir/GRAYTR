@@ -48,7 +48,59 @@ function test_vector3()
             @test min(v,u) ≈ Vector3(-1, -1, 0)
             @test max(u,v) ≈ Vector3(0, 0, 2)
         end
+        
+        @testset "Iteration" begin
+            V = Vector3(1, 2, 3)
+            A = [x for x in V]
+            @test A ≈ [1.0, 2.0, 3.0]
+        end
+    end
+end
+
+function test_transformations()
+    @testset "Transformation" begin
+        @testset "Basic" begin
+            T = Transformation()
+            @test T.M ≈ eye(4)
+            @test T.MInv ≈ eye(4)
+            @test !swaps_handedness(T)
+        end
+        @testset "Translation" begin
+            point = Point3(0)
+            T = translation(1, 0, 0)
+            @test T(point) ≈ Point3(1.0, 0.0, 0.0)
+
+            point = Point3(-1.0, 0.0, 2.0)
+            T = translation(1, 2, 5)
+            @test T(point) ≈ Point3(0.0, 2.0, 7.0)
+        end
+        @testset "Rotation" begin
+            X = Vector3(1, 0, 0)
+            Y = Vector3(0, 1, 0)
+            Z = Vector3(0, 0, 1)
+            
+            point = Point3(1,0,0)
+            T = rotation(X, pi/2)
+            @test T(point) ≈ Point3(1.0, 0.0, 0.0)
+            
+            point = Point3(1.0, 0.0, 0.0)
+            T = rotation(Z, pi/2)
+            @test isapprox(T(point), Point3(0.0, 1.0, 0.0) ; atol=1e-16)
+            T = rotation(Y, pi/2)
+            @test isapprox(T(point), Point3(0.0, 0.0, -1.0) ; atol=1e-16)
+        end
+        @testset "Scaling" begin
+            P = Point3(-1, 1, 2)
+            T = scaling(2, 1, 1)
+            @test T(P) ≈ Point3(-2, 1, 2)
+            T = scaling(1, 2, 1)
+            @test T(P) ≈ Point3(-1, 2, 2)
+            T = scaling(1, 1, 2)
+            @test T(P) ≈ Point3(-1, 1, 4)
+            
+        end
     end
 end
 
 test_vector3()
+test_transformations()
