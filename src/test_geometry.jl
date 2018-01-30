@@ -54,6 +54,18 @@ function test_vector3()
             A = [x for x in V]
             @test A ≈ [1.0, 2.0, 3.0]
         end
+        
+        @testset "Cross product" begin
+            X = Vector3(1,0,0)
+            Y = Vector3(0,1,0)
+            Z = Vector3(0,0,1)
+            @test cross(X,Y) ≈ Z
+            @test cross(X,Z) ≈ -Y
+            @test cross(Y,X) ≈ -Z
+            @test cross(Y,Z) ≈ X
+            @test cross(Z,X) ≈ Y
+            @test cross(Z,Y) ≈ -X
+        end
     end
 end
 
