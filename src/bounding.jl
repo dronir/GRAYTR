@@ -14,7 +14,7 @@ function BoundingBox(boxes::Array{BoundingBox,1})
         pMin = min(pMin, bb.pMin)
         pMax = max(pMax, bb.pMax)
     end
-    return BoundingBox(pMin, pMax, contents)
+    return BoundingBox(pMin, pMax)
 end
 
 # Get the bounding box of a group of points
@@ -25,7 +25,7 @@ function BoundingBox(contents::Array{Point3,1})
         pMin = min(pMin, p)
         pMax = max(pMax, p)
     end
-    return BoundingBox(pMin, pMax, contents)
+    return BoundingBox(pMin, pMax)
 end
 
 # Apply a transformation on a bounding box (probably not in the most efficient way)
