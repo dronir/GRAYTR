@@ -61,7 +61,7 @@ function intersect(r::Ray, sph::Sphere)
     zradius = sqrt(P.x^2 + P.y^2)
     cosphi = zradius ≈ 0.0 ? 1.0 : P.x / zradius
     sinphi = zradius ≈ 0.0 ? 0.0 : P.y / zradius
-    dpdu = Vector3(-2π*P.y, 2π*P.x, 0.0)
+    dpdu = -Vector3(-2π*P.y, 2π*P.x, 0.0)
     dpdv = π * Vector3(P.z * cosphi, P.z * sinphi, -sph.radius * sin(v*π))
     
     # Normal vector partial derivatives through second derivatives of point

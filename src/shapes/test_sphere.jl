@@ -107,7 +107,6 @@ function test_intersections()
             DG = get(DG_maybe)
             @test DG.p ≈ Point3(1, 0, 0)
             @test DG.n ≈ Normal3(1, 0, 0)
-            println(DG)
             
             ray = Ray(Point3(2, 2, 0), Vector3(-1, 0, 0))
             DG_maybe, t, ray_eps = intersect(ray, Sph)
