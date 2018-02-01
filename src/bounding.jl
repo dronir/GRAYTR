@@ -42,3 +42,24 @@ function (transform::Transformation)(BB::BoundingBox)
     ]
     return BoundingBox([transform(p) for p in corners])
 end
+
+function intersect(R::Ray, BB::BoundingBox)
+    t0 = R.tmin
+    t1 = R.tmax
+    for i = 1:3
+        tNear = (BB.pMin[i] - R.origin[i]) / R.direction[i]
+        tFar = (BB.pMax[i] - R.origin[i]) / R.direction[i]
+        tNear, tFar = min(tNear, tFar), max(tNear, tFar)
+        t0 = tNear > t0 ? tNear : t0
+        t1 = tFar < t1 ? tFar : t1
+        if t0 > t1 return Nullable{Tuple{Float64,Float64}}() 
+    end
+    return Nullable((t0, t1))
+end
+
+intersectP(R::Ray, BB:BoundingBox) = !isnull(intersect(R, BB))
+
+area(BB::BoundingBox) = 2 * ((BB.pMax[1] - BB.pMin[1]) * (BB.pMax[2] - BB.pMin[2])
+                           + (BB.pMax[2] - BB.pMin[2]) * (BB.pMax[3] - BB.pMin[3])
+                           + (BB.pMax[3] - BB.pMin[3]) * (BB.pMax[1] - BB.pMin[1]))
+
