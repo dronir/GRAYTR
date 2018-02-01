@@ -16,7 +16,7 @@ can_intersect(s::Sphere) = true
 
 area(s::Sphere) = 4π * s.radius^2
 
-function object_bounds(s::Sphere)
+function obj_bounds(s::Sphere)
     v = Point3(s.radius, s.radius, s.radius)
     return BoundingBox(-v, v)
 end
