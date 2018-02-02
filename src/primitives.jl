@@ -40,11 +40,13 @@ function intersect(R::Ray, P::GeometricPrimitive)
     ))
 end
 
-function BDRF(P::GeometricPrimitive, dg::DifferentialGeometry, obj_to_world::Transformation)
+function BDSF(P::GeometricPrimitive, dg::DifferentialGeometry, obj_to_world::Transformation)
     geom = get_shading_geometry(P.shape, dg, obj_to_world)
-    return BDRF(P.material, dg, geom)
+    return BDSF(P.material, dg, geom)
 end
 
+
+# Refine a primitive repeatedly until all primitives are intersectable
 function fully_refine(P::Primitive)
     todo = Primitive[P]
     out = Primitive[]
@@ -55,6 +57,8 @@ function fully_refine(P::Primitive)
     end
     out
 end
+
+
 
 struct Aggregate <: Primitive
 end
