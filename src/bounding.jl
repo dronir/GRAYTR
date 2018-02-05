@@ -52,12 +52,14 @@ function intersect(R::Ray, BB::BoundingBox)
         tNear, tFar = min(tNear, tFar), max(tNear, tFar)
         t0 = tNear > t0 ? tNear : t0
         t1 = tFar < t1 ? tFar : t1
-        if t0 > t1 return Nullable{Tuple{Float64,Float64}}() 
+        if t0 > t1 
+            return Nullable{Tuple{Float64,Float64}}()
+        end 
     end
     return Nullable((t0, t1))
 end
 
-intersectP(R::Ray, BB:BoundingBox) = !isnull(intersect(R, BB))
+intersectP(R::Ray, BB::BoundingBox) = !isnull(intersect(R, BB))
 
 area(BB::BoundingBox) = 2 * ((BB.pMax[1] - BB.pMin[1]) * (BB.pMax[2] - BB.pMin[2])
                            + (BB.pMax[2] - BB.pMin[2]) * (BB.pMax[3] - BB.pMin[3])
