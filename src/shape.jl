@@ -1,8 +1,6 @@
 
 abstract type Shape end
 
-include("diffgeom.jl")
-
 # Interface of a Shape:
 #  can_intersect(s::Shape), returns Bool 
 #  area(s::Shape), returns Float64
