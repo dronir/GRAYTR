@@ -128,6 +128,7 @@ function test_transformations()
             
         end
     end
+    true
 end
 
 test_vector3()
