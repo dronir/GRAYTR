@@ -40,10 +40,13 @@ function intersect(R::Ray, P::GeometricPrimitive)
     ))
 end
 
-function BDSF(P::GeometricPrimitive, dg::DifferentialGeometry, obj_to_world::Transformation)
+function get_BDSF(P::GeometricPrimitive, dg::DifferentialGeometry, obj_to_world::Transformation)
     geom = get_shading_geometry(P.shape, dg, obj_to_world)
-    return BDSF(P.material, dg, geom)
+    return get_BDSF(P.material, dg, geom)
 end
+
+function get_BSDF(I::Intersection) = get_BSDF(I.target, I.geometry, I.obj_to_world)
+
 
 
 # Refine a primitive repeatedly until all primitives are intersectable
