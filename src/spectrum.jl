@@ -10,8 +10,10 @@ end
 import Base.+
 function +(S1::SampledSpectrum, S2::SampledSpectrum)
     if !(S1.low ≈ S2.low && S1.high ≈ S2.high) 
+        error("Spectrum sizes don't match.")
+    end
     return SampledSpectrum(S1.values + S2.values)
-end error()
+end
 +(S::SampledSpectrum, c::Real) = SampledSpectrum(S.low, S.high, S.values + c)
 +(c::Real, S::SampledSpectrum) = S+c
 

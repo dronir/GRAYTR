@@ -1,5 +1,5 @@
 
-absract type Renderer end
+abstract type Renderer end
 
 struct SamplerRenderer <: Renderer
     sampler::Sampler
@@ -56,31 +56,34 @@ function run(task::SamplerRendererTask)
     
     max_samples = 0 # TODO
     array{Intersection}(max_samples)
-    
+    state = 0
     while true
-        samples = get_samples(subsampler)
+        samples, state = get_samples(subsampler, state)
         size(samples) == 0 && break
 
         # generate camera rays
         for i = 1:size(samples)
             # find camera ray for sample[i]
             weight, ray = generate_raydifferential(task.renderer.camera)
-            scaledifferentials(ray, 1/sqrt(sampler.samplesperpixel))
+            ray = scaledifferentials(ray, 1/sqrt(sampler.samplesperpixel))
             # evaluate radiance along ray
-            if weight ≈ 0
+            if !(weight ≈ 0)
                 Ls = weight * intensity(task.renderer, task.scene, task.ray, samples[i])
+            end
         end
         # TODO; report to Sampler
         # contribute to image
-        add_sample(task.renderer.camera.film)
+        # add_sample(task.renderer.camera.film) # TODO
         
     end
 end
 
-function intensity(renderer::SamplerRenderer, r::RayDifferential, sample::Sample)
+function intensity(renderer::SamplerRenderer, scene::Scene, r::Ray, sample::Sample)
     Li = 0.0
-    if intersect(r, renderer.scene)
-        Li += intensity(renderer.surf_integerator, renderer, r, sample)
+    maybe_isect = intersect(r, renderer.scene)
+    if !isnull(maybe_isect)
+        isect = get(maybe_isect)
+        Li += intensity(renderer.surf_integerator, renderer, scene, isect, r, sample)
     else
         Li += sum(background(light) for light in renderer.scene.lights)
     end
