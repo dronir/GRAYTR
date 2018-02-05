@@ -94,7 +94,6 @@ function get_samples(sampler::StratifiedSampler, state::Integer)
     out = Array{CameraSample}(N)
     img_samples = stratified2D(N, sampler.jitter)
     lens_samples = stratified2D(N, sampler.jitter)
-    # TODO: shuffle lens samples
     shuffle!(lens_samples[:,1])
     shuffle!(lens_samples[:,2])
     for i = 1:N
