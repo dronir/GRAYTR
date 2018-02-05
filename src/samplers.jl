@@ -76,8 +76,7 @@ function get_subsampler(sampler::StratifiedSampler, n::Integer, count::Integer)
         return Nullable{StratifiedSampler}()
     else
         return Nullable(StratifiedSampler(x0, x1, t0, t1, sampler.xs, sampler.ys, 
-                                          sampler.samplesperpixel, sampler.jitter)
-        ))
+                                          sampler.samplesperpixel, sampler.jitter))
     end
 end
 
