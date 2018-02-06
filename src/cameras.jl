@@ -39,3 +39,51 @@ function generate_ray(C::ProjectiveCamera, sample::CameraSample)
     R = Ray(pcam, Vector3(0,0,1), 0.0, Inf, 1)
     return C.camera_to_world(R)
 end
+
+
+
+struct ImageFilm{T<:Filter} <: Film
+    resX::Int64
+    resY::Int64
+    filter::T
+    pixels::Array{Float64,3}
+    filtertable::Array{Float64,2}
+end
+
+const FILTERTABLE_SIZE = 16
+
+function make_filtertable(f::Filter)
+    ftbl = zeros(Float64, (FILTERTABLE_SIZE, FILTERTABLE_SIZE))
+    for j = 1:FILTERTABLE_SIZE
+        fy = (j + 0.5) * f.ywidth / FILTERTABLE_SIZE
+        for i = 1:FILTERTABLE_SIZE
+            fx = (i + 0.5) * f.xwidth / FILTERTABLE_SIZE
+            ftbl[i,j] = evaluate(f, fx, fy)
+        end
+    end
+    ftbl
+end
+
+ImageFilm(x::Integer, y::Integer, f::Filter) = ImageFilm(x, y, f, zeros(Float64, (x,y,3)), 
+                                                         make_filtertable(f))
+
+function add_sample(F::ImageFilm, sample::Sample, L::Spectrum)
+    dimgX = sample.imgX - 0.5
+    dimgY = sample.imgY - 0.5
+    x0 = ceil(Int64, dimgX - F.filter.xwidth)
+    x1 = floor(Int64, dimgX + F.filter.xwidth)
+    y0 = ceil(Int64, dimgY - F.filter.ywidth)
+    y1 = floor(Int64, dimgY + F.filter.ywidth)
+    if (x1-x0) < 0 || (y1-y0) < 0
+        return
+    end
+    xyz = spectrum_to_xyz(L)
+    for i = x0:x1
+        for j = y0:y0
+            # TODO: unoptimized way, without using filter table
+            w = evaluate(F.filter, (i-dimgX), (j-dimgY))
+            F.pixels[i,j,:] += xyz
+        end
+    end
+end
+

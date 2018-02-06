@@ -5,6 +5,7 @@ using Geometry
 include("samplers.jl")
 include("rays.jl")
 include("cameras.jl")
+include("filters.jl")
 
 struct DummyFilm <: Film 
     xres::Int64
@@ -42,3 +43,16 @@ DummyFilm() = DummyFilm(10,10)
         @test C.screen_to_camera(Point3(0)) ≈ Point3(0)
     end
 end
+
+
+@testset "ImageFilm" begin
+    @testset "Filter table" begin
+        tbl = make_filtertable(BoxFilter(1.0, 1.0))
+        @test tbl ≈ ones(16,16)
+    end
+    @testset "Adding sample" begin
+        F = ImageFilm(10, 10, BoxFilter(1.0, 1.0))
+        
+    end
+end
+

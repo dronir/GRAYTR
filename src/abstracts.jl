@@ -39,3 +39,4 @@ abstract type LightSource end
 # For cameras.jl
 abstract type Camera end
 abstract type Film end
+abstract type Filter end
