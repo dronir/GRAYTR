@@ -36,3 +36,6 @@ abstract type VolumeIntegrator <: Integrator end
 # For lights.jl
 abstract type LightSource end
 
+# For cameras.jl
+abstract type Camera end
+abstract type Film end
