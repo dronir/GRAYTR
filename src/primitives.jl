@@ -1,5 +1,5 @@
 
-abstract type Primitive end
+
 
 # world_bounds(P::Primitive) returns BoundingBox
 # obj_bounds(P::Primitive) return BoundingBox
@@ -45,7 +45,7 @@ function get_BDSF(P::GeometricPrimitive, dg::DifferentialGeometry, obj_to_world:
     return get_BDSF(P.material, dg, geom)
 end
 
-function get_BSDF(I::Intersection) = get_BSDF(I.target, I.geometry, I.obj_to_world)
+get_BSDF(I::Intersection) = get_BSDF(I.target, I.geometry, I.obj_to_world)
 
 
 

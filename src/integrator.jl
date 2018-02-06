@@ -1,7 +1,4 @@
 
-abstract type Integrator end
-abstract type SurfaceIntegrator <: Integrator end
-abstract type VolumeIntegrator <: Integrator end
 
 
 struct WhittedIntegrator <: SurfaceIntegrator

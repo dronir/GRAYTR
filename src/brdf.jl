@@ -7,7 +7,7 @@ cosphi(w::Vector3) = sintheta(w) ≈ 0.0 ? 1.0 : clamp(w.x / sintheta(w), -1.0, 
 sinphi(w::Vector3) = sintheta(w) ≈ 0.0 ? 0.0 : clamp(w.y / sintheta(w), -1.0, 1.0)
 
 
-abstract type BxDF end
+
 
 # Interface for BxDF subtypes:
 #  BSDF_type(B::BxDF) returns a type (TODO: how to parametrize?)

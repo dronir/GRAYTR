@@ -1,7 +1,6 @@
 
-abstract type Spectrum end
 
-struct SampledSpectrum
+struct SampledSpectrum <: Spectrum
     low::Float64
     high::Float64
     values::Array{Float64,1}

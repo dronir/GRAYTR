@@ -1,7 +1,6 @@
 
 include("brdf.jl")
 
-abstract type Material end
 
 struct BSDF
     dgs::DifferentialGeometry

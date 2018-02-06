@@ -1,5 +1,4 @@
 
-abstract type Shape end
 
 # Interface of a Shape:
 #  can_intersect(s::Shape), returns Bool 

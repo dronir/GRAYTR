@@ -1,5 +1,4 @@
 
-abstract type Renderer end
 
 struct SamplerRenderer <: Renderer
     sampler::Sampler
@@ -8,7 +7,6 @@ struct SamplerRenderer <: Renderer
     vol_integrator::VolumeIntegrator
 end
 
-abstract type Task end
 
 struct SamplerRendererTask <: Task
     scene::Scene

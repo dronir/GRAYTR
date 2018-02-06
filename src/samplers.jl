@@ -1,6 +1,4 @@
 
-abstract type Sampler end
-abstract type Sample end
 
 # Sampler interface:
 #  get_samples()

@@ -1,5 +1,4 @@
 
-abstract type LightSource end
 
 
 ################################
