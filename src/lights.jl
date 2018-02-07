@@ -50,6 +50,7 @@ function sample_L(light::PointLight, p::Point3)
     return L, wi, pdf, vis
 end
 
+direct(L::PointLight) = true
 background(L::PointLight) = NoLight()
 
 
@@ -69,10 +70,26 @@ function DistantLight(dir::Vector3, L::Spectrum, l2w::Transformation, nsamples::
 end
 
 function sample_L(light::DistantLight, p::Point3)
-    return light.L, light.direction, 1.0, VisibilityTester(p, light.direction, 2e-5)
+    return light.intensity, light.direction, 1.0, VisibilityTester(p, light.direction, 2e-5)
 end
 
+direct(L::DistantLight) = true
 background(L::DistantLight) = NoLight()
+
+
+################################
+# Distance light source
+
+struct Background <: LightSource
+    intensity::Spectrum
+end
+
+sample_L(light::Background, p::Point3) = NoLight()
+
+direct(L::Background) = false
+background(L::Background) = L.intensity
+
+
 
 ################################
 # Area Light (TODO)

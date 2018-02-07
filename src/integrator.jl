@@ -24,6 +24,9 @@ function intensity(intgr::WhittedIntegrator, rend::Renderer, scene::Scene, isect
     
     # add contribution of each light source
     for light in scene.lights
+        if !direct(light)
+            continue
+        end
         Li, wi, pdf, vis = sample_L(light, p)
         if isblack(Li) || pdf ≈ 0.0
             continue
