@@ -7,9 +7,10 @@
 
 # TODO CHECK CORRECTNESS
 # TODO MOVE ELSEWHERE
-lerp(t, a, b) = a + t * (b-a)
+lerp(t, a, b) = (1-t)*a + t*b
 
 stratified1D(N::Integer, jitter::Bool) = [(i-1 + (jitter ? rand() : 0.5))/N for i = 0:N:1]
+
 function stratified2D(N::Integer, jitter::Bool)
     out = zeros(Float64, (N,2))
     for i = 1:N
@@ -23,25 +24,26 @@ end
 # the number `n` of the area and the total number `count` of areas.
 # Note that indexing starts from 1 unlike in book's C++ code.
 function compute_subwindow(sampler::Sampler, n::Int64, count::Int64)
-    xres = sampler.xend - sampler.xstart
-    yres = sampler.yend - sampler.ystart
+    dx = sampler.xend - sampler.xstart
+    dy = sampler.yend - sampler.ystart
     n -= 1
     nx = count
     ny = 1
-    while nx%2==0 && 2*xres*ny < yres*nx
+    while nx%2==0 && 2*dx*ny < dy*nx
         nx = div(nx, 2)
         ny *= 2
     end
-    x0 = n % nx + 1
-    y0 = div(n, ny) + 1
-    tx0 = x0 / nx
-    ty0 = t0 / ny
-    tx1 = (x0+1) / nx
-    ty1 = (y0+1) / ny
+    x0 = n % nx 
+    y0 = div(n, ny) 
+    tx0 = x0 // nx
+    ty0 = y0 // ny
+    tx1 = (x0+1) // nx
+    ty1 = (y0+1) // ny
     xstart1 = floor(Int64, lerp(tx0, sampler.xstart, sampler.xend))
-    xendt1 = floor(Int64, lerp(tx0, sampler.xstart, sampler.xend))
-    ystart1 = floor(Int64, lerp(tx0, sampler.ystart, sampler.yend))
-    yendt1 = floor(Int64, lerp(tx0, sampler.ystart, sampler.yend))
+    xend1 = floor(Int64, lerp(tx1, sampler.xstart, sampler.xend))
+    ystart1 = floor(Int64, lerp(ty0, sampler.ystart, sampler.yend))
+    yend1 = floor(Int64, lerp(ty1, sampler.ystart, sampler.yend))
+    return (xstart1, xend1, ystart1, yend1)
 end
 
 
@@ -73,7 +75,7 @@ function get_subsampler(sampler::StratifiedSampler, n::Integer, count::Integer)
     if x0 == x1 || y0 == y1
         return Nullable{StratifiedSampler}()
     else
-        return Nullable(StratifiedSampler(x0, x1, t0, t1, sampler.xs, sampler.ys, 
+        return Nullable(StratifiedSampler(x0, x1, y0, y1, sampler.xs, sampler.ys, 
                                           sampler.samplesperpixel, sampler.jitter))
     end
 end
@@ -88,17 +90,20 @@ function get_samples(sampler::StratifiedSampler, state::Integer)
 
     xpos = sampler.xstart + state % dx
     ypos = sampler.ystart + div(state, dy)
-    N = sampler.xs * sampler.xy
+    N = sampler.xs * sampler.ys
     out = Array{CameraSample}(N)
     img_samples = stratified2D(N, sampler.jitter)
     lens_samples = stratified2D(N, sampler.jitter)
     shuffle!(lens_samples[:,1])
     shuffle!(lens_samples[:,2])
     for i = 1:N
-        out[i].imgX = img_samples(i,1)
-        out[i].imgY = img_samples(i,2)
-        out[i].lensU = lens_samples(i,1)
-        out[i].lensV = lens_samples(i,2)
+        s = CameraSample(
+            img_samples[i,1] + xpos,
+            img_samples[i,2] + ypos,
+            lens_samples[i,1],
+            lens_samples[i,2]
+        )
+        out[i] = s
     end
     return out, state+1
 end

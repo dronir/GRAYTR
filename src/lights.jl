@@ -50,6 +50,8 @@ function sample_L(light::PointLight, p::Point3)
     return L, wi, pdf, vis
 end
 
+background(L::PointLight) = 0.0
+
 
 ################################
 # Distance light source
@@ -69,6 +71,8 @@ end
 function sample_L(light::DistantLight, p::Point3)
     return light.L, light.direction, 1.0, VisibilityTester(p, light.direction, 2e-5)
 end
+
+background(L::DistantLight) = 0.0
 
 ################################
 # Area Light (TODO)

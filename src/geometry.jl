@@ -1,7 +1,7 @@
 module Geometry
 
 import Base.+, Base.-, Base.*, Base./, Base.dot, Base.cross, Base.isnan, Base.inv
-import Base.getindex, Base.min, Base.max
+import Base.getindex, Base.min, Base.max, Base.norm
 import Base.convert, Base.normalize, Base.isapprox
 import Base.start, Base.next, Base.done, Base.size, Base.length
 #import Base.AbstractArray
@@ -47,6 +47,7 @@ length(A::VectorLike) = 3
 +(B::Vector3, A::Point3) = A+B
 +(v::Vector3, u::Vector3) = Vector3(v.x+u.x, v.y+u.y, v.z+u.z)
 -(v::Vector3, u::Vector3) = Vector3(v.x-u.x, v.y-u.y, v.z-u.z)
+-(v::Point3, u::Point3) = Vector3(v.x-u.x, v.y-u.y, v.z-u.z)
 -(A::T) where {T<:VectorLike} = T(-A.x, -A.y, -A.z)
 
 dot(A::VectorLike, B::VectorLike) = A.x*B.x + A.y*B.y + A.z*B.z

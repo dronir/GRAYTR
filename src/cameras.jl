@@ -14,7 +14,7 @@ struct ProjectiveCamera <: Camera
 end
 
 function ProjectiveCamera(cam2w::Transformation, proj::Transformation, window::Array{Float64,1}, lensr::Float64, focald::Float64, f::Film)
-    screen2raster = (scaling(f.xres, f.yres, 1.0) 
+    screen2raster = (scaling(f.resX, f.resY, 1.0) 
                    * scaling(1.0/(window[2] - window[1]), 1.0/(window[4] - window[3]), 1.0) 
                    * translation(-window[1], -window[3], 0.0))
     cam2screen = orthographic(0.0, 1.0)
@@ -37,7 +37,7 @@ function generate_ray(C::ProjectiveCamera, sample::CameraSample)
     pras = Point3(sample.imgX, sample.imgY, 0.0)
     pcam = C.raster_to_camera(pras)
     R = Ray(pcam, Vector3(0,0,1), 0.0, Inf, 1)
-    return C.camera_to_world(R)
+    return 1.0, C.camera_to_world(R)
 end
 
 
@@ -64,26 +64,34 @@ function make_filtertable(f::Filter)
     ftbl
 end
 
-ImageFilm(x::Integer, y::Integer, f::Filter) = ImageFilm(x, y, f, zeros(Float64, (x,y,3)), 
+ImageFilm(x::Integer, y::Integer, f::Filter) = ImageFilm(x, y, f, zeros(Float64, (3,x,y)), 
                                                          make_filtertable(f))
 
 function add_sample(F::ImageFilm, sample::Sample, L::Spectrum)
     dimgX = sample.imgX - 0.5
     dimgY = sample.imgY - 0.5
-    x0 = ceil(Int64, dimgX - F.filter.xwidth)
-    x1 = floor(Int64, dimgX + F.filter.xwidth)
-    y0 = ceil(Int64, dimgY - F.filter.ywidth)
-    y1 = floor(Int64, dimgY + F.filter.ywidth)
+    x0 = ceil(Int64, dimgX - F.filter.xwidth)+1
+    x1 = floor(Int64, dimgX + F.filter.xwidth)+1
+    y0 = ceil(Int64, dimgY - F.filter.ywidth)+1
+    y1 = floor(Int64, dimgY + F.filter.ywidth)+1
+    x0 = max(x0, 1)
+    x1 = min(x1, F.resX)
+    y0 = max(y0, 1)
+    y1 = min(y1, F.resY)
     if (x1-x0) < 0 || (y1-y0) < 0
         return
     end
-    xyz = spectrum_to_xyz(L)
+    xyz = to_XYZ(L)
     for i = x0:x1
-        for j = y0:y0
+        for j = y0:y1
             # TODO: unoptimized way, without using filter table
             w = evaluate(F.filter, (i-dimgX), (j-dimgY))
-            F.pixels[i,j,:] += xyz
+            F.pixels[:,i,j] += xyz
         end
     end
 end
+
+write_image(F::ImageFilm) = save("test.png", map(clamp01nan, colorview(RGB, F.pixels)))
+#write_image(F::ImageFilm) = writecsv("test.txt", squeeze(mean(F.pixels, 1), 1))
+
 

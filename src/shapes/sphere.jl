@@ -22,7 +22,7 @@ function obj_bounds(s::Sphere)
 end
 
 function world_bounds(s::Sphere)
-    s.obj_to_world(object_bounds(s))
+    s.obj_to_world(obj_bounds(s))
 end
 
 # Solve quadratic equation
@@ -36,6 +36,8 @@ function quadratic(A, B, C)
     t1 = C/q
     return true, min(t0,t1), max(t0,t1)
 end
+
+get_shading_geometry(S::Sphere, dg::DifferentialGeometry, T::Transformation) = dg
 
 
 function intersect(r::Ray, sph::Sphere)

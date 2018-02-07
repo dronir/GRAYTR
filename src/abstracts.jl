@@ -26,7 +26,6 @@ abstract type Sample end
 
 # For renderer.jl
 abstract type Renderer end
-abstract type Task end
 
 # For integrator.jl
 abstract type Integrator end
