@@ -5,9 +5,11 @@
 #  maximumsamplecount()
 #  getsubsampler()
 
-# TODO CHECK CORRECTNESS
 # TODO MOVE ELSEWHERE
 lerp(t, a, b) = (1-t)*a + t*b
+
+
+# Stratified1D and Stratified2D generate a bunch of stratified samples in the [0,1] interval.
 
 stratified1D(N::Integer, jitter::Bool) = [(i-1 + (jitter ? rand() : 0.5))/N for i = 0:N:1]
 
@@ -24,8 +26,8 @@ end
 # the number `n` of the area and the total number `count` of areas.
 # Note that indexing starts from 1 unlike in book's C++ code.
 function compute_subwindow(sampler::Sampler, n::Int64, count::Int64)
-    dx = sampler.xend - sampler.xstart
-    dy = sampler.yend - sampler.ystart
+    dx = sampler.xend - sampler.xstart + 1
+    dy = sampler.yend - sampler.ystart + 1
     n -= 1
     nx = count
     ny = 1
@@ -33,18 +35,15 @@ function compute_subwindow(sampler::Sampler, n::Int64, count::Int64)
         nx = div(nx, 2)
         ny *= 2
     end
+
+    cx = div(dx,nx)
+    cy = div(dy,ny)
+
     x0 = n % nx 
     y0 = div(n, ny) 
-    tx0 = x0 // nx
-    ty0 = y0 // ny
-    tx1 = (x0+1) // nx
-    ty1 = (y0+1) // ny
-    xstart1 = floor(Int64, lerp(tx0, sampler.xstart, sampler.xend))
-    xend1 = floor(Int64, lerp(tx1, sampler.xstart, sampler.xend))
-    ystart1 = floor(Int64, lerp(ty0, sampler.ystart, sampler.yend))
-    yend1 = floor(Int64, lerp(ty1, sampler.ystart, sampler.yend))
-    return (xstart1, xend1, ystart1, yend1)
+    return x0*cx+1, (x0+1)*cx, y0*cy+1, (y0+1)*cy
 end
+
 
 
 struct CameraSample <: Sample
@@ -67,6 +66,8 @@ struct StratifiedSampler <: Sampler
     jitter::Bool
 end
 
+StratifiedSampler(x0::Int64, x1::Int64, y0::Int64, y1::Int64, xs::Int64, ys::Int64, j::Bool) = StratifiedSampler(x0,x1,y0,y1,xs,ys,xs*ys,j)
+
 roundsize(S::StratifiedSampler, size::Integer) = size
 
 
@@ -76,14 +77,14 @@ function get_subsampler(sampler::StratifiedSampler, n::Integer, count::Integer)
         return Nullable{StratifiedSampler}()
     else
         return Nullable(StratifiedSampler(x0, x1, y0, y1, sampler.xs, sampler.ys, 
-                                          sampler.samplesperpixel, sampler.jitter))
+                                          sampler.jitter))
     end
 end
 
 # Returns an empty array when all the sampling has been done
 function get_samples(sampler::StratifiedSampler, state::Integer)
-    dx = sampler.xend - sampler.xstart
-    dy = sampler.yend - sampler.ystart
+    dx = sampler.xend - sampler.xstart + 1
+    dy = sampler.yend - sampler.ystart + 1
     if state >= dx*dy
         return CameraSample[], state
     end
