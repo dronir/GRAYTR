@@ -1,3 +1,13 @@
+import Base.+, Base.*, Base./
+
+struct NoLight <: Spectrum end
+
++(N::NoLight, S::Spectrum) = S
++(S::Spectrum, N::NoLight) = S
+*(N::NoLight, S::Spectrum) = S
+*(S::Spectrum, N::NoLight) = S
+/(N::NoLight, S::Spectrum) = S
+/(S::Spectrum, N::NoLight) = S
 
 
 struct SampledSpectrum <: Spectrum
@@ -6,7 +16,7 @@ struct SampledSpectrum <: Spectrum
     values::Array{Float64,1}
 end
 
-import Base.+, Base.*, Base./
+
 function +(S1::SampledSpectrum, S2::SampledSpectrum)
     if !(S1.low ≈ S2.low && S1.high ≈ S2.high) 
         error("Spectrum sizes don't match.")

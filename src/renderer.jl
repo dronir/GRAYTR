@@ -33,7 +33,10 @@ function render(renderer::SamplerRenderer, scene::Scene)
     camera = renderer.camera
     nTasks = count_tasks(nprocs(), camera.film.resX, camera.film.resY)
     tasks = [SamplerRendererTask(scene, renderer, n, nTasks) for n = 1:nTasks]
+    
+    println("Running $nTasks render tasks on $(nprocs()) cores...")
     enqueue_and_run(tasks)
+    println("Writing results to disk...")
     
     # cleanup and produce image
     write_image(renderer.camera.film)
@@ -90,8 +93,8 @@ function intensity(renderer::SamplerRenderer, scene::Scene, r::Ray, sample::Samp
     if !isnull(maybe_isect)
         isect = get(maybe_isect)
         Li += intensity(renderer.surf_integrator, renderer, scene, isect, r, sample)
-#    else
-        #Li += sum(background(light) for light in scene.lights)
+    else
+        Li += sum(background(light) for light in scene.lights)
     end
     # TODO: add volume integrator contribution
     return Li
