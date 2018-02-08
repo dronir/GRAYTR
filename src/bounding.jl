@@ -65,3 +65,8 @@ area(BB::BoundingBox) = 2 * ((BB.pMax[1] - BB.pMin[1]) * (BB.pMax[2] - BB.pMin[2
                            + (BB.pMax[2] - BB.pMin[2]) * (BB.pMax[3] - BB.pMin[3])
                            + (BB.pMax[3] - BB.pMin[3]) * (BB.pMax[1] - BB.pMin[1]))
 
+
+union(BB::BoundingBox, p::Point3) = BoundingBox(min(BB1.pMin, p), max(BB1.pMax, p))
+union(p::Point3, BB::BoundingBox) = union(BB, p)
+union(BB1::BoundingBox, BB2::BoundingBox) = BoundingBox(min(BB1.pMin, BB2.pMin), max(BB1.pMax, BB2.pMax))
+
