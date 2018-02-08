@@ -33,7 +33,7 @@ struct Lambert <: BxDF
 end
 
 BSDF_type(B::Lambert) = BSDF_REFLECTION | BSDF_DIFFUSE
-f(B::Lambert, w0::Vector3, w1::Vector3) = B.R / π
+evaluate(B::Lambert, w0::Vector3, w1::Vector3) = B.R / π
 rho(B::Lambert, w0::Vector3) = B.R
 
 

@@ -37,7 +37,7 @@ function evaluate(B::BSDF, w0::Vector3, w1::Vector3)
     else
         flags = flags & ~BSDF_REFLECTION
     end
-    return sum(f(X, w0l, w1l) for X in B.BxDFlist)
+    return sum(evaluate(some_BRDF, w0l, w1l) for some_BRDF in B.BxDFlist)
 end
 
 

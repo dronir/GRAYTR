@@ -53,48 +53,50 @@ function count_tasks(nCores::Integer, resX::Integer, resY::Integer)
 end
 
 
+# The core functionality really starts here!
+# This runs a SamplerRendererTask, generating a ray, computing the intensity along that ray,
+# and adding it to the camera film.
 function run(task::SamplerRendererTask)
     maybe_sampler = get_subsampler(task.renderer.sampler, task.number, task.count)
     isnull(maybe_sampler) && return nothing
     subsampler = get(maybe_sampler)
-#    @printf("(%d, %d, %d, %d)\n", subsampler.xstart, subsampler.xend, subsampler.ystart, subsampler.yend)
     
     max_samples = 0 # TODO
-    #Array{Intersection}(max_samples)
     state = 0
     while true
         samples, state = get_samples(subsampler, state)
         length(samples) == 0 && break
-        Ls = RGBSpectrum(0.0, 0.0, 0.0)
+        intensities = Array{Spectrum}(size(samples))
 
         # generate camera rays
-        for i = length(samples)
+        for i = 1:length(samples)
             # find camera ray for sample[i]
             weight, ray = generate_ray(task.renderer.camera, samples[i])
-#            ray = scaledifferentials(ray, 1/sqrt(sampler.samplesperpixel))
             # evaluate radiance along ray
-            if !(weight ≈ 0)
-                Ls = weight * intensity(task.renderer, task.scene, ray, samples[i])
+            if weight > 0.0
+                intensities[i] = weight * intensity(task.renderer, task.scene, ray, samples[i])
             end
         end
-        # TODO; report to Sampler
-        # contribute to image
-        for sample in samples
-            add_sample(task.renderer.camera.film, sample, Ls) # TODO
+        # TODO; report to Sampler if it wants
+        # Contribute to image
+        for (sample, Ls) in zip(samples, intensities)
+            if !isblack(Ls)
+                add_sample!(task.renderer.camera.film, sample, Ls)
+            end
         end
-        
     end
     return nothing
 end
 
 function intensity(renderer::SamplerRenderer, scene::Scene, r::Ray, sample::Sample)
-    Li = RGBSpectrum(0,0,0)
     maybe_isect = intersect(r, scene)
     if !isnull(maybe_isect)
+        # Ray hits a scene object. Get its contribution from surface integrator.
         isect = get(maybe_isect)
-        Li += intensity(renderer.surf_integrator, renderer, scene, isect, r, sample)
+        Li = intensity(renderer.surf_integrator, renderer, scene, isect, r, sample)
     else
-        Li += sum(background(light) for light in scene.lights)
+        # Ray doesn't hit any scenery. Add contribution from background light sources.
+        Li = sum(background(light) for light in scene.lights)
     end
     # TODO: add volume integrator contribution
     return Li
