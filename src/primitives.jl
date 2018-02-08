@@ -64,8 +64,6 @@ end
 
 
 
-struct Aggregate <: Primitive
-end
 
 
 

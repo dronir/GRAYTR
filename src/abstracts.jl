@@ -7,6 +7,8 @@
 
 # For primitives.jl
 abstract type Primitive end
+abstract type Aggregate <: Primitive end
+abstract type BoundingVolume end
 
 # For bsdr.jl
 abstract type BxDF end

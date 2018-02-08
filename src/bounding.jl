@@ -1,7 +1,7 @@
 
 
 # A bounding box is defined by its extreme corners.
-struct BoundingBox
+struct BoundingBox <: BoundingVolume
     pMin::Point3
     pMax::Point3
 end
