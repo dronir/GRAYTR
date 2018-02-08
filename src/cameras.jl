@@ -40,13 +40,22 @@ function generate_ray(C::ProjectiveCamera, sample::CameraSample)
     return 1.0, C.camera_to_world(R)
 end
 
+struct Pixel
+    x::Float64
+    y::Float64
+    z::Float64
+    w::Float64
+end
 
+import Base.zero
+zero(::Type{Pixel}) = Pixel(0.0,0.0,0.0,0.0)
+add(P::Pixel, S::Array{Float64,1}, w::Float64) = Pixel(P.x+S[1], P.y+S[2], P.z+S[3], P.w+w)
 
 struct ImageFilm{T<:Filter} <: Film
     resX::Int64
     resY::Int64
     filter::T
-    pixels::Array{Float64,3}
+    pixels::Array{Pixel,2}
     filtertable::Array{Float64,2}
 end
 
@@ -64,16 +73,16 @@ function make_filtertable(f::Filter)
     ftbl
 end
 
-ImageFilm(x::Integer, y::Integer, f::Filter) = ImageFilm(x, y, f, zeros(Float64, (3,x,y)), 
+ImageFilm(x::Integer, y::Integer, f::Filter) = ImageFilm(x, y, f, zeros(Pixel,(x,y)), 
                                                          make_filtertable(f))
 
-function add_sample(F::ImageFilm, sample::Sample, L::Spectrum)
+function add_sample!(F::ImageFilm, sample::Sample, L::Spectrum)
     dimgX = sample.imgX - 0.5
     dimgY = sample.imgY - 0.5
-    x0 = ceil(Int64, dimgX - F.filter.xwidth)+1
-    x1 = floor(Int64, dimgX + F.filter.xwidth)+1
-    y0 = ceil(Int64, dimgY - F.filter.ywidth)+1
-    y1 = floor(Int64, dimgY + F.filter.ywidth)+1
+    x0 = ceil(Int64, dimgX - F.filter.xwidth)
+    x1 = floor(Int64, dimgX + F.filter.xwidth)
+    y0 = ceil(Int64, dimgY - F.filter.ywidth)
+    y1 = floor(Int64, dimgY + F.filter.ywidth)
     x0 = max(x0, 1)
     x1 = min(x1, F.resX)
     y0 = max(y0, 1)
@@ -86,12 +95,28 @@ function add_sample(F::ImageFilm, sample::Sample, L::Spectrum)
         for j = y0:y1
             # TODO: unoptimized way, without using filter table
             w = evaluate(F.filter, (i-dimgX), (j-dimgY))
-            F.pixels[:,i,j] += xyz
+            F.pixels[i,j] = add(F.pixels[i,j], xyz, w)
         end
     end
 end
 
-write_image(F::ImageFilm) = save("test.png", map(clamp01nan, colorview(RGB, F.pixels)))
-#write_image(F::ImageFilm) = writecsv("test.txt", squeeze(mean(F.pixels, 1), 1))
+function write_image(F::ImageFilm) 
+    data = zeros(Float64, (3, size(F.pixels)...))
+    for i = 1:size(F.pixels,1)
+        for j = 1:size(F.pixels,2)
+            P = F.pixels[i,j]
+            data[:,i,j] = XYZtoRGB([P.x/P.w, P.y/P.w, P.z/P.w])
+        end
+    end
+    img = colorview(RGB, map(clamp01nan, data))
+    save("test.png", img)
+end
 
+function write_bwtxt(F::ImageFilm) 
+    f = open("test.txt", "w")
+    for i = 1:minimum(size(F.pixels))
+        write(f, repr(F.pixels[i,i]))
+        write(f, "\n")
+    end
+end
 
