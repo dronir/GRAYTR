@@ -51,15 +51,21 @@ get_BSDF(I::Intersection) = get_BSDF(I.target, I.geometry, I.obj_to_world)
 
 
 # Refine a primitive repeatedly until all primitives are intersectable
-function fully_refine(P::Primitive)
+function fully_refine!(P::Primitive, out::Array{Primitive,1})
+    if can_intersect(P)
+        push!(out, P)
+        return out
+    end
     todo = Primitive[P]
-    out = Primitive[]
-    while size(todo) > 0
-        for piece in refine(todo[1])
-            append!(can_intersect(piece) ? out : todo, piece)
+    while length(todo) > 0
+        piece = pop!(todo)
+        if can_intersect(piece)
+            push!(out, piece)
+        else
+            prepend!(todo, refine(piece))
         end
     end
-    out
+    return out
 end
 
 

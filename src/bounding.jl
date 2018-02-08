@@ -70,3 +70,15 @@ union(BB::BoundingBox, p::Point3) = BoundingBox(min(BB1.pMin, p), max(BB1.pMax, 
 union(p::Point3, BB::BoundingBox) = union(BB, p)
 union(BB1::BoundingBox, BB2::BoundingBox) = BoundingBox(min(BB1.pMin, BB2.pMin), max(BB1.pMax, BB2.pMax))
 
+function max_extent(BB::BoundingBox)
+    dx = BB.pMax.x - BB.pMin.x
+    dy = BB.pMax.y - BB.pMin.y
+    dz = BB.pMax.z - BB.pMin.z
+    if dx >= dy && dx >= dz
+        return 1
+    elseif dy >= dx && dy >= dz
+        return 2
+    else
+        return 3
+    end 
+end
