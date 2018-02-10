@@ -95,7 +95,7 @@ function add_sample!(F::ImageFilm, sample::Sample, L::Spectrum)
         for j = y0:y1
             # TODO: unoptimized way, without using filter table
             w = evaluate(F.filter, (i-dimgX), (j-dimgY))
-            F.pixels[i,j] = add(F.pixels[i,j], xyz, w)
+            F.pixels[i,j] = add(F.pixels[i,j], w*xyz, w)
         end
     end
 end
