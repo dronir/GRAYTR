@@ -8,6 +8,7 @@ import Base.start, Base.next, Base.done, Base.size, Base.length
 
 export VectorLike, Vector3, Normal3, Point3
 export Transformation, translation, scaling, rotation, look_at, swaps_handedness
+export X_AXIS, Y_AXIS, Z_AXIS
 
 abstract type VectorLike end
 
@@ -35,6 +36,10 @@ struct Normal3 <: VectorLike
     y::Float64
     z::Float64
 end
+
+const X_AXIS = Vector3(1,0,0)
+const Y_AXIS = Vector3(0,1,0)
+const Z_AXIS = Vector3(0,0,1)
 
 Vector3(x::Real) = Vector3(x,x,x)
 Point3(x::Real) = Point3(x,x,x)
