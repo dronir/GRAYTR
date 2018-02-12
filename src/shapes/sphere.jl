@@ -25,19 +25,7 @@ function world_bounds(s::Sphere)
     s.obj_to_world(obj_bounds(s))
 end
 
-# Solve quadratic equation
-function quadratic(A, B, C)
-    dd = B^2 - 4*A*C
-    if dd < 0.0
-        return false, Inf, Inf
-    end
-    q = B<0 ? -0.5 * (B - sqrt(dd)) : -0.5 * (B + sqrt(dd))
-    t0 = q/A
-    t1 = C/q
-    return true, min(t0,t1), max(t0,t1)
-end
 
-get_shading_geometry(S::Sphere, dg::DifferentialGeometry, T::Transformation) = dg
 
 
 function intersect(r::Ray, sph::Sphere)
@@ -70,18 +58,7 @@ function intersect(r::Ray, sph::Sphere)
     dpduu = -4π^2 * Vector3(P.x, P.y, 0.0)
     dpduv = 2pi^2 * P.z * Vector3(-sinphi, cosphi, 0.0)
     dpdvv = -π^2 * P
-    E = dot(dpdu, dpdu)
-    F = dot(dpdu, dpdv)
-    G = dot(dpdv, dpdv)
-    N = normalize(cross(dpdu, dpdv))
-    e = dot(N, dpduu)
-    f = dot(N, dpduv)
-    g = dot(N, dpdvv)
-    
-    invEG = 1.0 / (E*G - F^2)
-    dndu = Normal3((f*F - e*G) * invEG * dpdu + (e*F - f*E) * invEG * dpdv)
-    dndv = Normal3((g*F - f*G) * invEG * dpdu + (f*F - g*E) * invEG * dpdv)
-    
+    dndu, dndv = normal_derivatives(dpdu, dpdv, dpduu, dpduv, dpdvv)
     
     DG = Nullable(DifferentialGeometry(
         sph.obj_to_world(P),
