@@ -59,6 +59,8 @@ struct ImageFilm{T<:Filter} <: Film
     filtertable::Array{Float64,2}
 end
 
+uses_isect(F::ImageFilm) = false
+
 const FILTERTABLE_SIZE = 16
 
 function make_filtertable(f::Filter)

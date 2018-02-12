@@ -52,3 +52,4 @@ function intensity(intgr::WhittedIntegrator, rend::Renderer, scene::Scene, isect
 #    end
 end
 
+

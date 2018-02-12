@@ -82,7 +82,11 @@ function run(task::SamplerRendererTask)
         # Contribute to image
         for (sample, Ls) in zip(samples, intensities)
             if !isblack(Ls)
-                add_sample!(task.renderer.camera.film, sample, Ls)
+                if uses_isect(task.renderer.camera.film)
+                    add_sample!(task.renderer.camera.film, sample, Ls, isect)
+                else
+                    add_sample!(task.renderer.camera.film, sample, Ls)
+                end
             end
         end
     end
