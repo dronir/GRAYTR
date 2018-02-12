@@ -74,7 +74,8 @@ function run(task::SamplerRendererTask)
             weight, ray = generate_ray(task.renderer.camera, samples[i])
             # evaluate radiance along ray
             if weight > 0.0
-                intensities[i] = weight * intensity(task.renderer, task.scene, ray, samples[i])
+                Li, isect = intensity(task.renderer, task.scene, ray, samples[i])
+                intensities[i] = weight * Li
             end
         end
         # TODO; report to Sampler if it wants
@@ -99,6 +100,6 @@ function intensity(renderer::SamplerRenderer, scene::Scene, r::Ray, sample::Samp
         Li = sum(background(light) for light in scene.lights)
     end
     # TODO: add volume integrator contribution
-    return Li
+    return Li, maybe_isect
 end
 
