@@ -28,16 +28,15 @@ include("cameras.jl")
 # Make something to look at
 mat = MatteMaterial(RGBSpectrum(1.0, 1.0, 1.0))
 
-T1 = translation(0.1, 0.0, 0.0)
-sph1 = Sphere(1, 1.0, T1)
+T1 = rotation(Y_AXIS, π/5) * rotation(X_AXIS, pi/6)
+sph1 = Cylinder(T1)
 sphP1 = GeometricPrimitive(sph1, mat, Nullable{AreaLight}(), 1)
 
-T2 = translation(1.4, 1.0, -1.0)
-sph2 = Sphere(1, 0.5, T2)
+T2 = translation(0.0, 0.0, 1.0)
+sph2 = Disk(T1 * T2)
 sphP2 = GeometricPrimitive(sph2, mat, Nullable{AreaLight}(), 1)
 
-T3 = translation(-1.0, 0.0, -2.0)
-sph3 = Sphere(1, 0.5, T3)
+sph3 = Disk(T1 * rotation(X_AXIS, 0.0))
 sphP3 = GeometricPrimitive(sph3, mat, Nullable{AreaLight}(), 1)
 
 primitives = Primitive[sphP1, sphP2, sphP3]
@@ -45,26 +44,20 @@ primitives = Primitive[sphP1, sphP2, sphP3]
 println("Generating bounding box hierarchy...")
 stuff = BVHAccelerator(primitives)
 
-
-for node in stuff.nodes
-    println(node)
-end
     
 
-function make_light(col::Vector3, pos::Point3)
-    light_col = RGBSpectrum(cos) * 100
-    light_pos = translation(pos)
-    return PointLight(light_col, light_pos, 1)
-    
+function make_light(col::Array, pos::Transformation)
+    light_col = RGBSpectrum(col...) * 400
+    return PointLight(light_col, pos, 1)
 end
 
 
-light_col = RGBSpectrum(1.0, 1.0, 1.0) * 300
-light_pos = translation(10.0, 10.0, -10.0)
-light = PointLight(light_col, light_pos, 1)
-bg = Background(RGBSpectrum(0.0, 0.0, 10.0))
+light1 = make_light([1.0, 0.0, 0.0], rotation(Z_AXIS, 0.0) * translation(10, 10, -10.0))
+light2 = make_light([0.0, 1.0, 0.0], rotation(Z_AXIS, 4pi/5) * translation(10, 10, -10.0))
+light3 = make_light([0.0, 0.0, 1.0], rotation(Z_AXIS, 6pi/5) * translation(10, 10, -10.0))
+bg = Background(RGBSpectrum(10.0, 10.0, 10.0))
 
-scene = Scene(stuff, LightSource[light, bg])
+scene = Scene(stuff, LightSource[light1, light2, light3, bg])
 
 
 
@@ -72,7 +65,7 @@ scene = Scene(stuff, LightSource[light, bg])
 # Make a camera
 resX = 512
 resY = 512
-F = ImageFilm(resX, resY, TriangleFilter(0.5, 0.5))
+F = ImageFilm(resX, resY, TriangleFilter(1, 1))
 shift = translation(0.0, 0.0, -4.0)
 Cam = OrthographicCamera(shift, [-2.0, 2, -2, 2], 0.0, 0.0, F)
 
@@ -87,7 +80,7 @@ tic()
 render(renderer, scene)
 toc()
 
-write_bwtxt(F)
+write_txt(F)
 
 #Profile.print()
 

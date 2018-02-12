@@ -61,7 +61,7 @@ function write_image(F::ImageFilm)
     save("test.png", img)
 end
 
-function write_bwtxt(F::ImageFilm) 
+function write_txt(F::ImageFilm) 
     f = open("test.txt", "w")
     for i = 1:minimum(size(F.pixels))
         write(f, repr(F.pixels[i,i]))
