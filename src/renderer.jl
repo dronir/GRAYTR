@@ -36,10 +36,6 @@ function render(renderer::SamplerRenderer, scene::Scene)
     
     println("Running $nTasks render tasks on $(nprocs()) cores...")
     enqueue_and_run(tasks)
-    println("Writing results to disk...")
-    
-    # cleanup and produce image
-    write_image(renderer.camera.film)
 end
 
 # Round an integer up to nearest power of two
@@ -74,16 +70,16 @@ function run(task::SamplerRendererTask)
             weight, ray = generate_ray(task.renderer.camera, samples[i])
             # evaluate radiance along ray
             if weight > 0.0
-                Li, isect = intensity(task.renderer, task.scene, ray, samples[i])
-                intensities[i] = weight * Li
+                Li, maybe_isect = intensity(task.renderer, task.scene, ray, samples[i])
+                Ls = weight*Li
+            else
+                Li = NoLight()
+                maybe_isect = Nullable{Intersection}()
             end
-        end
-        # TODO; report to Sampler if it wants
-        # Contribute to image
-        for (sample, Ls) in zip(samples, intensities)
+            sample = samples[i]
             if !isblack(Ls)
                 if uses_isect(task.renderer.camera.film)
-                    add_sample!(task.renderer.camera.film, sample, Ls, isect)
+                    add_sample!(task.renderer.camera.film, sample, Ls, maybe_isect)
                 else
                     add_sample!(task.renderer.camera.film, sample, Ls)
                 end

@@ -27,6 +27,7 @@ struct Intersection
     obj_to_world::Transformation
     world_to_obj::Transformation
     ray_eps::Float64
+    tmin::Float64
     shape_id::Int64
     primitive_id::Int64
 end
@@ -37,7 +38,7 @@ function intersect(R::Ray, P::GeometricPrimitive)
         return Nullable{Intersection}()
     end
     return Nullable(Intersection(
-        P, get(dg), P.shape.obj_to_world, P.shape.world_to_obj, reps, P.shape.id, P.id
+        P, get(dg), P.shape.obj_to_world, P.shape.world_to_obj, reps, tmin, P.shape.id, P.id
     ))
 end
 
