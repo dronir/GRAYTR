@@ -35,16 +35,16 @@ function intersect(R::Ray, D::Disk)
     end
     P = ray(t)
     r2 = P.x^2 + P.y^2
-    if r2 < D.rmin^2 || r2 > D.rmax^2
+    if r2 > D.rmax^2 || r2 < D.rmin^2
         return Nullable{DifferentialGeometry}(), NaN, NaN
     end
     phi = atan2(P.y, P.x)
-    phi = phi >= 0.0 ? phi : phi + 2π
+    phi = phi < 0.0 ? phi+2π : phi
     u = phi / 2π
-    v = (sqrt(r2) - D.rmin) / (D.rmax - D.rmin)
+    v = 1.0 - (sqrt(r2) - D.rmin) / (D.rmax - D.rmin)
     dpdu = Vector3(-2π * P.y, 2π * P.x, 0.0)
     dr = 1.0 - D.rmin / D.rmax
-    dpdv = Vector3(-dr*P.x/v, dr*P.y/v, 0.0)
+    dpdv = Vector3(-dr*P.x/(1.0-v), -dr*P.y/(1.0-v), 0.0)
     dndu = Normal3(0.0)
     dndv = Normal3(0.0)
     DG = Nullable(DifferentialGeometry(
@@ -65,8 +65,8 @@ function intersectP(R::Ray, D::Disk)
         return false
     end
     P = ray(t)
-    r = sqrt(P.x^2 + P.y^2)
-    if r < D.rmin || r > D.rmax
+    r2 = P.x^2 + P.y^2
+    if r2 > D.rmax^2 || r2 < D.rmin^2
         return false
     end
     return true
