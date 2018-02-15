@@ -37,3 +37,13 @@ evaluate(B::Lambert, w0::Vector3, w1::Vector3) = B.R / π
 rho(B::Lambert, w0::Vector3) = B.R
 
 
+
+# Lommel-Seeliger
+
+struct LommelSeeliger <: BxDF
+    R::Spectrum
+end
+
+BSDF_type(B::LommelSeeliger) = BSDF_REFLECTION | BSDF_DIFFUSE
+evaluate(B::LommelSeeliger, w0::Vector3, w1::Vector3) = B.R * max(0.0, 1.0 / (costheta(w0) + costheta(w1)))
+
