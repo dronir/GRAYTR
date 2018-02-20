@@ -1,16 +1,16 @@
 
 
 struct PrimitiveInfo
-    number::Int32
+    number::Int64
     centroid::Point3
     BBox::BoundingBox
 end
 
 struct LinearBVHNode
     BBox::BoundingBox
-    offset::Int32
+    offset::Int64
     leaf::Bool
-    axis::Int32
+    axis::Int64
 end
 
 
@@ -19,7 +19,7 @@ end
 
 mutable struct BVHBuildNode
     leaf::Bool
-    split_axis::Int32
+    split_axis::Int64
     first_offset::Int64
     BBox::BoundingBox
     childA::BVHBuildNode
@@ -145,7 +145,6 @@ function BVHAccelerator(prims::Array{Primitive,1})
     BVHAccelerator(ordered, linear)
 end
 
-#function intersectP(ray::Ray, BB::BoundingBox, )
 
 
 function intersect(ray::Ray, BVH::BVHAccelerator)
@@ -154,7 +153,7 @@ function intersect(ray::Ray, BVH::BVHAccelerator)
     end
     nodeN = 1
     todo_offset = 0
-    todo = zeros(Int32, 64)
+    todo = zeros(Int64, 64)
     dir_is_neg = [ray.direction[i] < 0.0 for i = 1:3]
     while true
         # Check the node given by the index nodeN
@@ -212,8 +211,8 @@ function intersectP(ray::Ray, BVH::BVHAccelerator)
         return false
     end
     nodeN = 1
-    todo_offset = 1
-    todo = zeros(Int32, 64)
+    todo_offset = 0
+    todo = zeros(Int64, 64)
     dir_is_neg = [ray.direction[i] < 0.0 for i = 1:3]
     while true
         node = BVH.nodes[nodeN]
@@ -222,7 +221,7 @@ function intersectP(ray::Ray, BVH::BVHAccelerator)
                 if intersectP(ray, BVH.primitives[node.offset])
                     return true
                 end
-                if todo_offset == 1
+                if todo_offset == 0
                     break
                 end
                 nodeN = todo[todo_offset]
@@ -238,7 +237,7 @@ function intersectP(ray::Ray, BVH::BVHAccelerator)
                 end
             end
         else
-            if todo_offset == 1
+            if todo_offset == 0
                 break
             end
             nodeN = todo[todo_offset]
