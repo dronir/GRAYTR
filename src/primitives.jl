@@ -9,8 +9,11 @@
 # refine(P::Primitive)
 # BDRF(P::Primitive)
 
-struct GeometricPrimitive <: Primitive
-    shape::Shape
+struct DummyShape <: Shape
+end
+
+struct GeometricPrimitive{T<:Shape} <: Primitive
+    shape::T
     material::Material
     light::Nullable{AreaLight}
     id::Int64
@@ -21,8 +24,8 @@ can_intersect(P::GeometricPrimitive) = can_intersect(P.shape)
 world_bounds(P::GeometricPrimitive) = world_bounds(P.shape)
 obj_bounds(P::GeometricPrimitive) = obj_bounds(P.shape)
 
-struct Intersection
-    target::Primitive
+struct Intersection{P<:Primitive}
+    target::P
     geometry::DifferentialGeometry
     obj_to_world::Transformation
     world_to_obj::Transformation
@@ -33,9 +36,9 @@ struct Intersection
 end
 
 function intersect(R::Ray, P::GeometricPrimitive)
-    dg, tmin, reps = intersect(R, P.shape)
+    dg, tmin, reps = shape_intersect(R, P.shape)
     if isnull(dg)
-        return Nullable{Intersection}()
+        return Nullable{Intersection{typeof(P)}}()
     end
     return Nullable(Intersection(
         P, get(dg), P.shape.obj_to_world, P.shape.world_to_obj, reps, tmin, P.shape.id, P.id
@@ -43,7 +46,7 @@ function intersect(R::Ray, P::GeometricPrimitive)
 end
 
 function get_BSDF(P::GeometricPrimitive, dg::DifferentialGeometry, obj_to_world::Transformation)
-    geom = get_shading_geometry(P.shape, dg, obj_to_world)
+    geom = dg #get_shading_geometry(P.shape, dg, obj_to_world)
     return get_BSDF(P.material, dg, geom)
 end
 
