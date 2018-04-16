@@ -1,6 +1,6 @@
 
-struct Scene
-    aggregate::Primitive
+struct Scene{T<:Primitive}
+    aggregate::T
     lights::Array{LightSource,1}
     bounds::BoundingBox
 end
