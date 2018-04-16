@@ -10,6 +10,10 @@
 
 import Base.intersect
 
+world_to_obj(S::Shape)::Transformation = S.world_to_obj
+obj_to_world(S::Shape)::Transformation = S.obj_to_world
+
+
 # Solve quadratic equation. Needed by different shapes' intersection calculation.
 function quadratic(A, B, C)
     dd = B^2 - 4*A*C
