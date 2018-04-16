@@ -28,7 +28,7 @@ end
 
 
 
-function intersect(r::Ray, sph::Sphere)
+function shape_intersect(r::Ray, sph::Sphere)
     ray = sph.world_to_obj(r)
     A = dot(ray.direction, ray.direction)
     B = 2.0 * dot(ray.direction, ray.origin)

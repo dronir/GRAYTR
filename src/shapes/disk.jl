@@ -24,7 +24,7 @@ function world_bounds(D::Disk)
 end
 
 
-function intersect(R::Ray, D::Disk)
+function shape_intersect(R::Ray, D::Disk)
     ray = D.world_to_obj(R)
     if ray.direction.z ≈ 0.0
         return Nullable{DifferentialGeometry}(), NaN, NaN

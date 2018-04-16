@@ -26,7 +26,7 @@ end
 
 
 
-function intersect(R::Ray, cyl::Cylinder)
+function shape_intersect(R::Ray, cyl::Cylinder)
     ray = cyl.world_to_obj(R)
     A = ray.direction.x^2 + ray.direction.y^2
     if A ≈ 0.0
