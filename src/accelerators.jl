@@ -149,7 +149,7 @@ end
 
 function intersect(ray::Ray, BVH::BVHAccelerator)
     if length(BVH.nodes) == 0
-        return Nullable{Intersection}()
+        return Nullable{Intersection{GeometricPrimitive}}()
     end
     nodeN = 1
     todo_offset = 0
@@ -202,7 +202,7 @@ function intersect(ray::Ray, BVH::BVHAccelerator)
             
         end
     end
-    return Nullable{Intersection}()
+    return Nullable{Intersection{GeometricPrimitive}}()
 end
 
 
