@@ -5,8 +5,6 @@
 #  maximumsamplecount()
 #  getsubsampler()
 
-# TODO MOVE ELSEWHERE
-lerp(t, a, b) = (1-t)*a + t*b
 
 
 # Stratified1D and Stratified2D generate a bunch of stratified samples in the [0,1] interval.
