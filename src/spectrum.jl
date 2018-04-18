@@ -79,13 +79,69 @@ function interpolate(S::SampledSpectrum, a::Real)
 end
 
 function interpolate(S::SampledSpectrum, a::Real, b::Real)
-    if b < S.low
+    # We are assuming that a < b
+    if b <= S.low
         return S.values[1]
-    elseif a > S.high
+    elseif a >= S.high
         return S.values[end]
     end
+    N = length(S.values)
+    delta = (S.high - S.low) / (N - 1)
+
+    # The N values tell how many full deltas are between S.low and a or b
+    Na = Int64(fld(a - S.low, delta))
+    Nb = Int64(fld(b - S.low, delta))
+
+    # Cases:
+    # 1. Both a and b under the low limit; handled above
+    # 2. Both a and b over the high limit; handled above
+    # 3. a under low, b inside the limits: "low" Ia + mid + Ib
+    # 4. a inside the limits, b over high: Ia + mid + "high" Ib
+    # 5. both inside the limits, same bin: special case
+    # 6. both inside the limits, different bin:  Ia + mid + Ib
+    # 7. a under low and b over high: "low" Ia + mid + "high" Ib
     
+    # Case 5:
+    if Na == Nb
+        # a and b are in the same spectrum interval, just linearly integrate between them.
+        ya = lerp((a - S.low - Na*delta) / delta, S.values[Na+1], S.values[Na+2])
+        yb = lerp((b - S.low - Na*delta) / delta, S.values[Na+1], S.values[Na+2])
+        return 0.5 * (ya + yb)
+    end
     
+    if Na < 0
+        # Cases 3 and 7
+        # a is below the low end, first integral is constant low value over [a, S.low]
+        Ia = S.values[1] * (S.low - a)
+        k0 = 1
+    else
+        # Cases 4 and 6
+        da = (S.low + (Na+1)*delta) - a
+        ya = lerp(1 - da / delta, S.values[Na+1], S.values[Na+2])
+        Ia = 0.5 * da * (ya + S.values[Na+2])
+        k0 = Na+2
+    end
+    if Nb >= length(S.values)-1
+        # Cases 4 and 7
+        # b is above high end, last integral is constant high value over [S.high, b]
+        Ib = S.values[end] * (b - S.high)
+        k1 = N-1
+    else
+        # Cases 3 and 6
+        db = b - (S.low + Nb*delta)
+        yb = lerp(db / delta, S.values[Nb+1], S.values[Nb+2])
+        Ib = 0.5 * db * (S.values[Nb+1] + yb)
+        k1 = Nb
+    end
+    
+    Imid = 0.0
+    if (Nb-Na) != 1
+        for i = k0:k1
+            Imid += 0.5*delta*(S.values[i] + S.values[i+1])
+        end
+    end
+    
+    return (Ia + Imid + Ib) / (b - a)
 end
 
 
