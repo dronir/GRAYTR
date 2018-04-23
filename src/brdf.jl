@@ -28,8 +28,8 @@ const BSDF_ALL = BSDF_ALL_TRANSMISSION | BSDF_ALL_REFLECTION
 
 # Lambertian
 
-struct Lambert <: BxDF
-    R::Spectrum
+struct Lambert{T<:Spectrum} <: BxDF
+    R::T
 end
 
 BSDF_type(B::Lambert) = BSDF_REFLECTION | BSDF_DIFFUSE
@@ -40,8 +40,8 @@ rho(B::Lambert, w0::Vector3) = B.R
 
 # Lommel-Seeliger
 
-struct LommelSeeliger <: BxDF
-    R::Spectrum
+struct LommelSeeliger{T<:Spectrum} <: BxDF
+    R::T
 end
 
 BSDF_type(B::LommelSeeliger) = BSDF_REFLECTION | BSDF_DIFFUSE

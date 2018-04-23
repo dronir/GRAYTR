@@ -2,13 +2,13 @@
 include("brdf.jl")
 
 
-struct BSDF
+struct BSDF{B<:BxDF}
     dgs::DifferentialGeometry
     ng::Normal3
     nn::Normal3
     sn::Vector3
     tn::Vector3
-    local_BxDF::BxDF
+    local_BxDF::B
     refidx::Float64
 end
 
@@ -20,7 +20,7 @@ function BSDF(dgs::DifferentialGeometry, ng::Normal3, L::BxDF, e::Float64)
     return BSDF(dgs, ng, nn, sn, tn, L, e)
 end
 
-BSDF(dgs::DifferentialGeometry, ng::Normal3, L::Array{BxDF,1}) = BSDF(dgs,ng,L,1.0)
+#BSDF(dgs::DifferentialGeometry, ng::Normal3, L::Array{BxDF,1}) = BSDF(dgs,ng,L,1.0)
 
 #ncomponents(B::BSDF) = size(B.BxDFlist)
 world_to_local(B::BSDF, v::Vector3) = Vector3(dot(v, B.sn), dot(v, B.tn), dot(v, B.nn))
@@ -43,8 +43,8 @@ end
 
 # The simplest material, just Lambertian
 
-struct MatteMaterial <: Material
-    B::BxDF
+struct MatteMaterial{T<:BxDF} <: Material
+    B::T
 end
 
 MatteMaterial(Kd::Spectrum) = MatteMaterial(Lambert(Kd))
