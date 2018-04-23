@@ -59,7 +59,7 @@ function *(S1::SampledSpectrum, S2::SampledSpectrum)
 end
 *(S::SampledSpectrum, c::Real) = c*S
 *(c::Real, S::SampledSpectrum) = SampledSpectrum(S.low, S.high, c*S.values)
-
+/(S::SampledSpectrum, c::Real) = SampledSpectrum(S.low, S.high, S.values/c)
 
 # Various functions
 import Base.broadcast, Base.size, Base.length
