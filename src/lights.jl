@@ -25,9 +25,9 @@ unoccluded(V::VisibilityTester, scene::Scene) = !intersectP(V.ray, scene)
 ################################
 # Point light
 
-struct PointLight <: LightSource
+struct PointLight{S<:Spectrum} <: LightSource
     position::Point3
-    intensity::Spectrum
+    intensity::S
     light_to_world::Transformation
     world_to_light::Transformation
     nsamples::Int64
@@ -57,9 +57,9 @@ background(L::PointLight) = NoLight()
 ################################
 # Distance light source
 
-struct DistantLight <: LightSource
+struct DistantLight{S<:Spectrum} <: LightSource
     direction::Vector3
-    intensity::Spectrum
+    intensity::S
     light_to_world::Transformation
     world_to_light::Transformation
     nsamples::Int64
@@ -80,8 +80,8 @@ background(L::DistantLight) = NoLight()
 ################################
 # Distance light source
 
-struct Background <: LightSource
-    intensity::Spectrum
+struct Background{S<:Spectrum} <: LightSource
+    intensity::S
 end
 
 sample_L(light::Background, p::Point3) = NoLight()

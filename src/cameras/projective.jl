@@ -1,5 +1,5 @@
-struct ProjectiveCamera <: Camera
-    film::Film
+struct ProjectiveCamera{F<:Film} <: Camera
+    film::F
     camera_to_world::Transformation
     raster_to_camera::Transformation
     camera_to_raster::Transformation

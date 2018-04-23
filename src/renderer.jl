@@ -1,23 +1,23 @@
 
 
-struct SamplerRenderer <: Renderer
-    sampler::Sampler
-    camera::Camera
-    surf_integrator::SurfaceIntegrator
-    vol_integrator::VolumeIntegrator
+struct SamplerRenderer{S<:Sampler, C<:Camera, I<:SurfaceIntegrator, V<:VolumeIntegrator} <: Renderer
+    sampler::S
+    camera::C
+    surf_integrator::I
+    vol_integrator::V
 end
 
 
-struct SamplerRendererTask
-    scene::Scene
-    renderer::Renderer
+struct SamplerRendererTask{S<:Scene, R<:Renderer}
+    scene::S
+    renderer::R
 #    sampler::Sampler
     number::Int64
     count::Int64
 end
 
 # TODO: this is a dummy verion
-enqueue_and_run(Tasks::Array{SamplerRendererTask,1}) = [run(task) for task in Tasks]
+enqueue_and_run{S<:SamplerRendererTask}(Tasks::Array{S,1}) = [run(task) for task in Tasks]
 
 
 
