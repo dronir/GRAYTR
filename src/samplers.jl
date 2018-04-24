@@ -79,6 +79,12 @@ function get_subsampler(sampler::StratifiedSampler, n::Integer, count::Integer)
     end
 end
 
+function finished(sampler::StratifiedSampler, state::Integer)
+    dx = sampler.xend - sampler.xstart + 1
+    dy = sampler.yend - sampler.ystart + 1
+    return state >= dx*dy
+end
+
 # Returns an empty array when all the sampling has been done
 function get_samples(sampler::StratifiedSampler, state::Integer)
     dx = sampler.xend - sampler.xstart + 1
@@ -105,4 +111,30 @@ function get_samples(sampler::StratifiedSampler, state::Integer)
         out[i] = s
     end
     return out, state+1
+end
+
+function get_samples!(sampler::StratifiedSampler, state::Integer, out::Array{CameraSample,1})
+    dx = sampler.xend - sampler.xstart + 1
+    dy = sampler.yend - sampler.ystart + 1
+    if state >= dx*dy
+        return CameraSample[], state
+    end
+
+    xpos = sampler.xstart + state % dx
+    ypos = sampler.ystart + div(state, dy)
+    N = sampler.xs * sampler.ys
+    img_samples = stratified2D(N, sampler.jitter)
+    lens_samples = stratified2D(N, sampler.jitter)
+    shuffle!(lens_samples[:,1])
+    shuffle!(lens_samples[:,2])
+    for i = 1:N
+        s = CameraSample(
+            img_samples[i,1] + xpos,
+            img_samples[i,2] + ypos,
+            lens_samples[i,1],
+            lens_samples[i,2]
+        )
+        out[i] = s
+    end
+    return state+1
 end

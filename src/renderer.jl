@@ -11,13 +11,16 @@ end
 struct SamplerRendererTask{S<:Scene, R<:Renderer}
     scene::S
     renderer::R
-#    sampler::Sampler
     number::Int64
     count::Int64
 end
 
 # TODO: this is a dummy verion
-enqueue_and_run{S<:SamplerRendererTask}(Tasks::Array{S,1}) = [run(task) for task in Tasks]
+function enqueue_and_run{S<:SamplerRendererTask}(Tasks::Array{S,1}) 
+    for task in Tasks
+        run(task)
+    end
+end
 
 
 
@@ -49,7 +52,7 @@ function count_tasks(nCores::Integer, resX::Integer, resY::Integer)
 end
 
 
-# The core functionality really starts here!
+# The core functionality is here!
 # This runs a SamplerRendererTask, generating a ray, computing the intensity along that ray,
 # and adding it to the camera film.
 function run(task::SamplerRendererTask)
@@ -59,29 +62,27 @@ function run(task::SamplerRendererTask)
     
     max_samples = 0 # TODO
     state = 0
+    
+    Nsamples = subsampler.xs * subsampler.ys
+    samples = Array{CameraSample}(Nsamples)
+    
     while true
-        samples, state = get_samples(subsampler, state)
-        length(samples) == 0 && break
-        intensities = Array{Spectrum}(size(samples))
+        finished(subsampler, state) && break
+        state = get_samples!(subsampler, state, samples)
 
         # generate camera rays
         for i = 1:length(samples)
             # find camera ray for sample[i]
             weight, ray = generate_ray(task.renderer.camera, samples[i])
-            # evaluate radiance along ray
+            # evaluate radiance along ray and add it to camera film
             if weight > 0.0
                 Li, maybe_isect = intensity(task.renderer, task.scene, ray, samples[i])
+                isblack(Li) && continue
                 Ls = weight*Li
-            else
-                Li = NoLight()
-                maybe_isect = Nullable{Intersection}()
-            end
-            sample = samples[i]
-            if !isblack(Ls)
                 if uses_isect(task.renderer.camera.film)
-                    add_sample!(task.renderer.camera.film, sample, Ls, maybe_isect)
+                    add_sample!(task.renderer.camera.film, samples[i], Ls, maybe_isect)
                 else
-                    add_sample!(task.renderer.camera.film, sample, Ls)
+                    add_sample!(task.renderer.camera.film, samples[i], Ls)
                 end
             end
         end
@@ -97,7 +98,7 @@ function intensity(renderer::SamplerRenderer, scene::Scene, r::Ray, sample::Samp
         Li = intensity(renderer.surf_integrator, renderer, scene, isect, r, sample)
     else
         # Ray doesn't hit any scenery. Add contribution from background light sources.
-        Li = sum(background(light) for light in scene.lights)
+        Li = sum(background(light) for light in scene.lights)::Spectrum
     end
     # TODO: add volume integrator contribution
     return Li, maybe_isect
