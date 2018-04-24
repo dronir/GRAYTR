@@ -111,14 +111,14 @@ end
 # BHVAccelerator constructor from a list of primitives
 #
 
-struct BVHAccelerator <: Aggregate
-    primitives::Array{Primitive,1}
+struct BVHAccelerator{P<:Primitive} <: Aggregate
+    primitives::Array{P,1}
     nodes::Array{LinearBVHNode,1}
 end
 
 world_bounds(B::BVHAccelerator) = B.nodes[1].BBox
 
-function BVHAccelerator(prims::Array{Primitive,1})
+function BVHAccelerator(prims::Array{T,1}) where T<:Primitive
     # Refine primitives to their fully intersectable components
     primitives = Primitive[]
     for p in prims

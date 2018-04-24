@@ -46,7 +46,7 @@ function main()
     sph = Sphere(1, 1.5, Tsph)
     sphP = GeometricPrimitive(sph, mat, Nullable{AreaLight}(), 1)
     
-    primitives = Primitive[cylP, capP1, capP2, sphP]
+    primitives = GeometricPrimitive[cylP, capP1, capP2, sphP]
     
     println("Generating bounding box hierarchy...")
     stuff = BVHAccelerator(primitives)
@@ -68,7 +68,6 @@ function main()
     
     
     scene = Scene(stuff, LightSource[light2, p_light])
-    
     
     
     
