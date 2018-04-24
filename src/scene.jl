@@ -1,4 +1,7 @@
 
+# The Scene type contains the root node of the object hierarchy, a list of the light sources
+# in the scene, and the global bounding box.
+
 struct Scene{T<:Primitive}
     aggregate::T
     lights::Array{LightSource,1}
