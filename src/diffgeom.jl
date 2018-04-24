@@ -10,8 +10,7 @@ struct DifferentialGeometry
     # Surface coordinates
     u::Float64
     v::Float64
-    # Reference to the Shape the point is on
-    shape::Shape
+
     # Partial derivatives of the point and normal wrt surface coordinates
     dpdu::Vector3
     dpdv::Vector3
@@ -27,6 +26,6 @@ function DifferentialGeometry(p::Point3, u::Float64, v::Float64, sh::Shape,
     if sh.inverted ⊻ swaps_handedness(sh.obj_to_world)
         normal = -normal
     end
-    DifferentialGeometry(p, normal, u, v, sh, dpdu, dpdv, dndu, dndv)
+    DifferentialGeometry(p, normal, u, v, dpdu, dpdv, dndu, dndv)
 end
 
