@@ -18,54 +18,52 @@ struct NoLight <: Spectrum end
 
 isblack(N::NoLight) = true
 
-*(x::Number, N::NoLight) = N
+*(x::Number, N::NoLight) = NoLight()
 +(N::NoLight, M::NoLight) = NoLight()
 +(N::NoLight, S::Spectrum) = S
 +(S::Spectrum, N::NoLight) = S
 *(N::NoLight, S::Spectrum) = NoLight()
 *(S::Spectrum, N::NoLight) = NoLight()
 /(N::NoLight, S::Spectrum) = S
-/(S::Spectrum, N::NoLight) = S
 
 
 # ------------------------------------------------
 # The SampledSpectrum type
 
-struct SampledSpectrum <: Spectrum
+struct SampledSpectrum{N} <: Spectrum
     low::Int64
     high::Int64
     values::Array{Float64,1}
+    function SampledSpectrum{N}(low::Int64, high::Int64, values::Array{Float64,1}) where N 
+        length(values) != N ? error("Type parameter N not equal to length(values): $N != $(length(values))") : new(low, high, values)
+    end
 end
+
+SampledSpectrum(low::Integer, high::Integer, values::Array{Float64,1}) = SampledSpectrum{length(values)}(low, high, values)
 
 isblack(S::SampledSpectrum) = maximum(S.values) ≈ 0.0
 
 # Addition of SampledSpectrum objects
-function +(S1::SampledSpectrum, S2::SampledSpectrum)
-    if !(S1.low == S2.low && S1.high == S2.high && size(S1.values) == size(S2.values)) 
-        error("Spectrum sizes don't match.")
+function +(S1::SampledSpectrum{N}, S2::SampledSpectrum{N}) where N
+    if !(S1.low == S2.low && S1.high == S2.high) 
+        error("Spectrum limits don't match.")
     end
-    return SampledSpectrum(S1.values + S2.values)
+    return typeof(S1)(S1.low, S2.low, S1.values + S2.values)
 end
-+(S::SampledSpectrum, c::Real) = SampledSpectrum(S.low, S.high, S.values + c)
++(S::SampledSpectrum{N}, c::Real) where N = SampledSpectrum{N}(S.low, S.high, S.values + c)
 +(c::Real, S::SampledSpectrum) = S+c
 
 
-# Multiplication of SampledSpectrum objects
-function *(S1::SampledSpectrum, S2::SampledSpectrum)
-    if !(S1.low == S2.low && S1.high == S2.high && size(S1.values) == size(S2.values))
-        error("Spectrum sizes don't match.")
-    end
-    return SampledSpectrum(S1.low, S1.high, S1.values .* S2.values)
-end
+# Multiplication of SampledSpectrum objects with reals
 *(S::SampledSpectrum, c::Real) = c*S
-*(c::Real, S::SampledSpectrum) = SampledSpectrum(S.low, S.high, c*S.values)
-/(S::SampledSpectrum, c::Real) = SampledSpectrum(S.low, S.high, S.values/c)
+*(c::Real, S::SampledSpectrum{N}) where N = SampledSpectrum{N}(S.low, S.high, c*S.values)
+/(S::SampledSpectrum{N}, c::Real) where N = SampledSpectrum{N}(S.low, S.high, S.values/c)
 
 # Various functions
 import Base.broadcast, Base.size, Base.length
-broadcast(f, S::SampledSpectrum) = SampledSpectrum(S.low, S.high, f.(S.values))
-size(S::SampledSpectrum) = size(S.values)
-length(S::SampledSpectrum) = length(S.values)
+broadcast(f::Function, S::SampledSpectrum{N}) where N = SampledSpectrum{N}(S.low, S.high, f.(S.values))
+size(S::SampledSpectrum{N}) where N = N
+length(S::SampledSpectrum{N}) where N = N
 
 function interpolate(S::SampledSpectrum, a::Real)
     if a < S.low
@@ -73,7 +71,7 @@ function interpolate(S::SampledSpectrum, a::Real)
     elseif a >= S.high
         return S.values[end]
     end
-    delta = (S.high - S.low) / (length(S.values) - 1)
+    delta = (S.high - S.low) / (length(S) - 1)
     N = Int64(fld(a - S.low, delta))
     return lerp((a - S.low - N*delta) / delta, S.values[N+1], S.values[N+2])
 end
@@ -85,7 +83,7 @@ function interpolate(S::SampledSpectrum, a::Real, b::Real)
     elseif a >= S.high
         return S.values[end]
     end
-    N = length(S.values)
+    N = length(S)
     delta = (S.high - S.low) / (N - 1)
 
     # The N values tell how many full deltas are between S.low and a or b
