@@ -1,14 +1,18 @@
-import Base.+, Base.*, Base./
+import Base.+, Base.*, Base./, Base.convert, Base.zero
 
 
 # ------------------------------------------------
 # Load CIE spectra
 
 raw_CIE_data = readcsv("lin2012xyz2e_1_7sf.csv")
-const CIE_LAMBDA = raw_CIE_data[:,1]
-const CIE_X = raw_CIE_data[:,2]
-const CIE_Y = raw_CIE_data[:,3]
-const CIE_Z = raw_CIE_data[:,4]
+const N_CIE = length(raw_CIE_data[:,1])
+const CIE_LAMBDA = vec(raw_CIE_data[:,1])
+const CIE_X = vec(raw_CIE_data[:,2])
+const CIE_Y = vec(raw_CIE_data[:,3])
+const CIE_Z = vec(raw_CIE_data[:,4])
+
+
+
 
 
 # ------------------------------------------------
@@ -22,9 +26,9 @@ isblack(N::NoLight) = true
 +(N::NoLight, M::NoLight) = NoLight()
 +(N::NoLight, S::Spectrum) = S
 +(S::Spectrum, N::NoLight) = S
-*(N::NoLight, S::Spectrum) = NoLight()
-*(S::Spectrum, N::NoLight) = NoLight()
-/(N::NoLight, S::Spectrum) = S
+#*(N::NoLight, S::Spectrum) = NoLight()
+#*(S::Spectrum, N::NoLight) = NoLight()
+#/(N::NoLight, S::Spectrum) = S
 
 
 # ------------------------------------------------
@@ -38,6 +42,8 @@ struct SampledSpectrum{N} <: Spectrum
         length(values) != N ? error("Type parameter N not equal to length(values): $N != $(length(values))") : new(low, high, values)
     end
 end
+
+convert(T::Type{SampledSpectrum{N}}, L::NoLight) where N = SampledSpectrum(200, 1000, zeros(Float64, N))
 
 SampledSpectrum(low::Integer, high::Integer, values::Array{Float64,1}) = SampledSpectrum{length(values)}(low, high, values)
 
@@ -143,24 +149,18 @@ function interpolate(S::SampledSpectrum, a::Real, b::Real)
 end
 
 
-# TODO: Convert SampledSpectrum to XYZ
-#function to_XYZ(S::SampledSpectrum)
-#end
-
-
-# ------------------------------------------------
-# Conversion between XYZ and RGB
-
-function XYZtoRGB(xyz::Array{Float64,1})
-    return [3.240479*xyz[1] - 1.537150*xyz[2] - 0.498535*xyz[3],
-           -0.969256*xyz[1] + 1.875991*xyz[2] + 0.041556*xyz[3],
-            0.055648*xyz[1] - 0.204043*xyz[2] + 1.057311*xyz[3]]
-end  
-
-function RGBtoXYZ(rgb::Array{Float64,1})
-    return [0.412453*rgb[1] + 0.357580*rgb[2] + 0.180423*rgb[3],
-            0.212671*rgb[1] + 0.715160*rgb[2] + 0.072169*rgb[3],
-            0.019334*rgb[1] + 0.119193*rgb[2] + 0.950227*rgb[3]]
+function to_XYZ(S::SampledSpectrum)
+    N = length(S)
+    delta = (S.high - S.low) / (N - 1)
+    out = [0.0, 0.0, 0.0]
+    for i = 1:N_CIE
+        lam = CIE_LAMBDA[i]
+        s = interpolate(S, lam)
+        out[1] += s * CIE_X[i]
+        out[2] += s * CIE_Y[i]
+        out[3] += s * CIE_Z[i]
+    end
+    return out
 end
 
 
@@ -173,9 +173,17 @@ struct RGBSpectrum <: Spectrum
     b::Float64
 end
 
+import Base.getindex
+getindex(S::RGBSpectrum, i::Integer) = i==1 ? S.r : i==2 ? S.g : i==3 ? S.b : error("Out ouf bounds index for RGBSpectrum: $i")
+
+zero(T::Type{RGBSpectrum}) = RGBSpectrum(0.0, 0.0, 0.0)
+zero(T::RGBSpectrum) = RGBSpectrum(0.0, 0.0, 0.0)
+convert(T::Type{RGBSpectrum}, N::NoLight) = RGBSpectrum(0.0, 0.0, 0.0)
+
 isblack(S::RGBSpectrum) = S.r == 0.0 && S.g == 0.0 && S.b == 0.0
 
 to_XYZ(S::RGBSpectrum) = RGBtoXYZ([S.r, S.g, S.b])
+to_RGB(S::RGBSpectrum) = S
 
 +(a::RGBSpectrum, b::RGBSpectrum) = RGBSpectrum(a.r+b.r, a.g+b.g, a.b+b.b)
 *(x::Number, S::RGBSpectrum) = RGBSpectrum(x*S.r, x*S.g, x*S.b)
@@ -183,3 +191,20 @@ to_XYZ(S::RGBSpectrum) = RGBtoXYZ([S.r, S.g, S.b])
 /(S::RGBSpectrum, x::Number) = RGBSpectrum(S.r/x, S.g/x, S.b/x)
 *(a::RGBSpectrum, b::RGBSpectrum) = RGBSpectrum(a.r*b.r, a.g*b.g, a.b*b.b)
 broadcast(f, S::RGBSpectrum) = RGBSpectrum(f(S.r), f(S.g), f(S.b))
+
+
+
+# ------------------------------------------------
+# Conversion between XYZ and RGB
+
+function XYZtoRGB(xyz::Array{Float64,1})
+    return [3.240479*xyz[1] - 1.537150*xyz[2] - 0.498535*xyz[3],
+           -0.969256*xyz[1] + 1.875991*xyz[2] + 0.041556*xyz[3],
+            0.055648*xyz[1] - 0.204043*xyz[2] + 1.057311*xyz[3]]
+end  
+
+function RGBtoXYZ(rgb::Union{Array{Float64,1}, RGBSpectrum})
+    return [0.412453*rgb[1] + 0.357580*rgb[2] + 0.180423*rgb[3],
+            0.212671*rgb[1] + 0.715160*rgb[2] + 0.072169*rgb[3],
+            0.019334*rgb[1] + 0.119193*rgb[2] + 0.950227*rgb[3]]
+end
