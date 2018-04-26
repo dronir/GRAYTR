@@ -1,4 +1,4 @@
-import Base.+, Base.*, Base./, Base.convert, Base.zero
+import Base.+, Base.*, Base./, Base.convert, Base.zero, Base.one
 
 
 # ------------------------------------------------
@@ -43,6 +43,8 @@ struct SampledSpectrum{N} <: Spectrum
     end
 end
 
+one(S::SampledSpectrum{N}) where N = SampledSpectrum{N}(S.low, S.high, ones(Float64, N))
+zero(S::SampledSpectrum{N}) where N = SampledSpectrum{N}(S.low, S.high, zeros(Float64, N))
 convert(T::Type{SampledSpectrum{N}}, L::NoLight) where N = SampledSpectrum(200, 1000, zeros(Float64, N))
 
 SampledSpectrum(low::Integer, high::Integer, values::Array{Float64,1}) = SampledSpectrum{length(values)}(low, high, values)
@@ -150,8 +152,6 @@ end
 
 
 function to_XYZ(S::SampledSpectrum)
-    N = length(S)
-    delta = (S.high - S.low) / (N - 1)
     out = [0.0, 0.0, 0.0]
     for i = 1:N_CIE
         lam = CIE_LAMBDA[i]
@@ -182,7 +182,7 @@ convert(T::Type{RGBSpectrum}, N::NoLight) = RGBSpectrum(0.0, 0.0, 0.0)
 
 isblack(S::RGBSpectrum) = S.r == 0.0 && S.g == 0.0 && S.b == 0.0
 
-to_XYZ(S::RGBSpectrum) = RGBtoXYZ([S.r, S.g, S.b])
+to_XYZ(S::RGBSpectrum) = RGBtoXYZ(S)
 to_RGB(S::RGBSpectrum) = S
 
 +(a::RGBSpectrum, b::RGBSpectrum) = RGBSpectrum(a.r+b.r, a.g+b.g, a.b+b.b)
