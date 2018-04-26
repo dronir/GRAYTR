@@ -146,6 +146,7 @@ function BVHAccelerator(prims::Array{T,1}) where T<:Primitive
 end
 
 
+const TODO_ARRAY = zeros(Int64, 65)
 
 function intersect(ray::Ray, BVH::BVHAccelerator)
     if length(BVH.nodes) == 0
@@ -153,7 +154,10 @@ function intersect(ray::Ray, BVH::BVHAccelerator)
     end
     nodeN = 1
     todo_offset = 0
-    todo = zeros(Int64, 64)
+    todo = TODO_ARRAY
+    for i = 1:64
+        todo[i] = 0
+    end
     dir_is_neg = [ray.direction[i] < 0.0 for i = 1:3]
     while true
         # Check the node given by the index nodeN
@@ -205,14 +209,16 @@ function intersect(ray::Ray, BVH::BVHAccelerator)
     return Nullable{Intersection{GeometricPrimitive}}()
 end
 
-
 function intersectP(ray::Ray, BVH::BVHAccelerator)
     if length(BVH.nodes) == 0
         return false
     end
     nodeN = 1
     todo_offset = 0
-    todo = zeros(Int64, 64)
+    todo = TODO_ARRAY
+    for i = 1:64
+        todo[i] = 0
+    end
     dir_is_neg = [ray.direction[i] < 0.0 for i = 1:3]
     while true
         node = BVH.nodes[nodeN]
