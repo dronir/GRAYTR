@@ -29,22 +29,24 @@ include("cameras.jl")
 
 function main()
     # Make something to look at
-    mat = MatteMaterial(Lambert(RGBSpectrum(1.0, 1.0, 1.0)))
+    matspec = SampledSpectrum(300, 800, [0.3, 0.3, 0.3])
+    mat1 = MatteMaterial(AshkhminShirleySingle(matspec, 10.0))
+    mat2 = MatteMaterial(Lambert(matspec))
     
     T1 = rotation(Y_AXIS, π/5) * rotation(X_AXIS, pi/6)
     cyl = Cylinder(T1)
-    cylP = GeometricPrimitive(cyl, mat, Nullable{AreaLight}(), 1)
+    cylP = GeometricPrimitive(cyl, mat1, Nullable{AreaLight}(), 1)
     
     T2 = translation(0.0, 0.0, 1.0)
     cap1 = Disk(T1 * T2)
-    capP1 = GeometricPrimitive(cap1, mat, Nullable{AreaLight}(), 1)
+    capP1 = GeometricPrimitive(cap1, mat1, Nullable{AreaLight}(), 1)
     
     cap2 = Disk(T1 * rotation(X_AXIS, pi))
-    capP2 = GeometricPrimitive(cap2, mat, Nullable{AreaLight}(), 1)
+    capP2 = GeometricPrimitive(cap2, mat1, Nullable{AreaLight}(), 1)
     
     Tsph = translation(0.0, 1.0, 2.5)
     sph = Sphere(1, 1.5, Tsph)
-    sphP = GeometricPrimitive(sph, mat, Nullable{AreaLight}(), 1)
+    sphP = GeometricPrimitive(sph, mat1, Nullable{AreaLight}(), 1)
     
     primitives = GeometricPrimitive[cylP, capP1, capP2, sphP]
     
@@ -54,20 +56,21 @@ function main()
         
     
     function make_light(col::Array, pos::Transformation)
-        light_col = RGBSpectrum(col...) * 400
+        light_col = SampledSpectrum(300, 800, col)
         return PointLight(light_col, pos, 1)
     end
     
+    white_light = SampledSpectrum(300, 800, [1.0, 1.0, 1.0]*2)
     
     light1 = make_light([1.0, 0.0, 0.0], rotation(Z_AXIS, 0.0) * translation(10, 10, -10.0))
     light2 = make_light([0.0, 1.0, 0.0], rotation(Z_AXIS, 4pi/5) * translation(10, 10, -10.0))
     light3 = make_light([0.0, 0.0, 1.0], rotation(Z_AXIS, 6pi/5) * translation(10, 10, -10.0))
-    bg = Background(RGBSpectrum(10.0, 10.0, 10.0))
+    bg = Background(white_light)
     
-    p_light = DistantLight(-Z_AXIS, RGBSpectrum(1,1,1)*1, rotation(X_AXIS, pi/6), 1)
+    p_light = DistantLight(-Z_AXIS, white_light/50, rotation(X_AXIS, pi/6), 1)
     
     
-    scene = Scene(stuff, LightSource[light2, p_light])
+    scene = Scene(stuff, LightSource[light1, light2, light3, p_light])
     
     
     
@@ -92,10 +95,10 @@ function main()
     
     
     # Run the renderer
-    println("Starting image render")
-    @time render(image_renderer, scene)
-    #println("Starting delay render")
-    #@time render(delay_renderer, scene)
+    #println("Starting image render")
+    #@time render(image_renderer, scene)
+    println("Starting delay render")
+    @time render(delay_renderer, scene)
     
     write_image(F)
     #write_txt(DF, "test.txt")

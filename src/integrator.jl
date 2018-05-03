@@ -17,7 +17,7 @@ function inner_int(light::LightSource, p::Point3, bsdf, wo::Vector3, n::Normal3,
     end
     refl = evaluate(bsdf, wi, wo)
     if !isblack(refl) && unoccluded(vis, scene)
-        return (refl * Li) * abs(dot(wi, n))
+        return (refl .* Li) .* abs(dot(wi, n))
     end
     return NoLight()
 end

@@ -1,4 +1,4 @@
-import Base.+, Base.*, Base./, Base.convert, Base.zero, Base.one
+import Base.+, Base.-, Base.*, Base./, Base.convert, Base.zero, Base.one
 
 
 # ------------------------------------------------
@@ -54,22 +54,38 @@ isblack(S::SampledSpectrum) = maximum(S.values) ≈ 0.0
 # Addition of SampledSpectrum objects
 function +(S1::SampledSpectrum{N}, S2::SampledSpectrum{N}) where N
     if !(S1.low == S2.low && S1.high == S2.high) 
-        error("Spectrum limits don't match.")
+        error("Spectrum limits don't match:\n$S1 \n $S2")
     end
-    return typeof(S1)(S1.low, S2.low, S1.values + S2.values)
+    return typeof(S1)(S1.low, S2.high, S1.values + S2.values)
 end
 +(S::SampledSpectrum{N}, c::Real) where N = SampledSpectrum{N}(S.low, S.high, S.values + c)
 +(c::Real, S::SampledSpectrum) = S+c
+-(c::Real, S::SampledSpectrum{N}) where N = SampledSpectrum{N}(S.low, S.high, c - S.values)
+
+function -(S1::SampledSpectrum{N}, S2::SampledSpectrum{N}) where N
+    if !(S1.low == S2.low && S1.high == S2.high) 
+        error("Spectrum limits don't match:\n$S1 \n $S2")
+    end
+    return typeof(S1)(S1.low, S2.high, S1.values - S2.values)
+end
 
 
 # Multiplication of SampledSpectrum objects with reals
+function *(S1::SampledSpectrum{N}, S2::SampledSpectrum{N}) where N
+    if !(S1.low == S2.low && S1.high == S2.high) 
+        error("Spectrum limits don't match:\n$S1 \n $S2")
+    end
+    return typeof(S1)(S1.low, S2.high, S1.values .* S2.values)
+end
 *(S::SampledSpectrum, c::Real) = c*S
 *(c::Real, S::SampledSpectrum{N}) where N = SampledSpectrum{N}(S.low, S.high, c*S.values)
 /(S::SampledSpectrum{N}, c::Real) where N = SampledSpectrum{N}(S.low, S.high, S.values/c)
 
 # Various functions
 import Base.broadcast, Base.size, Base.length
-broadcast(f::Function, S::SampledSpectrum{N}) where N = SampledSpectrum{N}(S.low, S.high, f.(S.values))
+#broadcast(f::Function, S::SampledSpectrum{N}) where N = SampledSpectrum{N}(S.low, S.high, broadcast(f, S.values))
+#broadcast(f::Function, S::SampledSpectrum{N}, Y::SampledSpectrum{N}) where N = SampledSpectrum{N}(S.low, S.high, broadcast(f, S.values, Y.values))
+#broadcast(f::Function, S::SampledSpectrum{N}, y...) where N = SampledSpectrum{N}(S.low, S.high, broadcast(f, S.values, y...))
 size(S::SampledSpectrum{N}) where N = N
 length(S::SampledSpectrum{N}) where N = N
 
@@ -186,6 +202,7 @@ to_XYZ(S::RGBSpectrum) = RGBtoXYZ(S)
 to_RGB(S::RGBSpectrum) = S
 
 +(a::RGBSpectrum, b::RGBSpectrum) = RGBSpectrum(a.r+b.r, a.g+b.g, a.b+b.b)
+-(n::Real, S::RGBSpectrum) = RGBSpectrum(1-S.r, 1-S.g, 1-S.b)
 *(x::Number, S::RGBSpectrum) = RGBSpectrum(x*S.r, x*S.g, x*S.b)
 *(S::RGBSpectrum, x::Number) = x*S
 /(S::RGBSpectrum, x::Number) = RGBSpectrum(S.r/x, S.g/x, S.b/x)
