@@ -21,7 +21,7 @@ function find_bin(t::Real, F::DelayFilm)
     return ceil(Int64, nt * F.tres)
 end
 
-function add_sample!(F::DelayFilm, sample::Sample, L::Spectrum, isect::Nullable{Intersection})
+function add_sample!(F::DelayFilm, sample::Sample, L::Spectrum, isect::Nullable{Intersection{T}}) where T<:Primitive
     if isblack(L) || isnull(isect)
         return nothing
     end
@@ -30,8 +30,7 @@ function add_sample!(F::DelayFilm, sample::Sample, L::Spectrum, isect::Nullable{
         return nothing
     end
     idx = find_bin(isect.tmin, F)
-#    I = interpolate_spectrum(L, F.wavelength)
-    I = to_XYZ(L)[1]
+    I = interpolate(L, F.wavelength)
     F.histogram[idx] += I
     return nothing
 end
@@ -48,4 +47,5 @@ function write_txt(F::DelayFilm, fname::String)
         write(f, string(F.histogram[i]))
         write(f, "\n")
     end
+    close(f)
 end
