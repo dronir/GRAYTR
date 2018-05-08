@@ -95,7 +95,7 @@ function intensity(renderer::SamplerRenderer, scene::Scene, r::Ray, sample::Samp
     if !isnull(maybe_isect)
         # Ray hits a scene object. Get its contribution from surface integrator.
         isect = get(maybe_isect)
-        Li = intensity(renderer.surf_integrator, renderer, scene, isect, r, sample)
+        Li = intensity(renderer.surf_integrator, scene, isect, r, sample)
     else
         # Ray doesn't hit any scenery. Add contribution from background light sources.
         Li = sum(background(light) for light in scene.lights)::Spectrum

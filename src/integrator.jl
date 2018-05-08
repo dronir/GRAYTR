@@ -10,7 +10,9 @@ end
 
 preprocess(W::WhittedIntegrator) = true
 
+# This inner part of loop separated so that it can be dispatched based on the type of 'light':
 function inner_int(light::LightSource, p::Point3, bsdf, wo::Vector3, n::Normal3, scene::Scene)
+    !direct(light) && return NoLight()
     Li, wi, pdf, vis = sample_L(light, p)
     if isblack(Li) || pdf ≈ 0.0
         return NoLight()
@@ -22,11 +24,11 @@ function inner_int(light::LightSource, p::Point3, bsdf, wo::Vector3, n::Normal3,
     return NoLight()
 end
 
-function intensity(intgr::WhittedIntegrator, rend::Renderer, scene::Scene, isect::Intersection, 
+function intensity(intgr::WhittedIntegrator, scene::Scene, isect::Intersection, 
                    ray::Ray, sample::Sample)
     # evaluate BSDF at intersect point
 #    L = RGBSpectrum(0,0,0)
-    bsdf = get_BSDF(isect)
+    bsdf = get_BSDF(isect)::BSDF
     p = bsdf.dgs.p
     n = bsdf.dgs.n
     wo = -ray.direction
@@ -37,8 +39,7 @@ function intensity(intgr::WhittedIntegrator, rend::Renderer, scene::Scene, isect
     # add contribution of each light source
     L = NoLight()
     for light in scene.lights
-        !direct(light) && continue
-        L += inner_int(light, p, bsdf, wo, n, scene) 
+        L += inner_int(light, p, bsdf, wo, n, scene)::Spectrum
     end
     return L
     
