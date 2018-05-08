@@ -214,6 +214,66 @@ broadcast(f, S::RGBSpectrum) = RGBSpectrum(f(S.r), f(S.g), f(S.b))
 # ------------------------------------------------
 # Conversion between XYZ and RGB
 
+struct SingleLine <: Spectrum
+    wavelength::Float64
+    intensity::Float64
+end
+
+isblack(S::SingleLine) = S.intensity ≈ 0.0
+
+# Addition of SampledSpectrum objects
+function +(S1::SingleLine, S2::SingleLine)
+    if S1.wavelength != S2.wavelength
+        error("Spectrum wavelengths don't match:\n$S1 \n $S2")
+    end
+    return SingleLine(S1.wavelength, S1.intensity + S2.intensity)
+end
++(S::SingleLine, c::Real) = SingleLine(S.wavelength, S.intensity + c)
++(c::Real, S::SingleLine) = S+c
+-(c::Real, S::SingleLine) = SingleLine(S.wavelength, S.intensity - c)
+
+
+# Multiplication of SampledSpectrum objects
+function *(S1::SingleLine, S2::SingleLine)
+    if S1.wavelength != S2.wavelength
+        SingleLine(S1.wavelength, 0.0)
+    end
+    return SingleLine(S1.wavelength, S1.intensity * S2.intensity)
+end
+
+function *(S1::SingleLine, S2::SampledSpectrum)
+    return SingleLine(S1.wavelength, S1.intensity * interpolate(S2, S1.wavelength))
+end
+*(S1::SampledSpectrum, S2::SingleLine) = S2*S1
+
+*(c::Real, S::SingleLine) = SingleLine(S.wavelength, c*S.intensity)
+*(S::SingleLine, c::Real) = c*S
+
+/(S::SingleLine, c::Real) = SingleLine(S.wavelength, S.intensity/c)
+
+interpolate(S::SingleLine, wavelength::Real) = S.wavelength ≈ wavelength ? S.intensity : 0.0
+
+
+function to_XYZ(S::SingleLine)
+    out = [0.0, 0.0, 0.0]
+    for i = 1:N_CIE-1
+        if CIE_LAMBDA[i] < S.wavelength
+            out[1] += S.intensity * (CIE_X[i] + CIE_X[i+1]) / 2
+            out[2] += S.intensity * (CIE_Y[i] + CIE_Y[i+1]) / 2
+            out[3] += S.intensity * (CIE_Z[i] + CIE_Z[i+1]) / 2
+            break
+        end
+    end
+    return out
+end
+
+broadcast(f, S::SingleLine, y...) = SingleLine(S.wavelength, f(S.intensity, y...))
+
+
+
+# ------------------------------------------------
+# Conversion between XYZ and RGB
+
 function XYZtoRGB(xyz::Array{Float64,1})
     return [3.240479*xyz[1] - 1.537150*xyz[2] - 0.498535*xyz[3],
            -0.969256*xyz[1] + 1.875991*xyz[2] + 0.041556*xyz[3],
