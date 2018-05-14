@@ -4,7 +4,15 @@
 struct BoundingBox <: BoundingVolume
     pMin::Point3
     pMax::Point3
+    function BoundingBox(p1::Point3, p2::Point3)
+        pMin = min(p1, p2)
+        pMax = max(p1, p2)
+        return new(pMin, pMax)
+    end
 end
+
+
+
 
 # Get the bounding box of a group of bounding boxes
 function BoundingBox(boxes::Array{BoundingBox,1})
@@ -16,6 +24,14 @@ function BoundingBox(boxes::Array{BoundingBox,1})
     end
     return BoundingBox(pMin, pMax)
 end
+
+function BoundingBox(p1::Point3, p2::Point3, p3::Point3)
+    pMin = min(p1, p2, p3)
+    pMax = max(p1, p2, p3)
+    return BoundingBox(pMin, pMax)
+end
+
+
 
 # Get the bounding box of a group of points
 function BoundingBox(contents::Array{Point3,1})
