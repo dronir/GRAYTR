@@ -159,6 +159,10 @@ function intersect(ray::Ray, BVH::BVHAccelerator)
         todo[i] = 0
     end
     dir_is_neg = [ray.direction[i] < 0.0 for i = 1:3]
+    
+    tmin = Inf
+    best_isect = Nullable{Intersection}()
+    
     while true
         # Check the node given by the index nodeN
         node = BVH.nodes[nodeN]
@@ -167,9 +171,13 @@ function intersect(ray::Ray, BVH::BVHAccelerator)
             if node.leaf
                 # This is a leaf node.
                 # Check intersection with the primitive in the node and return if it hits.
-                isect = intersect(ray, BVH.primitives[node.offset])
-                if !isnull(isect)
-                    return isect
+                maybe_isect = intersect(ray, BVH.primitives[node.offset])
+                if !isnull(maybe_isect)
+                    isect = get(maybe_isect)
+                    if isect.tmin < tmin
+                        best_isect = maybe_isect
+                        tmin = isect.tmin
+                    end
                 end
                 # It didn't hit the primive.
                 # If there's nothing in the todo queue, we exit the loop.
@@ -206,7 +214,7 @@ function intersect(ray::Ray, BVH::BVHAccelerator)
             
         end
     end
-    return Nullable{Intersection{GeometricPrimitive}}()
+    return best_isect
 end
 
 function intersectP(ray::Ray, BVH::BVHAccelerator)
