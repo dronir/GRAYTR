@@ -49,6 +49,7 @@ get_shading_geometry(S::Shape, dg::DifferentialGeometry, T::Transformation) = dg
 include("shapes/sphere.jl")
 include("shapes/cylinder.jl")
 include("shapes/disk.jl")
+include("shapes/triangle.jl")
 #include("shapes/plane.jl")
 #include("shapes/box.jl")
 
