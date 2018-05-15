@@ -147,10 +147,11 @@ end
 
 
 const TODO_ARRAY = zeros(Int64, 65)
+const dir_is_neg = zeros(Bool, 3)
 
 function intersect(ray::Ray, BVH::BVHAccelerator)
     if length(BVH.nodes) == 0
-        return Nullable{Intersection{GeometricPrimitive}}()
+        return Nullable{Intersection}()
     end
     nodeN = 1
     todo_offset = 0
@@ -158,7 +159,9 @@ function intersect(ray::Ray, BVH::BVHAccelerator)
     for i = 1:64
         todo[i] = 0
     end
-    dir_is_neg = [ray.direction[i] < 0.0 for i = 1:3]
+    for i = 1:3
+        dir_is_neg[i] = ray.direction[i] < 0.0
+    end
     
     tmin = Inf
     best_isect = Nullable{Intersection}()
@@ -227,7 +230,9 @@ function intersectP(ray::Ray, BVH::BVHAccelerator)
     for i = 1:64
         todo[i] = 0
     end
-    dir_is_neg = [ray.direction[i] < 0.0 for i = 1:3]
+    for i = 1:3
+        dir_is_neg[i] = ray.direction[i] < 0.0
+    end
     while true
         node = BVH.nodes[nodeN]
         if intersectP(ray, node.BBox)
