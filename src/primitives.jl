@@ -73,7 +73,3 @@ function fully_refine!(P::Primitive, out::Array{Primitive,1})
 end
 
 
-
-
-
-
