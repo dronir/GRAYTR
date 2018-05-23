@@ -212,7 +212,7 @@ broadcast(f, S::RGBSpectrum) = RGBSpectrum(f(S.r), f(S.g), f(S.b))
 
 
 # ------------------------------------------------
-# Conversion between XYZ and RGB
+# Single line spectra
 
 struct SingleLine <: Spectrum
     wavelength::Float64
@@ -221,7 +221,7 @@ end
 
 isblack(S::SingleLine) = S.intensity ≈ 0.0
 
-# Addition of SampledSpectrum objects
+# Addition of SingleLine objects
 function +(S1::SingleLine, S2::SingleLine)
     if S1.wavelength != S2.wavelength
         error("Spectrum wavelengths don't match:\n$S1 \n $S2")
@@ -233,7 +233,7 @@ end
 -(c::Real, S::SingleLine) = SingleLine(S.wavelength, S.intensity - c)
 
 
-# Multiplication of SampledSpectrum objects
+# Multiplication of SingleLine objects
 function *(S1::SingleLine, S2::SingleLine)
     if S1.wavelength != S2.wavelength
         SingleLine(S1.wavelength, 0.0)
