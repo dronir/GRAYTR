@@ -1,3 +1,7 @@
+
+"""
+ProjectiveCamera can be 'regular' or orthographic depending on the projection.
+"""
 struct ProjectiveCamera{F<:Film} <: Camera
     film::F
     camera_to_world::Transformation
@@ -11,6 +15,11 @@ struct ProjectiveCamera{F<:Film} <: Camera
     focald::Float64
 end
 
+"""
+    ProjectiveCamera(cam2world, projection, window, lensR, focal_depth, film)
+    
+Construct a ProjectiveCamera.
+"""
 function ProjectiveCamera(cam2w::Transformation, proj::Transformation, window::Array{Float64,1}, lensr::Float64, focald::Float64, f::Film)
     screen2raster = (scaling(f.resX, f.resY, 1.0) 
                    * scaling(1.0/(window[2] - window[1]), 1.0/(window[4] - window[3]), 1.0) 
@@ -23,14 +32,33 @@ function ProjectiveCamera(cam2w::Transformation, proj::Transformation, window::A
     ProjectiveCamera(f, cam2w, raster2cam, inv(raster2cam), cam2screen, inv(cam2screen), dxcam, dycam, lensr, focald)
 end
 
+
+
+"""
+    OrthographicCamera(cam2world, window, lensR, focal_depth, film)
+
+Construct an orthographic camera.
+"""
 function OrthographicCamera(cam2w::Transformation, window::Array{Float64,1}, lensr::Float64, focald::Float64, f::Film)
     ProjectiveCamera(cam2w, orthographic(0.0, 1.0), window, lensr, focald, f)
 end
 
+
+"""
+    orthographic(znear::Real, zfar::Real)
+    
+Computes the orthographic projection transformation given near and far distances.
+"""
 function orthographic(znear::Real, zfar::Real)
     scaling(1.0, 1.0, 1.0/(zfar - znear)) * translation(0.0, 0.0, -znear)
 end
 
+
+"""
+    generate_ray(C::ProjectiveCamera, sample::CameraSample)
+
+Generate a ray leaving the camera based on the sample.
+"""
 function generate_ray(C::ProjectiveCamera, sample::CameraSample)
     pras = Point3(sample.imgX, sample.imgY, 0.0)
     pcam = C.raster_to_camera(pras)
