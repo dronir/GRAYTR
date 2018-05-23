@@ -2,6 +2,7 @@
 
 struct DelayFilm <: Film
     wavelength::Float64
+    area::Float64
     resX::Int64
     resY::Int64
     tres::Int64
@@ -11,13 +12,14 @@ struct DelayFilm <: Film
     counts::Array{Int64,1}
 end
 
-function DelayFilm(lmd::Real, resX::Integer, resY::Integer, tres::Integer, tmin::Real, tmax::Real)
-    DelayFilm(lmd, resX, resY, tres, tmin, tmax, zeros(Float64, tres), zeros(Int64,tres))
+function DelayFilm(lmd::Real, window::Array{Float64,1}, resX::Integer, resY::Integer, tres::Integer, tmin::Real, tmax::Real)
+    area = (window[2] - window[1]) * (window[4] - window[3])
+    DelayFilm(lmd, area, resX, resY, tres, tmin, tmax, zeros(Float64, tres), zeros(Int64,tres))
 end
 
 uses_isect(F::DelayFilm) = true
 
-function find_bin(t::Real, F::DelayFilm)
+function find_bin(F::DelayFilm, t::Real)
     nt = (t - F.tmin) / (F.tmax - F.tmin)
     return ceil(Int64, nt * F.tres)
 end
@@ -30,7 +32,7 @@ function add_sample!(F::DelayFilm, sample::Sample, L::Spectrum, isect::Nullable{
     if isect.tmin > F.tmax || isect.tmin < F.tmin
         return nothing
     end
-    idx = find_bin(isect.tmin, F)
+    idx = find_bin(F, isect.tmin)
     I = interpolate(L, F.wavelength)
     F.histogram[idx] += I
     F.counts[idx] += 1
@@ -46,7 +48,7 @@ function write_txt(F::DelayFilm, fname::String)
     write(f, "# tres = $(F.tres)\n")
     write(f, "# step = $((F.tmax - F.tmin) / F.tres)\n")
     for i = 1:F.tres
-        value = F.counts[i] > 0 ? F.histogram[i] / F.counts[i] : 0.0
+        value = F.counts[i] > 0 ? F.area * F.histogram[i] / F.counts[i] : 0.0
         write(f, string(value))
         write(f, "\n")
     end
