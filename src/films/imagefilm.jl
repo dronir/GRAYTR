@@ -49,7 +49,7 @@ function add_sample!(F::ImageFilm, sample::Sample, L::Spectrum)
     end
 end
 
-function write_image(F::ImageFilm) 
+function write_image(F::ImageFilm, fname::String="test.png")
     data = zeros(Float64, (3, size(F.pixels)...))
     for i = 1:size(F.pixels,1)
         for j = 1:size(F.pixels,2)
@@ -58,10 +58,10 @@ function write_image(F::ImageFilm)
         end
     end
     img = colorview(RGB, map(clamp01nan, data))
-    save("test.png", img)
+    save(fname, img)
 end
 
-function write_txt(F::ImageFilm) 
+function write_txt(F::ImageFilm)
     f = open("test.txt", "w")
     for i = 1:minimum(size(F.pixels))
         write(f, repr(F.pixels[i,i]))
