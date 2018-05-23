@@ -55,7 +55,7 @@ background(L::PointLight) = NoLight()
 
 
 ################################
-# Distance light source
+# Distanct light source
 
 struct DistantLight{S<:Spectrum} <: LightSource
     direction::Vector3
@@ -78,7 +78,7 @@ background(L::DistantLight) = NoLight()
 
 
 ################################
-# Distance light source
+# Background light source
 
 struct Background{S<:Spectrum} <: LightSource
     intensity::S
