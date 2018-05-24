@@ -21,6 +21,7 @@ const CIE_Z = vec(raw_CIE_data[:,4])
 struct NoLight <: Spectrum end
 
 isblack(N::NoLight) = true
+to_XYZ(S::NoLight) = [0.0, 0.0, 0.0]
 
 *(x::Number, N::NoLight) = NoLight()
 +(N::NoLight, M::NoLight) = NoLight()
@@ -257,7 +258,7 @@ interpolate(S::SingleLine, wavelength::Real) = S.wavelength ≈ wavelength ? S.i
 function to_XYZ(S::SingleLine)
     out = [0.0, 0.0, 0.0]
     for i = 1:N_CIE-1
-        if CIE_LAMBDA[i] < S.wavelength
+        if CIE_LAMBDA[i] < S.wavelength && CIE_LAMBDA[i+1] >= S.wavelength
             out[1] += S.intensity * (CIE_X[i] + CIE_X[i+1]) / 2
             out[2] += S.intensity * (CIE_Y[i] + CIE_Y[i+1]) / 2
             out[3] += S.intensity * (CIE_Z[i] + CIE_Z[i+1]) / 2
