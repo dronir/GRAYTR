@@ -30,12 +30,11 @@ struct PointLight{S<:Spectrum} <: LightSource
     intensity::S
     light_to_world::Transformation
     world_to_light::Transformation
-    nsamples::Int64
 end
 
 # Minimal constructor
-function PointLight(L::Spectrum, l2w::Transformation, nsamples::Int64)
-    PointLight(l2w(Point3(0)), L, l2w, inv(l2w), nsamples)
+function PointLight(L::Spectrum, l2w::Transformation)
+    PointLight(l2w(Point3(0)), L, l2w, inv(l2w))
 end
 
 isdelta(L::PointLight) = true
@@ -62,11 +61,10 @@ struct DistantLight{S<:Spectrum} <: LightSource
     intensity::S
     light_to_world::Transformation
     world_to_light::Transformation
-    nsamples::Int64
 end
 
-function DistantLight(dir::Vector3, L::Spectrum, l2w::Transformation, nsamples::Int64)
-    DistantLight(normalize(l2w(dir)), L, l2w, inv(l2w), nsamples)
+function DistantLight(dir::Vector3, L::Spectrum, l2w::Transformation)
+    DistantLight(normalize(l2w(dir)), L, l2w, inv(l2w))
 end
 
 function sample_L(light::DistantLight, p::Point3)
