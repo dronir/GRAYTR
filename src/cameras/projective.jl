@@ -24,7 +24,7 @@ function ProjectiveCamera(cam2w::Transformation, proj::Transformation, window::A
     screen2raster = (scaling(f.resX, f.resY, 1.0) 
                    * scaling(1.0/(window[2] - window[1]), 1.0/(window[4] - window[3]), 1.0) 
                    * translation(-window[1], -window[3], 0.0))
-    cam2screen = orthographic(0.0, 1.0)
+    cam2screen = proj
     raster2screen = inv(screen2raster)
     raster2cam = inv(cam2screen) * raster2screen
     dxcam = raster2cam(Vector3(1,0,0))
