@@ -72,10 +72,9 @@ roundsize(S::StratifiedSampler, size::Integer) = size
 function get_subsampler(sampler::StratifiedSampler, n::Integer, count::Integer)
     x0, x1, y0, y1 = compute_subwindow(sampler, n, count)
     if x0 == x1 || y0 == y1
-        return Nullable{StratifiedSampler}()
+        return nothing
     else
-        return Nullable(StratifiedSampler(x0, x1, y0, y1, sampler.xs, sampler.ys, 
-                                          sampler.jitter))
+        return StratifiedSampler(x0, x1, y0, y1, sampler.xs, sampler.ys, sampler.jitter)
     end
 end
 

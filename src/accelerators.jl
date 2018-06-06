@@ -151,7 +151,7 @@ const dir_is_neg = zeros(Bool, 3)
 
 function intersect(ray::Ray, BVH::BVHAccelerator)
     if length(BVH.nodes) == 0
-        return Nullable{Intersection}()
+        return nothing
     end
     nodeN = 1
     todo_offset = 0
@@ -164,7 +164,7 @@ function intersect(ray::Ray, BVH::BVHAccelerator)
     end
     
     tmin = Inf
-    best_isect = Nullable{Intersection}()
+    best_isect = nothing
     
     while true
         # Check the node given by the index nodeN
@@ -175,8 +175,8 @@ function intersect(ray::Ray, BVH::BVHAccelerator)
                 # This is a leaf node.
                 # Check intersection with the primitive in the node and return if it hits.
                 maybe_isect = intersect(ray, BVH.primitives[node.offset])
-                if !isnull(maybe_isect)
-                    isect = get(maybe_isect)
+                if maybe_isect != nothing
+                    isect = maybe_isect
                     if isect.tmin < tmin
                         best_isect = maybe_isect
                         tmin = isect.tmin

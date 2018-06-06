@@ -37,7 +37,7 @@ function shape_intersect(r::Ray, sph::Sphere)
     
     # Not hit or both hits out of bounds
     if !hit || tnear > r.tmax || tfar < r.tmin || (tnear < r.tmin && tfar > r.tmax)
-        return Nullable{DifferentialGeometry}(), NaN, NaN
+        return nothing, NaN, NaN
     end
     t = tnear > r.tmin ? tnear : tfar
     P = ray(t)
@@ -60,14 +60,14 @@ function shape_intersect(r::Ray, sph::Sphere)
     dpdvv = -π^2 * P
     dndu, dndv = normal_derivatives(dpdu, dpdv, dpduu, dpduv, dpdvv)
     
-    DG = Nullable(DifferentialGeometry(
+    DG = DifferentialGeometry(
         sph.obj_to_world(P),
         u, v, sph,
         sph.obj_to_world(dpdu),
         sph.obj_to_world(dpdv),
         sph.obj_to_world(dndu),
         sph.obj_to_world(dndv)
-    ))
+    )
     return DG, t, 5e-4 * t
 end
 

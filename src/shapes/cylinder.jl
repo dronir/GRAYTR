@@ -30,7 +30,7 @@ function shape_intersect(R::Ray, cyl::Cylinder)
     ray = cyl.world_to_obj(R)
     A = ray.direction.x^2 + ray.direction.y^2
     if A ≈ 0.0
-        return Nullable{DifferentialGeometry}(), NaN, NaN
+        return nothing, NaN, NaN
     end
     B = 2.0 * (ray.direction.x * ray.origin.x + ray.direction.y * ray.origin.y)
     C = ray.origin.x^2 + ray.origin.y^2 - cyl.radius^2
@@ -39,7 +39,7 @@ function shape_intersect(R::Ray, cyl::Cylinder)
     if !hit || tnear > ray.tmax || tfar < ray.tmin || (tnear < ray.tmin && tfar > ray.tmax)
         # The ray didn't hit the infinitely long extension of the cylinder.
         # This it misses the cylinder itself.
-        return Nullable{DifferentialGeometry}(), NaN, NaN
+        return nothing, NaN, NaN
     end
     
     t = tnear > ray.tmin ? tnear : tfar
@@ -48,7 +48,7 @@ function shape_intersect(R::Ray, cyl::Cylinder)
     if P.z < cyl.zmin || P.z > cyl.zmax
         # The z coordinate of the intersection with the infinite cylinder is outside
         # of the actual cylinder's extent.
-        return Nullable{DifferentialGeometry}(), NaN, NaN
+        return nothing, NaN, NaN
     end
     
     phi = atan2(P.y, P.x)
@@ -63,14 +63,14 @@ function shape_intersect(R::Ray, cyl::Cylinder)
     dpdvv = Vector3(0.0)
     dndu, dndv = normal_derivatives(dpdu, dpdv, dpduu, dpduv, dpdvv)
     
-    DG = Nullable(DifferentialGeometry(
+    DG = DifferentialGeometry(
         cyl.obj_to_world(P),
         u, v, cyl,
         cyl.obj_to_world(dpdu),
         cyl.obj_to_world(dpdv),
         cyl.obj_to_world(dndu),
         cyl.obj_to_world(dndv)
-    ))
+    )
     return DG, t, 5e-4 * t
 end
 

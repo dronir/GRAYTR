@@ -27,16 +27,16 @@ end
 function shape_intersect(R::Ray, D::Disk)
     ray = D.world_to_obj(R)
     if ray.direction.z ≈ 0.0
-        return Nullable{DifferentialGeometry}(), NaN, NaN
+        return nothing, NaN, NaN
     end
     t = -ray.origin.z / ray.direction.z
     if t < ray.tmin || t > ray.tmax
-        return Nullable{DifferentialGeometry}(), NaN, NaN 
+        return nothing, NaN, NaN 
     end
     P = ray(t)
     r2 = P.x^2 + P.y^2
     if r2 > D.rmax^2 || r2 < D.rmin^2
-        return Nullable{DifferentialGeometry}(), NaN, NaN
+        return nothing, NaN, NaN
     end
     phi = atan2(P.y, P.x)
     phi = phi < 0.0 ? phi+2π : phi
@@ -47,14 +47,14 @@ function shape_intersect(R::Ray, D::Disk)
     dpdv = Vector3(-dr*P.x/(1.0-v), -dr*P.y/(1.0-v), 0.0)
     dndu = Normal3(0.0)
     dndv = Normal3(0.0)
-    DG = Nullable(DifferentialGeometry(
+    DG = DifferentialGeometry(
         D.obj_to_world(P),
         u, v, D,
         D.obj_to_world(dpdu),
         D.obj_to_world(dpdv),
         D.obj_to_world(dndu),
         D.obj_to_world(dndv)
-    ))
+    )
     return DG, t, 5e-4 * t
 end
 

@@ -4,7 +4,7 @@
 # world_bounds(P::Primitive) returns BoundingBox
 # obj_bounds(P::Primitive) return BoundingBox
 # can_intersect(P::Primitive) returns Bool
-# intersect(r::Ray, P::Primitive) return Nullable{Intersection}
+# intersect(r::Ray, P::Primitive) return Intersection or nothing
 # intersectP(r::Ray, P::Primitive)
 # refine(P::Primitive)
 # BDRF(P::Primitive)
@@ -15,7 +15,7 @@ end
 struct GeometricPrimitive{T<:Shape} <: Primitive
     shape::T
     material::Material
-    light::Nullable{AreaLight}
+    light::Union{AreaLight,Void}
     id::Int64
 end
 
@@ -37,12 +37,12 @@ end
 
 function intersect(R::Ray, P::GeometricPrimitive)
     dg, tmin, reps = shape_intersect(R, P.shape)
-    if isnull(dg)
-        return Nullable{Intersection{typeof(P)}}()
+    if dg == nothing
+        return nothing
     end
-    return Nullable(Intersection(
-        P, get(dg), P.shape.obj_to_world, P.shape.world_to_obj, reps, tmin, P.shape.id, P.id
-    ))
+    return Intersection(
+        P, dg, P.shape.obj_to_world, P.shape.world_to_obj, reps, tmin, P.shape.id, P.id
+    )
 end
 
 function get_BSDF(P::GeometricPrimitive, dg::DifferentialGeometry, obj_to_world::Transformation)

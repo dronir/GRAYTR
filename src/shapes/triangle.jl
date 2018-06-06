@@ -10,6 +10,7 @@ struct Triangle <: Shape
 end
 
 Triangle(T::Transformation) = Triangle(1, Point3(0,0,0), Point3(1,0,0), Point3(0,1,0), false, T, inv(T))
+Triangle(p1::Point3, p2::Point3, p3::Point3, T::Transformation) = Triangle(1, p1, p2, p3, false, T, inv(T))
 
 
 can_intersect(T::Triangle) = true
@@ -34,25 +35,25 @@ function shape_intersect(R::Ray, T::Triangle)
     s1 = cross(ray.direction, e2)
     divisor = dot(s1, e1)
     if divisor == 0.0
-        return Nullable{DifferentialGeometry}(), NaN, NaN
+        return nothing, NaN, NaN
     end
     invd = 1.0 / divisor
     
     d = ray.origin - T.p1
     b1 = dot(d, s1) * invd
     if b1 < 0.0 || b1 > 1.0
-        return Nullable{DifferentialGeometry}(), NaN, NaN
+        return nothing, NaN, NaN
     end
     
     s2 = cross(d, e1)
     b2 = dot(ray.direction, s2) * invd
     if b2 < 0.0 || b1+b2 > 1.0
-        return Nullable{DifferentialGeometry}(), NaN, NaN
+        return nothing, NaN, NaN
     end
     
     t = dot(e2, s2) * invd
     if t < ray.tmin || t > ray.tmax
-        return Nullable{DifferentialGeometry}(), NaN, NaN
+        return nothing, NaN, NaN
     end
     
     P = ray(t)
@@ -71,14 +72,14 @@ function shape_intersect(R::Ray, T::Triangle)
     dpdu = ( dv2 * dp1 - dv1 * dp2) * invdet
     dpdv = (-du2 * dp1 + du1 * dp2) * invdet
     
-    DG = Nullable(DifferentialGeometry(
+    DG = DifferentialGeometry(
         T.obj_to_world(P),
         u, v, T,
         T.obj_to_world(dpdu),
         T.obj_to_world(dpdv),
         Normal3(0,0,0),
         Normal3(0,0,0)
-    ))
+    )
     return DG, t, 5e-4 * t
 end
 
