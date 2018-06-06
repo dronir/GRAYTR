@@ -56,9 +56,8 @@ end
 # This runs a SamplerRendererTask, generating a ray, computing the intensity along that ray,
 # and adding it to the camera film.
 function run(task::SamplerRendererTask)
-    maybe_sampler = get_subsampler(task.renderer.sampler, task.number, task.count)
-    maybe_sampler == nothing && return nothing
-    subsampler = maybe_sampler
+    subsampler = get_subsampler(task.renderer.sampler, task.number, task.count)
+    subsampler == nothing && return nothing
     
     max_samples = 0 # TODO
     state = 0
@@ -91,16 +90,15 @@ function run(task::SamplerRendererTask)
 end
 
 function intensity(renderer::SamplerRenderer, scene::Scene, r::Ray, sample::Sample)
-    maybe_isect = intersect(r, scene)
-    if maybe_isect != nothing
+    isect = intersect(r, scene)
+    if isect != nothing
         # Ray hits a scene object. Get its contribution from surface integrator.
-        isect = maybe_isect
         Li = intensity(renderer.surf_integrator, scene, isect, r, sample)
     else
         # Ray doesn't hit any scenery. Add contribution from background light sources.
         Li = nolight #sum(background(light) for light in scene.lights)::Spectrum
     end
     # TODO: add volume integrator contribution
-    return Li, maybe_isect
+    return Li, isect
 end
 
