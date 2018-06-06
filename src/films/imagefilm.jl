@@ -1,6 +1,7 @@
 struct ImageFilm{T<:Filter} <: Film
     resX::Int64
     resY::Int64
+    gain::Float64
     filter::T
     pixels::Array{Pixel,2}
     filtertable::Array{Float64,2}
@@ -22,7 +23,7 @@ function make_filtertable(f::Filter)
     ftbl
 end
 
-ImageFilm(x::Integer, y::Integer, f::Filter) = ImageFilm(x, y, f, zeros(Pixel,(x,y)), 
+ImageFilm(x::Integer, y::Integer, gain::Real, f::Filter) = ImageFilm(x, y, gain, f, zeros(Pixel,(x,y)), 
                                                          make_filtertable(f))
 
 function add_sample!(F::ImageFilm, sample::Sample, L::Spectrum)
@@ -54,7 +55,7 @@ function write_image(F::ImageFilm, fname::String="test.png")
     for i = 1:size(F.pixels,1)
         for j = 1:size(F.pixels,2)
             P = F.pixels[i,j]
-            data[:,i,j] = XYZtoRGB([P.x/P.w, P.y/P.w, P.z/P.w])
+            data[:,i,j] = XYZtoRGB([P.x/P.w, P.y/P.w, P.z/P.w]) * F.gain
         end
     end
     img = colorview(RGB, map(clamp01nan, data))
