@@ -98,7 +98,7 @@ function intensity(renderer::SamplerRenderer, scene::Scene, r::Ray, sample::Samp
         Li = intensity(renderer.surf_integrator, scene, isect, r, sample)
     else
         # Ray doesn't hit any scenery. Add contribution from background light sources.
-        Li = NoLight() #sum(background(light) for light in scene.lights)::Spectrum
+        Li = nolight #sum(background(light) for light in scene.lights)::Spectrum
     end
     # TODO: add volume integrator contribution
     return Li, maybe_isect

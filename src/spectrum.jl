@@ -20,15 +20,17 @@ const CIE_Z = vec(raw_CIE_data[:,4])
 
 struct NoLight <: Spectrum end
 
+const nolight = NoLight()
+
 isblack(N::NoLight) = true
 to_XYZ(S::NoLight) = [0.0, 0.0, 0.0]
 
-*(x::Number, N::NoLight) = NoLight()
-+(N::NoLight, M::NoLight) = NoLight()
+*(x::Number, N::NoLight) = nolight
++(N::NoLight, M::NoLight) = nolight
 +(N::NoLight, S::Spectrum) = S
 +(S::Spectrum, N::NoLight) = S
-#*(N::NoLight, S::Spectrum) = NoLight()
-#*(S::Spectrum, N::NoLight) = NoLight()
+#*(N::NoLight, S::Spectrum) = nolight
+#*(S::Spectrum, N::NoLight) = nolight
 #/(N::NoLight, S::Spectrum) = S
 
 

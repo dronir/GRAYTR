@@ -50,7 +50,7 @@ function sample_L(light::PointLight, p::Point3)
 end
 
 direct(L::PointLight) = true
-background(L::PointLight) = NoLight()
+background(L::PointLight) = nolight
 
 
 ################################
@@ -72,7 +72,7 @@ function sample_L(light::DistantLight, p::Point3)
 end
 
 direct(L::DistantLight) = true
-background(L::DistantLight) = NoLight()
+background(L::DistantLight) = nolight
 
 
 ################################
@@ -82,7 +82,7 @@ struct Background{S<:Spectrum} <: LightSource
     intensity::S
 end
 
-sample_L(light::Background, p::Point3) = NoLight()
+sample_L(light::Background, p::Point3) = nolight
 
 direct(L::Background) = false
 background(L::Background) = L.intensity
