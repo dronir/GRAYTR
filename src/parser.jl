@@ -10,6 +10,7 @@ const pattern_scale = r"(scale)\s+([xyzXYZ])\s+(-?[\d]+(\.[\d]+)?)"
 const pattern_translate = r"(translate)\s+([xyzXYZ])\s+(-?[\d]+(\.[\d]+)?)"
 const pattern_transform_vec = r"(translate|scale)\s+\[(\s*-?[\d]+(\.[\d]+)?,\s*-?[\d]+(\.[\d]+)?,\s*-?[\d]+(\.[\d]+)?\s*)\]"
 
+const pattern_spectrum = r"^\s+spectrum\s+(from\s+(\w+\.?\w+)|line\s+(\d+(\.\d*)?)\s+(\d+(\.\d*)?))"
 
 vec_transformations = Dict(
     "translate" => translation,
@@ -210,7 +211,7 @@ end
 
 function parse_material(lines, state)
     BRDF, state = get_or_error(r"^\s+BRDF\s+(.+)", 1, lines, state, "BRDF name")
-    spec, state = get_or_error(r"^\s+spectrum\s+(from\s+(\w+\.?\w+))", 1, lines, state, "spectrum")
+    spec, state = get_or_error(pattern_spectrum, 1, lines, state, "spectrum")
     mat = Dict{String,Any}(
         "BRDF" => BRDF,
         "spectrum" => spec
@@ -231,7 +232,7 @@ end
 
 function parse_light(lines, state)
     light_type, state = get_or_error(r"^\s+(point_light|distant_light)", 1, lines, state, "light source type")
-    spec, state = get_or_error(r"^\s+spectrum\s+(from\s+(\w+\.?\w+))", 1, lines, state, "spectrum")
+    spec, state = get_or_error(pattern_spectrum, 1, lines, state, "spectrum")
     T, state = parse_transformations(lines, state)
     light = Dict{String,Any}(
         "type" => light_type,
@@ -290,10 +291,19 @@ end
 function load_spectrum(line)
     if startswith(line, "from")
         fname = match(r"from ([\w\.\_\-]+)", line)[1]
-        println(fname)
+        warn("Spectrum loading not implemented yet.")
+        return nolight
+    elseif startswith(line, "line")
+        m = match(r"line\s+(\d+(\.\d*)?)\s+(\d+(\.\d*)?)", line)
+        wavelength = float(m[1])
+        intensity = float(m[3])
+        return SingleLine(wavelength, intensity)
+    else
+        error("Unknown spectrum: '$line'")
     end
-    return SingleLine(532.0, 1.0)
 end
+
+
 
 function get_brdf(line, spec)
     M = match(r"((\w+)\s+(.+))", line)
@@ -371,7 +381,7 @@ function dict_to_objects(input::Dict)
     accel = BVHAccelerator(primitives)
     
     # Generate lights
-    lights = LightSource[]
+    Lights = LightSource[]
     
     for (i, (name, properties)) in enumerate(input["light_sources"])
         spectrum = load_spectrum(properties["spectrum"])
@@ -381,20 +391,21 @@ function dict_to_objects(input::Dict)
         end
         ltype = properties["type"]
         if ltype == "point_light"
-            L = PointLight(spectrum, T)
+            light = PointLight(spectrum, T)
         elseif ltype == "distant_light"
-            L = DistantLight(-Z_AXIS, spectrum, T)
+            light = DistantLight(-Z_AXIS, spectrum, T)
         else
-            error("Unknown light type: ltype")
+            error("Unknown light type: $ltype")
         end
+        push!(Lights, light)
     end
     
-    if length(lights) == 0
+    if length(Lights) == 0
         warn("No light sources found.")
     end
     
     
     # Create camera
-    return materials, primitives, lights
+    return accel, Lights
 end
 
