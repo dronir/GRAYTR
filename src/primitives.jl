@@ -24,6 +24,10 @@ can_intersect(P::GeometricPrimitive) = can_intersect(P.shape)
 world_bounds(P::GeometricPrimitive) = world_bounds(P.shape)
 obj_bounds(P::GeometricPrimitive) = obj_bounds(P.shape)
 
+(T::Transformation)(P::GeometricPrimitive) = GeometricPrimitive(T(P.shape), P.material, P.light, P.id)
+
+
+
 struct Intersection{P<:Primitive}
     target::P
     geometry::DifferentialGeometry

@@ -24,6 +24,11 @@ function world_bounds(C::Cylinder)
     C.obj_to_world(obj_bounds(C))
 end
 
+function (T::Transformation)(C::Cylinder)
+    T2 = T * C.obj_to_world
+    Cylinder(C.id, C.radius, C.zmin, C.zmax, C.inverted, T2, inv(T2))
+end
+
 
 
 function shape_intersect(R::Ray, cyl::Cylinder)

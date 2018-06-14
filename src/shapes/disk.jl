@@ -23,6 +23,12 @@ function world_bounds(D::Disk)
     D.obj_to_world(obj_bounds(D))
 end
 
+function (T::Transformation)(D::Disk)
+    T2 = T * D.obj_to_world
+    Disk(D.id, D.rmin, D.rmax, D.inverted, T2, inv(T2))
+end
+
+
 
 function shape_intersect(R::Ray, D::Disk)
     ray = D.world_to_obj(R)
