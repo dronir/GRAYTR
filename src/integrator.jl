@@ -17,7 +17,7 @@ function inner_int(light::LightSource, p::Point3, bsdf, wo::Vector3, n::Normal3,
     if isblack(Li) || pdf ≈ 0.0
         return nolight
     end
-    if unoccluded(vis, scene)
+    if !intersectP(vis, scene)
         refl = evaluate(bsdf, wi, wo)
         return (refl .* Li) .* abs(dot(wi, n))
     end

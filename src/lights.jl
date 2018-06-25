@@ -2,24 +2,19 @@
 
 
 ################################
-# Visibility Tester
-
-struct VisibilityTester
-    ray::Ray
-end
+# Visibility Tester is a ray from point to light source
 
 # VisibilityTester between two points (with epsilons)
 function VisibilityTester(p1::Point3, p2::Point3, eps1::Float64, eps2::Float64)
     distance = norm(p2-p1)
-    VisibilityTester(Ray(p1, (p2-p1)/distance, eps1, distance*(1.0 - eps2), 1))
+    return Ray(p1, (p2-p1)/distance, eps1, distance*(1.0 - eps2), 1)
 end
 
 # VisibilityTester from a point to infinitely far away
 function VisibilityTester(origin::Point3, direction::Vector3, eps::Float64)
-    VisibilityTester(Ray(origin, direction, eps, Inf, 1))
+    return Ray(origin, direction, eps, Inf, 1)
 end
 
-unoccluded(V::VisibilityTester, scene::Scene) = !intersectP(V.ray, scene)
 
 
 ################################
