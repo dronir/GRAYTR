@@ -174,11 +174,10 @@ function intersect(ray::Ray, BVH::BVHAccelerator)
             if node.leaf
                 # This is a leaf node.
                 # Check intersection with the primitive in the node and keep best intersection.
-                maybe_isect = intersect(ray, BVH.primitives[node.offset])
-                if maybe_isect != nothing
-                    isect = maybe_isect
+                isect = intersect(ray, BVH.primitives[node.offset])
+                if isect != nothing
                     if isect.tmin < tmin
-                        best_isect = maybe_isect
+                        best_isect = isect
                         tmin = isect.tmin
                     end
                 end
