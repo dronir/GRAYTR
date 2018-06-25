@@ -66,6 +66,9 @@ end
 
 function intersectP(R::Ray, D::Disk)
     ray = D.world_to_obj(R)
+    if ray.direction.z ≈ 0.0
+        return false
+    end
     t = -ray.origin.z / ray.direction.z
     if t < ray.tmin || t > ray.tmax
         return false
