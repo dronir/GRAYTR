@@ -1,3 +1,6 @@
+using FileIO
+using Images
+
 struct ImageFilm{T<:Filter} <: Film
     resX::Int64
     resY::Int64
