@@ -47,24 +47,23 @@ function init_interior!(node::BVHBuildNode, axis::Integer, childA::BVHBuildNode,
 end
 
 
-function BVH_build_recursive(build_data::Array{PrimitiveInfo,1}, startN::Integer, endN::Integer, 
-                             primitives::Array{Primitive,1}, ordered_primitives::Array{Primitive,1}, 
+function BVH_build_recursive{T<:Primitive}(build_data::Array{PrimitiveInfo,1}, startN::Integer, 
+                             endN::Integer, primitives::Array{T,1}, ordered_primitives::Array{T,1}, 
                              total_nodes::Integer)
                             
     total_nodes += 1
     node = BVHBuildNode()
-    BB = BoundingBox([build_data[i].BBox for i = startN:endN])
-    CBox = BoundingBox([build_data[i].centroid for i = startN:endN])
-#    n_primitives = endN - startN
-    dim = max_extent(CBox)
-    if startN == endN #|| CBox.pMin[dim] == CBox.pMax[dim]
+    
+    if startN == endN
         # Only one primitive in the range, create leaf node
         n = build_data[startN].number
         push!(ordered_primitives, primitives[n])
         offset = length(ordered_primitives)
-        init_leaf!(node, offset, BB)
+        init_leaf!(node, offset, build_data[startN].BBox)
     else
         # More than one primitive in the range, make partition and call recursively
+        CBox = BoundingBox([build_data[i].centroid for i = startN:endN])
+        dim = max_extent(CBox)
         pmid = mean(CBox.pMin, CBox.pMax)
         cmp(x,y) = x.centroid[dim] < y.centroid[dim]
         build_data[startN:endN] = sort(build_data[startN:endN] ; lt=cmp)
@@ -120,7 +119,8 @@ world_bounds(B::BVHAccelerator) = B.nodes[1].BBox
 
 function BVHAccelerator(prims::Array{T,1}) where T<:Primitive
     # Refine primitives to their fully intersectable components
-    primitives = Primitive[]
+    primtype = eltype(prims)
+    primitives = primtype[]
     for p in prims
         fully_refine!(p, primitives)
     end
@@ -135,7 +135,7 @@ function BVHAccelerator(prims::Array{T,1}) where T<:Primitive
     end
     
     # Generate binary tree structure of bounding boxes
-    ordered = Primitive[]
+    ordered = primtype[]
     root_node, total_nodes = BVH_build_recursive(build_data, 1, length(primitives), primitives, 
                                                  ordered, 0)
 
@@ -146,7 +146,7 @@ function BVHAccelerator(prims::Array{T,1}) where T<:Primitive
 end
 
 
-const TODO_ARRAY = zeros(Int64, 65)
+const TODO_ARRAY = zeros(Int64, 64)
 const dir_is_neg = zeros(Bool, 3)
 
 function intersect(ray::Ray, BVH::BVHAccelerator)
@@ -173,7 +173,7 @@ function intersect(ray::Ray, BVH::BVHAccelerator)
             # We hit the bounding box of this node.
             if node.leaf
                 # This is a leaf node.
-                # Check intersection with the primitive in the node and return if it hits.
+                # Check intersection with the primitive in the node and keep best intersection.
                 maybe_isect = intersect(ray, BVH.primitives[node.offset])
                 if maybe_isect != nothing
                     isect = maybe_isect
@@ -182,7 +182,7 @@ function intersect(ray::Ray, BVH::BVHAccelerator)
                         tmin = isect.tmin
                     end
                 end
-                # It didn't hit the primive.
+
                 # If there's nothing in the todo queue, we exit the loop.
                 if todo_offset == 0
                     break
@@ -252,7 +252,7 @@ function intersectP(ray::Ray, BVH::BVHAccelerator)
                     nodeN = node.offset
                 else
                     todo[todo_offset] = node.offset
-                    nodeN += 1
+                    nodeN = nodeN + 1
                 end
             end
         else
