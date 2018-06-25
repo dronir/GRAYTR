@@ -11,7 +11,7 @@ end
 preprocess(W::WhittedIntegrator) = true
 
 # This inner part of loop separated so that it can be dispatched based on the type of 'light':
-function inner_int(light::LightSource, p::Point3, bsdf, wo::Vector3, n::Normal3, scene::Scene)
+function inner_int(light::LightSource, p::Point3, bsdf::BSDF, wo::Vector3, n::Normal3, scene::Scene)
     !direct(light) && return nolight
     Li, wi, pdf, vis = sample_L(light, p)
     if isblack(Li) || pdf ≈ 0.0
