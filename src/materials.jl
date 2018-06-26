@@ -2,53 +2,35 @@
 include("brdf.jl")
 
 
-struct BSDF{B<:BxDF}
-    dgs::DifferentialGeometry
-    ng::Normal3
-    nn::Normal3
-    sn::Vector3
-    tn::Vector3
-    local_BxDF::B
-    refidx::Float64
+function local_transformation(dg::DifferentialGeometry)
+    # Make an orthonormal basis of the normal vector, a vector tangent to the surface,
+    # and their cross product.
+    n = dg.n
+    s = normalize(dg.dpdu)
+    t = cross(n, s)
+    
+    M = zeros(4,4)
+    for i = 1:3
+        M[1,i] = s[i]
+        M[2,i] = t[i]
+        M[3,i] = n[i]
+    end
+    M[4,4] = 1.0
+    
+    return Transformation(M, M')
 end
 
 
-function BSDF(dgs::DifferentialGeometry, ng::Normal3, L::BxDF, e::Float64)
-    nn = dgs.n
-    sn = normalize(dgs.dpdu)
-    tn = cross(nn,sn)
-    return BSDF(dgs, ng, nn, sn, tn, L, e)
-end
 
-#BSDF(dgs::DifferentialGeometry, ng::Normal3, L::Array{BxDF,1}) = BSDF(dgs,ng,L,1.0)
-
-#ncomponents(B::BSDF) = size(B.BxDFlist)
-world_to_local(B::BSDF, v::Vector3) = Vector3(dot(v, B.sn), dot(v, B.tn), dot(v, B.nn))
-local_to_world(B::BSDF, v::Vector3) = Vector3(B.sn.x*v.x + B.tn.x*v.y + B.nn.x*vz,
-                                              B.sn.y*v.x + B.tn.y*v.y + B.nn.y*vz,
-                                              B.sn.z*v.x + B.tn.z*v.y + B.nn.z*vz)
-
-function evaluate(B::BSDF, w0::Vector3, w1::Vector3)
-    w0l = world_to_local(B, w0)
-    w1l = world_to_local(B, w1)
+function evaluate(B::BxDF, world_to_local::Transformation, w0::Vector3, w1::Vector3)
+    w0l = world_to_local(w0)
+    w1l = world_to_local(w1)
     flags = 0
-    if dot(w0, B.ng) * dot(w1, B.ng) > 0.0
+    if sign(w0l.z) * sign(w1l.z) < 0.0
         flags = flags & ~BSDF_TRANSMISSION
     else
         flags = flags & ~BSDF_REFLECTION
     end
-    return evaluate(B.local_BxDF, w0l, w1l)
+    return evaluate(B, w0l, w1l)
 end
 
-
-# The simplest material, just Lambertian
-
-struct MatteMaterial{T<:BxDF} <: Material
-    B::T
-end
-
-MatteMaterial(Kd::Spectrum) = MatteMaterial(Lambert(Kd))
-
-function get_BSDF(M::MatteMaterial, dg::DifferentialGeometry, dgs::DifferentialGeometry)
-    return BSDF(dgs, dg.n, M.B, 1.0)
-end
