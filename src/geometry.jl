@@ -82,7 +82,7 @@ start(V::VectorLike) = 1
 next(V::VectorLike, state::Int64) = (getindex(V,state), state+1)
 done(V::VectorLike, state::Int64) = state == 4
 
-
+convert(::Type{Array{Float64,1}}, v::VectorLike) = [v.x, v.y, v.z]
 convert(::Type{Vector3}, x::Array{T,1}) where {T<:Number} = Vector3(x...)
 convert(::Type{Normal3}, x::Array{T,1}) where {T<:Number} = Normal3(x...)
 convert(::Type{Point3}, x::Array{T,1}) where {T<:Number} = Point3(x...)
@@ -104,13 +104,13 @@ struct Transformation
 end
 
 Transformation() = Transformation(eye(4), eye(4))
-Transformation(M::Array{Float64,2}) = Transformation(copy(M), inv(M))
+Transformation(M::Array{Float64,2}) = Transformation(M, inv(M))
 Transformation(M::Array{T,2}) where {T<:Real} = Transformation(convert(Array{Float64,2}, M))
-inv(T::Transformation) = Transformation(copy(T.MInv), copy(T.M))
+inv(T::Transformation) = Transformation(T.MInv, T.M)
 *(T::Transformation, U::Transformation) = Transformation(T.M*U.M, U.MInv*T.MInv)
 # TODO: check maths above
 
-swaps_handedness(T::Transformation) = det(T.M[1:3, 1:3]) < 0.0
+swaps_handedness(T::Transformation) = det(view(T.M, 1:3, 1:3)) < 0.0
 
 translation(x::Real, y::Real, z::Real) = translation(Vector3(x,y,z))
 function translation(delta::Vector3)
@@ -181,11 +181,11 @@ function (T::Transformation)(v::Vector3)
 end
 
 function (T::Transformation)(v::Point3)
-    p = Point3(T.M[1,1]*v.x + T.M[1,2]*v.y + T.M[1,3]*v.z + T.M[1,4],
-               T.M[2,1]*v.x + T.M[2,2]*v.y + T.M[2,3]*v.z + T.M[2,4],
-               T.M[3,1]*v.x + T.M[3,2]*v.y + T.M[3,3]*v.z + T.M[3,4])
-    w = T.M[4,1]*v.x + T.M[4,2]*v.y + T.M[4,3]*v.z + T.M[4,4]
-    return w ≈ 1.0 ? p : p / w
+    invw = 1.0 / (T.M[4,1]*v.x + T.M[4,2]*v.y + T.M[4,3]*v.z + T.M[4,4])
+    p = Point3((T.M[1,1]*v.x + T.M[1,2]*v.y + T.M[1,3]*v.z + T.M[1,4]) * invw,
+               (T.M[2,1]*v.x + T.M[2,2]*v.y + T.M[2,3]*v.z + T.M[2,4]) * invw,
+               (T.M[3,1]*v.x + T.M[3,2]*v.y + T.M[3,3]*v.z + T.M[3,4]) * invw)
+    return p
 end
 
 function (T::Transformation)(v::Normal3)
