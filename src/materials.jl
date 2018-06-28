@@ -5,15 +5,14 @@ include("brdf.jl")
 function local_transformation(dg::DifferentialGeometry)
     # Make an orthonormal basis of the normal vector, a vector tangent to the surface,
     # and their cross product.
-    n = dg.n
     s = normalize(dg.dpdu)
-    t = cross(n, s)
+    t = cross(dg.n, s)
     
     M = zeros(4,4)
     for i = 1:3
         M[1,i] = s[i]
         M[2,i] = t[i]
-        M[3,i] = n[i]
+        M[3,i] = dg.n[i]
     end
     M[4,4] = 1.0
     
