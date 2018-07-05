@@ -149,6 +149,20 @@ end
 const TODO_ARRAY = zeros(Int64, 64)
 const dir_is_neg = zeros(Bool, 3)
 
+
+function update_isect(isect::Intersection, best_isect::Intersection, tmin::Real)
+    if isect.tmin < tmin
+        return isect, isect.tmin
+    else
+        return best_isect, tmin
+    end
+end
+
+update_isect(isect::Void, best_isect::Intersection, tmin::Real) = (best_isect, tmin)
+update_isect(isect::Void, best_isect::Void, tmin::Real) = (nothing, tmin)
+update_isect(isect::Intersection, best_isect::Void, tmin::Real) = (isect, isect.tmin)
+
+
 function intersect(ray::Ray, BVH::BVHAccelerator)
     if length(BVH.nodes) == 0
         return nothing
@@ -175,12 +189,7 @@ function intersect(ray::Ray, BVH::BVHAccelerator)
                 # This is a leaf node.
                 # Check intersection with the primitive in the node and keep best intersection.
                 isect = intersect(ray, BVH.primitives[node.offset])
-                if isect != nothing
-                    if isect.tmin < tmin
-                        best_isect = isect
-                        tmin = isect.tmin
-                    end
-                end
+                best_isect, tmin = update_isect(isect, best_isect, tmin)
 
                 # If there's nothing in the todo queue, we exit the loop.
                 if todo_offset == 0
