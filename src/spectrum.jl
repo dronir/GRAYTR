@@ -258,16 +258,16 @@ interpolate(S::SingleLine, wavelength::Real) = S.wavelength ≈ wavelength ? S.i
 
 
 function to_XYZ(S::SingleLine)
-    out = [0.0, 0.0, 0.0]
+    x,y,z = 0.0, 0.0, 0.0
     for i = 1:N_CIE-1
         if CIE_LAMBDA[i] < S.wavelength && CIE_LAMBDA[i+1] >= S.wavelength
-            out[1] += S.intensity * (CIE_X[i] + CIE_X[i+1]) / 2
-            out[2] += S.intensity * (CIE_Y[i] + CIE_Y[i+1]) / 2
-            out[3] += S.intensity * (CIE_Z[i] + CIE_Z[i+1]) / 2
+            x += S.intensity * (CIE_X[i] + CIE_X[i+1]) / 2
+            y += S.intensity * (CIE_Y[i] + CIE_Y[i+1]) / 2
+            z += S.intensity * (CIE_Z[i] + CIE_Z[i+1]) / 2
             break
         end
     end
-    return out
+    return x, y, z
 end
 
 broadcast(f, S::SingleLine, y...) = SingleLine(S.wavelength, f(S.intensity, y...))
