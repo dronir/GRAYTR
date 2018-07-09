@@ -32,7 +32,7 @@ include("parser.jl")
 
 function satellite()
     whitespec = SampledSpectrum(300, 800, [1.0, 1.0, 1.0])
-    mat1 = AshkhminShirleySingle(whitespec, 10.0)
+    mat1 = AshkhminShirleySingle(whitespec, 10.0, 0.8)
     mat1 = Lambert(whitespec)
     
     
@@ -71,7 +71,7 @@ function main()
     # Make something to look at
     matspec = SampledSpectrum(300, 800, [0.3, 0.3, 0.3])
     whitespec = SampledSpectrum(300, 800, [1.0, 1.0, 1.0])
-    mat1 = AshkhminShirleySingle(whitespec, 10.0)
+    mat1 = AshkhminShirleySingle(whitespec, 50.0, 0.8)
     mat2 = Lambert(whitespec)
     
     Tsph = translation(0.0, 0.0, 0.0)

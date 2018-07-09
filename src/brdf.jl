@@ -49,25 +49,32 @@ evaluate(B::LommelSeeliger, w0::Vector3, w1::Vector3) = B.R .* max(0.0, 1.0 / (c
 
 
 
-# Ashkhmin-Shirley
+# Ashkhmin-Shirley from Wetterer (2014)
 
 struct AshkhminShirleySingle{T<:Spectrum} <: BxDF
     R::T
+    d::Float64
     n::Float64
 end
 
 
 BSDF_type(B::AshkhminShirleySingle) = BSDF_REFLECTION | BSDF_DIFFUSE
 
-#Fresnel(R::Spectrum, costheta::Real) = R + (1 - R) * (1 - costheta)^5
-Fresnel(R::Spectrum, costheta::Real) = R*(1 - (1 - costheta)^5) + (1 - costheta)^5
-BlinnPhong(e::Real, hdn::Real) = (e+2) * hdn^e / 2π
+Fresnel(R::Spectrum, costheta::Real, s::Real) = @. R + (1/s - R) * (1 - costheta)^5
+
+BlinnPhong(n::Real, hdn::Real) = (n+1) * hdn^n / 2π
 
 function evaluate(B::AshkhminShirleySingle, w0::Vector3, w1::Vector3)
+    s = 1.0 - d
     h = normalize((w0 + w1) / 2.0)
     D = BlinnPhong(B.n, h.z)
-    specular = Fresnel(B.R, costheta(w1)) * (D / (4π * dot(h,w1) * max(costheta(w0), costheta(w1))))
-    diffuse = (28/23π * (1 - (1 - costheta(w0)/2)^5) * (1 - (1 - costheta(w1)/2)^5)) .* (B.R - B.R.^2)
-    return specular + diffuse
+    
+    Cdiff = (28/23π * (1 - (1 - costheta(w0)/2)^5) * (1 - (1 - costheta(w1)/2)^5))
+    diffuse = @. Cdiff * (B.R - s * B.R^2)
+    
+    F = Fresnel(B.R, costheta(w1), s)
+    specular = F .* (D / (4π * dot(h,w1) * max(costheta(w0), costheta(w1))))
+    
+    return d * specular + s * diffuse
 end
 
