@@ -76,7 +76,6 @@ function run(task::SamplerRendererTask)
             # evaluate radiance along ray and add it to camera film
             if weight > 0.0
                 Li, maybe_isect = intensity(task.renderer, task.scene, ray, samples[i])
-                isblack(Li) && continue
                 Ls = weight*Li
                 if uses_isect(task.renderer.camera.film)
                     add_sample!(task.renderer.camera.film, samples[i], Ls, maybe_isect)
