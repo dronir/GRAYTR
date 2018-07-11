@@ -9,6 +9,7 @@ struct Disk <: Shape
 end
 
 Disk(T::Transformation) = Disk(1, 0.0, 1.0, false, T, inv(T))
+Disk() = Disk(1, 0.0, 1.0, false, Transformation(), Transformation())
 
 can_intersect(D::Disk) = true
 area(D::Disk) = π * (D.rmax^2 - D.rmin^2)
