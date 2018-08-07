@@ -65,6 +65,7 @@ Fresnel(R::Spectrum, costheta::Real, s::Real) = @. R + (1/s - R) * (1 - costheta
 BlinnPhong(n::Real, hdn::Real) = (n+1) * hdn^n / 2π
 
 function evaluate(B::AshkhminShirleySingle, w0::Vector3, w1::Vector3)
+    d = B.d
     s = 1.0 - d
     h = normalize((w0 + w1) / 2.0)
     D = BlinnPhong(B.n, h.z)
