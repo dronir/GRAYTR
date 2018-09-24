@@ -35,6 +35,9 @@ function add_sample!(F::DelayFilm, sample::Sample, L::Spectrum, isect::Union{Int
     idx = find_bin(F, isect.tmin)
     F.counts[idx] += 1
     
+    if isblack(L)
+        return nothing
+    end
     I = interpolate(L, F.wavelength)
     F.histogram[idx] += I
     return nothing
