@@ -318,7 +318,7 @@ function get_brdf(line, spec)
             return LommelSeeliger(spec)
         elseif brdf_type == "AshkhminShirley"
             return AshkhminShirleySingle(spec, float(params))
-        else:
+        else
             error("Unknown BRDF: $line")
         end
     end
