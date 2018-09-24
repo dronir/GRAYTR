@@ -33,6 +33,7 @@ to_XYZ(S::NoLight) = [0.0, 0.0, 0.0]
 #*(S::Spectrum, N::NoLight) = nolight
 #/(N::NoLight, S::Spectrum) = S
 
+interpolate(N::NoLight, x) = NoLight()
 
 # ------------------------------------------------
 # The SampledSpectrum type
