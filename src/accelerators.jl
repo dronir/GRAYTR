@@ -54,6 +54,10 @@ function BVH_build_recursive{T<:Primitive}(build_data::Array{PrimitiveInfo,1}, s
     total_nodes += 1
     node = BVHBuildNode()
     
+    if startN < 1 || endN < 1
+        error()
+    end
+    
     if startN == endN
         # Only one primitive in the range, create leaf node
         n = build_data[startN].number
@@ -67,14 +71,16 @@ function BVH_build_recursive{T<:Primitive}(build_data::Array{PrimitiveInfo,1}, s
         pmid = mean(CBox.pMin, CBox.pMax)
         cmp(x,y) = x.centroid[dim] < y.centroid[dim]
         build_data[startN:endN] = sort(build_data[startN:endN] ; lt=cmp)
-        mid = div(startN+endN, 2)
+        mid = ceil(Int64, (startN+endN) / 2)
         
-        for i = startN:endN
-            if (pmid[dim] < build_data[i].centroid[dim])
-                mid = i 
-                break
-            end
-        end
+        # TODO: FIX THIS BETTER! THIS HAS SOME SUBTLE BUG
+        #for i = startN:endN
+        #    if (pmid[dim] <= build_data[i].centroid[dim])
+        #        mid = i 
+        #        break
+        #    end
+        #end
+        
         childA, total_nodes = BVH_build_recursive(build_data, startN, mid-1, primitives, 
                                                   ordered_primitives, total_nodes)
         childB, total_nodes = BVH_build_recursive(build_data, mid, endN, primitives, 
