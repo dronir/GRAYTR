@@ -134,9 +134,9 @@ function max_extent(BB::BoundingBox)
     dx = BB.pMax.x - BB.pMin.x
     dy = BB.pMax.y - BB.pMin.y
     dz = BB.pMax.z - BB.pMin.z
-    if dx >= dy && dx >= dz
+    if dx > dy && dx > dz
         return 1
-    elseif dy >= dx && dy >= dz
+    elseif dy > dx && dy > dz
         return 2
     else
         return 3
