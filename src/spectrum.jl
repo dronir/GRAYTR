@@ -1,10 +1,11 @@
 import Base.+, Base.-, Base.*, Base./, Base.convert, Base.zero, Base.one
 
+using DelimitedFiles
 
 # ------------------------------------------------
 # Load CIE spectra
 
-raw_CIE_data = readcsv("lin2012xyz2e_1_7sf.csv")
+raw_CIE_data = readdlm("lin2012xyz2e_1_7sf.csv", ',')
 const N_CIE = length(raw_CIE_data[:,1])
 const CIE_LAMBDA = vec(raw_CIE_data[:,1])
 const CIE_X = vec(raw_CIE_data[:,2])

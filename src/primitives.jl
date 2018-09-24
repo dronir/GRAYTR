@@ -52,7 +52,7 @@ end
 
 
 # Refine a primitive repeatedly until all primitives are intersectable
-function fully_refine!{T<:Primitive}(P::Primitive, out::Array{T,1})
+function fully_refine!(P::Primitive, out::Array{T,1}) where T <: Primitive
     if can_intersect(P)
         push!(out, P)
         return out

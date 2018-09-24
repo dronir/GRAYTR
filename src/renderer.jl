@@ -16,7 +16,7 @@ struct SamplerRendererTask{S<:Scene, R<:Renderer}
 end
 
 # TODO: this is a dummy verion
-function enqueue_and_run{S<:SamplerRendererTask}(Tasks::Array{S,1}) 
+function enqueue_and_run(Tasks::Array{S,1}) where S<:SamplerRendererTask
     for task in Tasks
         run(task)
     end

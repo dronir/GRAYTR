@@ -1,8 +1,13 @@
 module Geometry
 
-import Base.+, Base.-, Base.*, Base./, Base.dot, Base.cross, Base.isnan, Base.inv
-import Base.getindex, Base.min, Base.max, Base.norm, Base.mean
-import Base.convert, Base.normalize, Base.isapprox
+using LinearAlgebra
+using Statistics
+
+#Base.dot, Base.cross
+
+import Base.+, Base.-, Base.*, Base./, Base.isnan, Base.inv
+import Base.getindex, Base.min, Base.max
+import Base.convert, Base.isapprox
 import Base.start, Base.next, Base.done, Base.size, Base.length
 #import Base.AbstractArray
 

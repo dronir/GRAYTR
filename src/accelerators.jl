@@ -47,9 +47,9 @@ function init_interior!(node::BVHBuildNode, axis::Integer, childA::BVHBuildNode,
 end
 
 
-function BVH_build_recursive{T<:Primitive}(build_data::Array{PrimitiveInfo,1}, startN::Integer, 
+function BVH_build_recursive(build_data::Array{PrimitiveInfo,1}, startN::Integer, 
                              endN::Integer, primitives::Array{T,1}, ordered_primitives::Array{T,1}, 
-                             total_nodes::Integer)
+                             total_nodes::Integer) where T <: Primitive
                             
     total_nodes += 1
     node = BVHBuildNode()
