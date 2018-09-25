@@ -21,7 +21,7 @@ function inner_int(light::LightSource, dg::DifferentialGeometry, mat::BxDF, w1::
         return nolight
     else
         brdf_value = evaluate(mat, T, w1, w0)
-        return (brdf_value .* light_spectrum) .* abs(dot(w0, dg.n))
+        return (brdf_value * light_spectrum) * abs(dot(w0, dg.n))
     end
 end
 
