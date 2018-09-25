@@ -11,7 +11,7 @@ import LinearAlgebra.cross, LinearAlgebra.norm, LinearAlgebra.dot
 import Base.+, Base.-, Base.*, Base./, Base.isnan, Base.inv
 import Base.getindex, Base.min, Base.max
 import Base.convert, Base.isapprox
-import Base.start, Base.next, Base.done, Base.size, Base.length
+import Base.size, Base.length, Base.iterate
 #import Base.AbstractArray
 
 export VectorLike, Vector3, Normal3, Point3
@@ -89,9 +89,8 @@ isnan(v::VectorLike) = isnan(v.x) || isnan(v.y) || isnan(v.z)
 
 getindex(v::VectorLike, i::Integer) = i==1 ? v.x : i==2 ? v.y : i==3 ? v.z : throw(BoundsError())
 
-start(V::VectorLike) = 1
-next(V::VectorLike, state::Int64) = (getindex(V,state), state+1)
-done(V::VectorLike, state::Int64) = state == 4
+iterate(V::VectorLike) = (V[1], 2)
+iterate(V::VectorLike, state::Integer) = state <= 3 ? (getindex(V, state), state+1) : nothing
 
 convert(::Type{Array{Float64,1}}, v::VectorLike) = [v.x, v.y, v.z]
 convert(::Type{Vector3}, x::Array{T,1}) where {T<:Number} = Vector3(x...)
