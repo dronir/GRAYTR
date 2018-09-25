@@ -45,7 +45,7 @@ function shape_intersect(R::Ray, D::Disk)
     if r2 > D.rmax^2 || r2 < D.rmin^2
         return nothing, NaN, NaN
     end
-    phi = atan2(P.y, P.x)
+    phi = atan(P.y, P.x)
     phi = phi < 0.0 ? phi+2π : phi
     u = phi / 2π
     v = 1.0 - (sqrt(r2) - D.rmin) / (D.rmax - D.rmin)

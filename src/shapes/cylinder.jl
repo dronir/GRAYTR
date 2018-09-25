@@ -56,7 +56,7 @@ function shape_intersect(R::Ray, cyl::Cylinder)
         return nothing, NaN, NaN
     end
     
-    phi = atan2(P.y, P.x)
+    phi = atan(P.y, P.x)
     phi = phi >= 0.0 ? phi : phi + 2π
     u = phi / 2π
     v = (P.z - cyl.zmin) / (cyl.zmax - cyl.zmin)

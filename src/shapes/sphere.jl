@@ -45,7 +45,7 @@ function shape_intersect(r::Ray, sph::Sphere)
     P = ray(t)
     
     # Local coordinates
-    phi = atan2(P.y, P.x)
+    phi = atan(P.y, P.x)
     u = phi >= 0 ? phi / 2π : phi/2π + 1.0
     v = acos(clamp(P.z / sph.radius, -1.0, 1.0)) / π
     
