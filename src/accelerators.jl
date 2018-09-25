@@ -1,4 +1,5 @@
 
+using Statistics
 
 struct PrimitiveInfo
     number::Int64

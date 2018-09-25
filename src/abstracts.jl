@@ -41,3 +41,5 @@ abstract type LightSource end
 abstract type Camera end
 abstract type Film end
 abstract type Filter end
+
+using LinearAlgebra

@@ -29,6 +29,10 @@ include("cameras.jl")
 
 include("parser.jl")
 
+include("films/imagefilm.jl")
+include("films/delayfilm.jl")
+
+
 
 function satellite()
     whitespec = SampledSpectrum(300, 800, [1.0, 1.0, 1.0])

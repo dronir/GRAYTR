@@ -3,6 +3,9 @@ module Geometry
 using LinearAlgebra
 using Statistics
 
+import Statistics.mean, Statistics.normalize
+import LinearAlgebra.cross, LinearAlgebra.norm, LinearAlgebra.dot
+
 #Base.dot, Base.cross
 
 import Base.+, Base.-, Base.*, Base./, Base.isnan, Base.inv
