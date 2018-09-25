@@ -147,7 +147,7 @@ function BVHAccelerator(prims::Array{T,1}) where T<:Primitive
                                                  ordered, 0)
 
     # Transform the tree structure into a more efficient form
-    linear = Array{LinearBVHNode}(total_nodes)
+    linear = Array{LinearBVHNode}(undef,total_nodes)
     flatten_BVH(root_node, linear, 1)
     BVHAccelerator(ordered, linear)
 end
@@ -165,9 +165,9 @@ function update_isect(isect::Intersection, best_isect::Intersection, tmin::Real)
     end
 end
 
-update_isect(isect::Void, best_isect::Intersection, tmin::Real) = (best_isect, tmin)
-update_isect(isect::Void, best_isect::Void, tmin::Real) = (nothing, tmin)
-update_isect(isect::Intersection, best_isect::Void, tmin::Real) = (isect, isect.tmin)
+update_isect(isect::Nothing, best_isect::Intersection, tmin::Real) = (best_isect, tmin)
+update_isect(isect::Nothing, best_isect::Nothing, tmin::Real) = (nothing, tmin)
+update_isect(isect::Intersection, best_isect::Nothing, tmin::Real) = (isect, isect.tmin)
 
 
 function intersect(ray::Ray, BVH::BVHAccelerator)

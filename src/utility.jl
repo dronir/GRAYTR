@@ -32,3 +32,4 @@ function normal_derivatives(dpdu, dpdv, dpduu, dpduv, dpdvv)
     dndv = Normal3((g*F - f*G) * invEG * dpdu + (f*F - g*E) * invEG * dpdv)
     return dndu, dndv
 end
+

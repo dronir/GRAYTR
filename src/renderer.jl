@@ -63,7 +63,7 @@ function run(task::SamplerRendererTask)
     state = 0
     
     Nsamples = subsampler.xs * subsampler.ys
-    samples = Array{CameraSample}(Nsamples)
+    samples = Array{CameraSample}(undef, Nsamples)
     
     while true
         finished(subsampler, state) && break

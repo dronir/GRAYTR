@@ -24,7 +24,7 @@ function find_bin(F::DelayFilm, t::Real)
     return ceil(Int64, nt * F.nbins)
 end
 
-function add_sample!(F::DelayFilm, sample::Sample, L::Spectrum, isect::Union{Intersection,Void})
+function add_sample!(F::DelayFilm, sample::Sample, L::Spectrum, isect::Union{Intersection,Nothing})
     F.counts[end] += 1
     if isect == nothing
         return nothing

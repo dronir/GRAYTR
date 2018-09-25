@@ -53,6 +53,9 @@ Vector3(x::Real) = Vector3(x,x,x)
 Point3(x::Real) = Point3(x,x,x)
 Normal3(x::Real) = Normal3(x,x,x)
 
+Normal3(v::Vector3) = Normal3(v.x, v.y, v.z)
+Point3(v::Vector3) = Point3(v.x, v.y, v.z)
+
 size(A::VectorLike) = 3
 length(A::VectorLike) = 3
 
@@ -111,7 +114,8 @@ struct Transformation
     MInv::Array{Float64,2}
 end
 
-Transformation() = Transformation(eye(4), eye(4))
+const EYE = Matrix{Float64}(1.0I, 4, 4)
+Transformation() = Transformation(EYE, EYE)
 Transformation(M::Array{Float64,2}) = Transformation(M, inv(M))
 Transformation(M::Array{T,2}) where {T<:Real} = Transformation(convert(Array{Float64,2}, M))
 inv(T::Transformation) = Transformation(T.MInv, T.M)
@@ -122,7 +126,7 @@ swaps_handedness(T::Transformation) = det(view(T.M, 1:3, 1:3)) < 0.0
 
 translation(x::Real, y::Real, z::Real) = translation(Vector3(x,y,z))
 function translation(delta::Vector3)
-    M = eye(4)
+    M = Matrix{Float64}(1.0I, 4, 4)
     M[1,4] = delta.x
     M[2,4] = delta.y
     M[3,4] = delta.z
@@ -131,7 +135,7 @@ end
 
 scaling(x::Real, y::Real, z::Real) = scaling(Vector3(x,y,z))
 function scaling(scale::Vector3)
-    M = eye(4)
+    M = Matrix{Float64}(1.0I, 4, 4)
     M[1,1] = scale.x
     M[2,2] = scale.y
     M[3,3] = scale.z

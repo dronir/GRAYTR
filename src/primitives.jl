@@ -15,7 +15,7 @@ end
 struct GeometricPrimitive{T<:Shape, M<:BxDF} <: Primitive
     shape::T
     material::M
-    light::Union{AreaLight,Void}
+    light::Union{AreaLight,Nothing}
     id::Int64
 end
 
