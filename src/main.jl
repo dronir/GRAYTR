@@ -117,8 +117,8 @@ function main()
     
     
     # Make a camera
-    resX = 64
-    resY = 64
+    resX = 512
+    resY = 512
     width = 2.5
     window = [-width, width, -width, width]
     
@@ -133,7 +133,7 @@ function main()
     
     
     # Make the renderer
-    sampler = StratifiedSampler(1, resX, 1, resY, 1, 1, true)
+    sampler = StratifiedSampler(1, resX, 1, resY, 3, 3, true)
     whitted = WhittedIntegrator(1)
     image_renderer = SamplerRenderer(sampler, image_cam, whitted, DummyVolumeIntegrator())
     delay_renderer = SamplerRenderer(sampler, delay_cam, whitted, DummyVolumeIntegrator())
