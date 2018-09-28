@@ -1,17 +1,10 @@
 
 
+"""
+    GeometricPrimitive{T<:Shape, M<:BxDF}
 
-# world_bounds(P::Primitive) returns BoundingBox
-# obj_bounds(P::Primitive) return BoundingBox
-# can_intersect(P::Primitive) returns Bool
-# intersect(r::Ray, P::Primitive) return Intersection or nothing
-# intersectP(r::Ray, P::Primitive)
-# refine(P::Primitive)
-# BDRF(P::Primitive)
-
-struct DummyShape <: Shape
-end
-
+A geometric primitive, a combination of a shape, a material and possibly a light source.
+"""
 struct GeometricPrimitive{T<:Shape, M<:BxDF} <: Primitive
     shape::T
     material::M
@@ -19,15 +12,59 @@ struct GeometricPrimitive{T<:Shape, M<:BxDF} <: Primitive
     id::Int64
 end
 
+
+
+"""
+    intersectP(R::Ray, P::GeometricPrimitive)
+
+Quick true/false intersection check between a ray and a geometric primitive.
+"""
 intersectP(R::Ray, P::GeometricPrimitive) = intersectP(R, P.shape)
+
+
+
+"""
+    can_intersect(P::GeometricPrimitive)
+
+Check whether a geometric primitive can be intersected by a ray.
+"""
 can_intersect(P::GeometricPrimitive) = can_intersect(P.shape)
+
+
+
+"""
+    world_bounds(P::GeometricPrimitive)
+
+Get world bounds of a geometric primitive. These are the world bounds of the associated shape.
+"""
 world_bounds(P::GeometricPrimitive) = world_bounds(P.shape)
+
+
+
+"""
+    obj_bounds(P::GeometricPrimitive)
+
+Get object bounds of a geometric primitive. These are the object bounds of the associated shape.
+"""
 obj_bounds(P::GeometricPrimitive) = obj_bounds(P.shape)
 
+
+
+"""
+    (T::Transformation)(P::GeometricPrimitive)
+
+Application of a `Transformation` on a `GeometricPrimitive` passes the transformation
+on to the shape and returns a new `GeometricPrimitive` with the transformed shape.
+"""
 (T::Transformation)(P::GeometricPrimitive) = GeometricPrimitive(T(P.shape), P.material, P.light, P.id)
 
 
 
+"""
+    Intersection{M<:BxDF}
+
+A structure storing information about a ray-scene intersection
+"""
 struct Intersection{M<:BxDF}
     material::M
     geometry::DifferentialGeometry
@@ -39,19 +76,37 @@ struct Intersection{M<:BxDF}
     primitive_id::Int64
 end
 
+
+
+"""
+    intersect(R::Ray, P::GeometricPrimitive)
+
+Find and get intersection of a ray and a geometric primitive.
+
+Returns an `Intersection` or `nothing`.
+"""
 function intersect(R::Ray, P::GeometricPrimitive)
     dg, tmin, reps = shape_intersect(R, P.shape)
     if dg == nothing
         return nothing
     end
     return Intersection(
-        P.material, dg, P.shape.obj_to_world, P.shape.world_to_obj, reps, tmin, P.shape.id, P.id
+        P.material, dg, P.shape.obj_to_world, P.shape.world_to_obj, 
+        reps, tmin, P.shape.id, P.id
     )
 end
 
 
 
-# Refine a primitive repeatedly until all primitives are intersectable
+"""
+    fully_refine!(P::Primitive, out::Array{T,1}) where T <: Primitive
+
+Refine a composite primitive (i.e. split it into its components) and put the
+components into the provided array. Repeat until all primitives in the list are
+intersectable.
+
+TODO: This should be rewritten to just take a list of primitives and refine all of them.
+"""
 function fully_refine!(P::Primitive, out::Array{T,1}) where T <: Primitive
     if can_intersect(P)
         push!(out, P)
