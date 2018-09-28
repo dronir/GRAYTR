@@ -38,14 +38,41 @@ rho(B::Lambert, w0::Vector3) = B.R
 
 
 
-# Lommel-Seeliger
+"""
+    LommelSeeliger{T<:Spectrum} <: BxDF
 
+Lommel-Seeliger BRDF. Keeps the surface spectrum and a phase function.
+The phase function needs to be a one-parameter function defined on [0,π] and it's
+assumed to be normalized so that ``\frac{1}{4\pi} \int_\Omega P(\alpha) d\Omega = 1``.
+"""
 struct LommelSeeliger{T<:Spectrum} <: BxDF
     R::T
+    P::Function
 end
 
+
+"""
+    BSDF_type(B::LommelSeeliger)
+
+Returns the BSDF type of the Lommel-Seeliger BRDF (which is a constant).
+"""
 BSDF_type(B::LommelSeeliger) = BSDF_REFLECTION | BSDF_DIFFUSE
-evaluate(B::LommelSeeliger, w0::Vector3, w1::Vector3) = B.R .* max(0.0, 1.0 / (costheta(w0) + costheta(w1)))
+
+
+"""
+    evaluate(B::LommelSeeliger, w0::Vector3, w1::Vector3) 
+
+Evaluate Lommel-Seeliger BRDF for given direction vectors.
+
+TODO: check physics
+"""
+function evaluate(B::LommelSeeliger, w0::Vector3, w1::Vector3) 
+    cos_alpha = dot(w0, w1)
+    alpha = acos(cos_alpha)
+    phase = B.P(alpha)
+    return 0.25 * phase * B.R .* max(0.0, 1.0 / (costheta(w0) + costheta(w1)))
+end
+
 
 
 
