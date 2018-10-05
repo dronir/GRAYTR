@@ -1,11 +1,15 @@
 import Base.+, Base.-, Base.*, Base./, Base.convert, Base.zero, Base.one
 
+using Pkg
 using DelimitedFiles
 
 # ------------------------------------------------
 # Load CIE spectra
 
-raw_CIE_data = readdlm("lin2012xyz2e_1_7sf.csv", ',')
+
+const CIE_PATH = joinpath(dirname(pathof(GRAYTR)), "..", "data", "lin2012xyz2e_1_7sf.csv")
+
+const raw_CIE_data = readdlm(CIE_PATH, ',')
 const N_CIE = length(raw_CIE_data[:,1])
 const CIE_LAMBDA = vec(raw_CIE_data[:,1])
 const CIE_X = vec(raw_CIE_data[:,2])
