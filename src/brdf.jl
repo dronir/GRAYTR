@@ -43,7 +43,7 @@ rho(B::Lambert, w0::Vector3) = B.R
 
 Lommel-Seeliger BRDF. Keeps the surface spectrum and a phase function.
 The phase function needs to be a one-parameter function defined on [0,π] and it's
-assumed to be normalized so that ``\frac{1}{4\pi} \int_\Omega P(\alpha) d\Omega = 1``.
+assumed to be normalized so that its integral over the sphere equals 4π.
 """
 struct LommelSeeliger{T<:Spectrum} <: BxDF
     R::T
