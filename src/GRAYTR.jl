@@ -31,5 +31,17 @@ include("parser.jl")
 include("films/imagefilm.jl")
 include("films/delayfilm.jl")
 
+export SampledSpectrum, SingleLine
+export GeometricPrimitive, Sphere, Disk, Cylinder, Triangle
+export AshkhminShirleySingle, Lambert, LommelSeeliger
+export Transformation, rotation, translation, scaling
+export DistantLight, PointLight
+export Scene, BVHAccelerator
+export ImageFilm, DelayFilm, PhotometricFilm
+export TriangleFilter, BoxFilter
+export OrthographicCamera
+export StratifiedSampler, WhittedIntegrator, SamplerRenderer
+export render
+export write_image, write_txt
 
 end #module
