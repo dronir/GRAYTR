@@ -77,7 +77,8 @@ end
     inner_int(light::LightSource, dg::DifferentialGeometry, 
                  mat::BxDF, w1::Vector3, T::Transformation, scene::Scene)
                  
-The inner loop of the `intensity` function, separated for better optimization."""
+The inner loop of the `intensity` function, separated for better optimization.
+"""
 function inner_int(light::LightSource, dg::DifferentialGeometry, mat::BxDF, w1::Vector3, T::Transformation, scene::Scene)
     !direct(light) && return nolight
     light_spectrum, w0, pdf, light_ray = sample_L(light, dg.p)
@@ -95,3 +96,46 @@ end
 
 
 
+
+"""
+    PressureIntegrator
+
+A Whitted integrator that computes radiation pressure force and torque.
+"""
+struct PressureIntegrator <: SurfaceIntegrator
+    maxdepth::Int64
+end
+
+
+"""
+    PressureIntegrator()
+
+Constructor for single-scattering integrator. Equivalent to PressureIntegrator(1).
+"""
+PressureIntegrator() = PressureIntegrator(1)
+
+
+"""
+    preprocess(W::PressureIntegrator)
+
+Pressure integrator requires no preprocessing so this just returns true.
+""" 
+preprocess(W::PressureIntegrator) = true
+
+
+"""
+    intensity(integrator, scene, isect, ray, sample)
+
+Return intensity given a WhittedIntegrator, a scene, intersection point, ray and camera
+sample. 
+
+# Arguments
+- `integrator::WhittedIntegrator`: a WhittedIntegrator instance.
+- `scene::Scene`: the Scene to trace illumination rays in.
+- `isect::Intersection`: an Intersection, giving the local geometry at ray intersection.
+- `ray::Ray`, the incident Ray (not used by this function but part of SurfaceIntegrator API)
+- `sample::Sample`, a Sample (not used by this function but part of SurfaceIntegrator API)
+"""
+function intensity(intgr::PressureIntegrator, scene::Scene, isect::Intersection, 
+                   ray::Ray, sample::Sample)
+end
