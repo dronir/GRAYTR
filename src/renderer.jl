@@ -1,7 +1,14 @@
 
 
 
+"""
+    SamplerRendererTask{S<:Scene, C<:Camera, I<:SurfaceIntegrator}
 
+A wrapper for the scene, camera and integrator as well as a task number and total count of
+tasks. This information represents a piece of the full render job and is used to render
+the correct pixels of the output.
+
+"""
 struct SamplerRendererTask{S<:Scene, C<:Camera, I<:SurfaceIntegrator}
     scene::S
     camera::C
@@ -10,7 +17,16 @@ struct SamplerRendererTask{S<:Scene, C<:Camera, I<:SurfaceIntegrator}
     count::Int64
 end
 
-# TODO: this is a dummy verion
+
+
+"""
+    enqueue_and_run(Tasks::Array{S,1})
+
+Add the given tasks to a queue and run them. Currently this is a dummy version which just
+runs all the tasks one by one in a single thread.
+
+TODO: This is where the code's parallelization should happen.
+"""
 function enqueue_and_run(Tasks::Array{S,1}) where S<:SamplerRendererTask
     for task in Tasks
         run(task)
@@ -19,7 +35,11 @@ end
 
 
 
-# Render a given scene with a SamplerRenderer
+"""
+    render(scene::Scene, camera::Camera, integrator::SurfaceIntegrator, sampler::Sampler)
+
+Render a given scene, as seen by a given camera, using given SurfaceIntegrator and Sampler.
+"""
 function render(scene::Scene, camera::Camera, integrator::SurfaceIntegrator, 
                 sampler::Sampler)
     # initialize sample storage
@@ -33,7 +53,12 @@ function render(scene::Scene, camera::Camera, integrator::SurfaceIntegrator,
     enqueue_and_run(tasks)
 end
 
-# Round an integer up to nearest power of two
+
+"""
+    round_pow2(n::Integer)
+
+Round an integer up to nearest power of two.
+"""
 round_pow2(n::Integer) = 2^convert(typeof(n), ceil(log(2, n)))
 
 
