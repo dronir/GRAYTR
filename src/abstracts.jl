@@ -26,13 +26,9 @@ abstract type Spectrum end
 abstract type Sampler end
 abstract type Sample end
 
-# For renderer.jl
-abstract type Renderer end
-
 # For integrator.jl
 abstract type Integrator end
 abstract type SurfaceIntegrator <: Integrator end
-abstract type VolumeIntegrator <: Integrator end
 
 # For lights.jl
 abstract type LightSource end
@@ -41,7 +37,3 @@ abstract type LightSource end
 abstract type Camera end
 abstract type Film end
 abstract type Filter end
-
-using LinearAlgebra
-using Random
-using Distributed

@@ -4,6 +4,9 @@ module GRAYTR
 include("geometry.jl")
 using .Geometry
 
+using LinearAlgebra
+using Random
+using Distributed
 using FileIO
 using Images
 
@@ -40,7 +43,7 @@ export Scene, BVHAccelerator
 export ImageFilm, DelayFilm, PhotometricFilm
 export TriangleFilter, BoxFilter
 export OrthographicCamera
-export StratifiedSampler, WhittedIntegrator, SamplerRenderer
+export StratifiedSampler, WhittedIntegrator
 export render
 export write_image, write_txt
 
