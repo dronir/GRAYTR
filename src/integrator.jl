@@ -1,23 +1,4 @@
 
-
-"""
-    DummyVolumeIntegrator
-
-A VolumeIntegrator that does nothing, for cases where one is not functionally needed.
-Currently the only VolumeIntegrator.
-"""
-struct DummyVolumeIntegrator <: VolumeIntegrator end
-
-
-"""
-    preprocess(D::DummyVolumeIntegrator)
-
-Dummy integrator requires no preprocessing so this just returns true.
-""" 
-preprocess(D::DummyVolumeIntegrator) = true
-
-
-
 """
     WhittedIntegrator
 
@@ -30,13 +11,6 @@ struct WhittedIntegrator <: SurfaceIntegrator
     maxdepth::Int64
 end
 
-
-"""
-    preprocess(W::WhittedIntegrator)
-
-Whitted integrator requires no preprocessing so this just returns true.
-""" 
-preprocess(W::WhittedIntegrator) = true
 
 
 """
@@ -113,14 +87,6 @@ end
 Constructor for single-scattering integrator. Equivalent to PressureIntegrator(1).
 """
 PressureIntegrator() = PressureIntegrator(1)
-
-
-"""
-    preprocess(W::PressureIntegrator)
-
-Pressure integrator requires no preprocessing so this just returns true.
-""" 
-preprocess(W::PressureIntegrator) = true
 
 
 """

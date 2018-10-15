@@ -4,7 +4,6 @@ struct SamplerRenderer{S<:Sampler, C<:Camera, I<:SurfaceIntegrator, V<:VolumeInt
     sampler::S
     camera::C
     surf_integrator::I
-    vol_integrator::V
 end
 
 
@@ -26,9 +25,6 @@ end
 
 # Render a given scene with a SamplerRenderer
 function render(renderer::SamplerRenderer, scene::Scene)
-    # integrator preprocessing
-    preprocess(renderer.surf_integrator)
-    preprocess(renderer.vol_integrator)
     # initialize sample storage
     # i.e. make an array of Samples to be filled?
     
@@ -97,7 +93,6 @@ function intensity(renderer::SamplerRenderer, scene::Scene, r::Ray, sample::Samp
         # Ray doesn't hit any scenery. Add contribution from background light sources.
         Li = nolight #sum(background(light) for light in scene.lights)::Spectrum
     end
-    # TODO: add volume integrator contribution
     return Li, isect
 end
 
