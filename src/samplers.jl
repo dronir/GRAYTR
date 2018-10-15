@@ -114,8 +114,6 @@ struct StratifiedSampler <: Sampler
     jitter::Bool
 end
 
-StratifiedSampler(x0::Int64, x1::Int64, y0::Int64, y1::Int64, xs::Int64, ys::Int64, 
-                  j::Bool) = StratifiedSampler(x0,x1,y0,y1,xs,ys,j)
 
 StratifiedSampler(rangeX::Int64, rangeY::Int64, res::Int64) = StratifiedSampler(1,rangeX,1,
                                                                rangeY,res,res,true)

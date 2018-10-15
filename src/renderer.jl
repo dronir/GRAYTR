@@ -9,10 +9,11 @@ tasks. This information represents a piece of the full render job and is used to
 the correct pixels of the output.
 
 """
-struct SamplerRendererTask{S<:Scene, C<:Camera, I<:SurfaceIntegrator}
+struct SamplerRendererTask{S<:Scene, C<:Camera, I<:SurfaceIntegrator, T<:Sampler}
     scene::S
     camera::C
     integrator::I
+    sampler::T
     number::Int64
     count::Int64
 end
@@ -106,9 +107,9 @@ function run(task::SamplerRendererTask)
             weight, ray = generate_ray(task.camera, samples[i])
             # evaluate radiance along ray and add it to camera film
             if weight > 0.0
-                maybe_isect = intersect(r, scene)
+                maybe_isect = intersect(ray, task.scene)
                 if maybe_isect != nothing
-                    L = weight * intensity(task.integrator, scene, isect, r, sample)
+                    Ls = weight * intensity(task.integrator, task.scene, maybe_isect, ray, samples[i])
                     if uses_isect(task.camera.film)
                         add_sample!(task.camera.film, samples[i], Ls, maybe_isect)
                     else

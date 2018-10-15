@@ -34,11 +34,14 @@ include("parser.jl")
 include("films/imagefilm.jl")
 include("films/delayfilm.jl")
 
+export Vector3, Point3
+export X_AXIS, Y_AXIS, Z_AXIS
+export Transformation, rotation, translation, scaling
+
 export SampledSpectrum, SingleLine
 export GeometricPrimitive, Sphere, Disk, Cylinder, Triangle
 export AshkhminShirleySingle, Lambert, LommelSeeliger
-export Transformation, rotation, translation, scaling
-export DistantLight, PointLight
+export LightSource, DistantLight, PointLight
 export Scene, BVHAccelerator
 export ImageFilm, DelayFilm, PhotometricFilm
 export TriangleFilter, BoxFilter
