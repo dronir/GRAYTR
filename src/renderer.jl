@@ -68,6 +68,9 @@ function run(task::SamplerRendererTask)
     Nsamples = subsampler.xs * subsampler.ys
     samples = Array{CameraSample}(undef, Nsamples)
     
+    # TODO: This would more elegantly be an iterator, by defining iterate(subsampler, state)
+    # and iterate(subsampler). But in that case the recycling of the `samples` array may
+    # not work, which would lead to a performance drop. Experimentation needed.
     while true
         finished(subsampler, state) && break
         state = get_samples!(subsampler, state, samples)
