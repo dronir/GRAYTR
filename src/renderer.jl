@@ -1,6 +1,5 @@
 
 
-
 """
     SamplerRendererTask{S<:Scene, C<:Camera, I<:SurfaceIntegrator}
 
@@ -26,11 +25,17 @@ end
 Add the given tasks to a queue and run them. Currently this is a dummy version which just
 runs all the tasks one by one in a single thread.
 
-TODO: This is where the code's parallelization should happen.
+The computation is multi-threaded on a single processor. The number of threads is one by
+default, and can be changed by setting the `JULIA_NUM_THREADS` environmental variable. A
+lock is used to prevent multiple data from accessing the camera film simultaneously. In
+many films, a ray can affect multiple pixels or bins, including ones "belonging" to a
+different thread.
+
 """
 function enqueue_and_run(Tasks::Array{S,1}) where S<:SamplerRendererTask
-    for task in Tasks
-        run(task)
+    lock = Threads.SpinLock()
+    Threads.@threads for task in Tasks
+        run(task, lock)
     end
 end
 
@@ -50,7 +55,7 @@ function render(scene::Scene, camera::Camera, integrator::SurfaceIntegrator,
     nTasks = count_tasks(nprocs(), camera.film.resX, camera.film.resY)
     tasks = [SamplerRendererTask(scene, camera, integrator, sampler, n, nTasks) for n = 1:nTasks]
     
-    println("Running $nTasks render tasks on $(nprocs()) cores...")
+    println("Running $nTasks render tasks on $(Threads.nthreads()) threads...")
     enqueue_and_run(tasks)
 end
 
@@ -78,13 +83,19 @@ end
 
 
 """
-    run(task::SamplerRendererTask)
+    run(task::SamplerRendererTask, write_lock::Threads.AbstractLock)
 
 Run a SamplerRendererTask. This is the core function of the raytracer: here we generate a
 ray from the camera, trace its possible intersection with the scene, compute reflection of
 all light sources at that point and add up the intensity to the camera film.
+
+The thread lock given by the second argument, `write_lock` is used to lock the camera film
+so it can only be accessed by one thread at a time. If a significant amount of time is
+spent in the `add_sample!` function, multi-threading could lead to a performance drop. This
+depends on the film.
+
 """
-function run(task::SamplerRendererTask)
+function run(task::SamplerRendererTask, write_lock::Threads.AbstractLock)
     subsampler = get_subsampler(task.sampler, task.number, task.count)
     subsampler == nothing && return nothing
     
@@ -109,12 +120,15 @@ function run(task::SamplerRendererTask)
             if weight > 0.0
                 maybe_isect = intersect(ray, task.scene)
                 if maybe_isect != nothing
-                    Ls = weight * intensity(task.integrator, task.scene, maybe_isect, ray, samples[i])
+                    Ls = weight * intensity(task.integrator, task.scene, maybe_isect, 
+                                            ray, samples[i])
+                    lock(write_lock)
                     if uses_isect(task.camera.film)
                         add_sample!(task.camera.film, samples[i], Ls, maybe_isect)
                     else
                         add_sample!(task.camera.film, samples[i], Ls)
                     end
+                    unlock(write_lock)
                 end
             end
         end
