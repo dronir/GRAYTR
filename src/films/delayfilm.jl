@@ -17,8 +17,6 @@ function DelayFilm(lmd::Real, window::Array{Float64,1}, resX::Integer, resY::Int
     DelayFilm(lmd, area, resX, resY, nbins, tmin, tmax, zeros(Float64, nbins), zeros(Int64,nbins+1))
 end
 
-uses_isect(F::DelayFilm) = true
-
 function find_bin(F::DelayFilm, t::Real)
     nt = (t - F.tmin) / (F.tmax - F.tmin)
     return ceil(Int64, nt * F.nbins)

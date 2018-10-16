@@ -10,10 +10,7 @@ end
 PhotometricFilm() = PhotometricFilm(nolight, 0)
 PhotometricFilm(res::Integer) = PhotometricFilm(nolight, 0, res, res)
 
-uses_isect(F::PhotometricFilm) = false
-
-
-function add_sample!(F::PhotometricFilm, sample::Sample, L::Spectrum)
+function add_sample!(F::PhotometricFilm, sample::Sample, L::Spectrum, isect::Union{Intersection,Nothing})
     F.N += 1
     isblack(L) && return nothing
     F.integral += L

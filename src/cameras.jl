@@ -2,6 +2,11 @@
 
 include("cameras/projective.jl")
 
+"""
+    Pixel
+
+Representation of a pixel. A wrapper for the XYZ colors and a weight.
+"""
 struct Pixel
     x::Float64
     y::Float64

@@ -1,6 +1,12 @@
 using FileIO
 using Images
 
+"""
+    ImageFilm
+
+A film that produces a resolved image. The resolution of the image is `(resX, resY)`,
+the `gain` value will be used 
+"""
 struct ImageFilm{T<:Filter} <: Film
     resX::Int64
     resY::Int64
@@ -10,7 +16,6 @@ struct ImageFilm{T<:Filter} <: Film
     filtertable::Array{Float64,2}
 end
 
-uses_isect(F::ImageFilm) = false
 
 const FILTERTABLE_SIZE = 16
 
@@ -26,10 +31,21 @@ function make_filtertable(f::Filter)
     ftbl
 end
 
-ImageFilm(x::Integer, y::Integer, gain::Real, f::Filter) = ImageFilm(x, y, gain, f, zeros(Pixel,(x,y)), 
-                                                         make_filtertable(f))
+ImageFilm(x::Integer, y::Integer, gain::Real, f::Filter) = ImageFilm(x, y, gain, f, 
+                                                            zeros(Pixel,(x,y)), 
+                                                            make_filtertable(f))
 
-function add_sample!(F::ImageFilm, sample::Sample, L::Spectrum)
+
+"""
+    add_sample!(F::ImageFilm, sample::Sample, L::Spectrum, isect::Union{Intersection,Nothing})
+
+Add a ray sample to the `ImageFilm`. The image coordinates in `sample` tell which pixel we
+are adding to. The spectral intensity `L` will be added to the pixel, and to nearby pixels
+depending on the filter included in the film. `isect` is not used, but it's part of the
+`Film` API.
+
+"""
+function add_sample!(F::ImageFilm, sample::Sample, L::Spectrum, isect::Union{Intersection,Nothing})
     dimgX = sample.imgX - 0.5
     dimgY = sample.imgY - 0.5
     x0 = ceil(Int64, dimgX - F.filter.xwidth)
@@ -53,6 +69,12 @@ function add_sample!(F::ImageFilm, sample::Sample, L::Spectrum)
     end
 end
 
+
+"""
+    write_image(F::ImageFilm, fname::String="test.png")
+
+Write the given image into a file determined by the filename.
+"""
 function write_image(F::ImageFilm, fname::String="test.png")
     data = zeros(Float64, (3, size(F.pixels)...))
     for i = 1:size(F.pixels,1)
@@ -65,10 +87,3 @@ function write_image(F::ImageFilm, fname::String="test.png")
     save(fname, img)
 end
 
-function write_txt(F::ImageFilm)
-    f = open("test.txt", "w")
-    for i = 1:minimum(size(F.pixels))
-        write(f, repr(F.pixels[i,i]))
-        write(f, "\n")
-    end
-end
