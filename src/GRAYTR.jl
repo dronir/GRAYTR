@@ -20,10 +20,11 @@ include("bounding.jl")
 
 include("spectrum.jl")
 include("materials.jl")
-include("scene.jl")
+
 include("lights.jl")
 include("primitives.jl")
 include("accelerators.jl")
+include("scene.jl")
 include("integrator.jl")
 include("renderer.jl")
 include("filters.jl")

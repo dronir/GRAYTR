@@ -18,18 +18,25 @@ stratified1D(N::Integer, jitter::Bool) = [(i-1 + (jitter ? rand() : 0.5))/N for 
 
 
 """
-    stratified2D(N::Integer, jitter::Bool)
+    stratified2D(Nx::Integer, Ny::Integer, jitter::Bool)
 
-Returns a two-column array with each column containing values of the [0,1] interval divided
-into `N` bins, with the values at the bin centres if `jitter == false` and randomly
-jittered inside the bin if `jitter == true`.
+Performs stratified sampling in two dimensions by dividing the unit square into `Nx` by
+`Ny` bins.
+
+Returns a two-column array with `Nx * Ny` rows. Each row contains the `x` and `y`
+coordinate of a point in the unit square: the values at the bin centres if `jitter ==
+false` and randomly jittered inside the bin if `jitter == true`.
 
 """
-function stratified2D(N::Integer, jitter::Bool)
-    out = zeros(Float64, (N,2))
-    for i = 1:N
-        out[i,1] = (i-1 + (jitter ? rand() : 0.5))/N
-        out[i,2] = (i-1 + (jitter ? rand() : 0.5))/N
+function stratified2D(Nx::Integer, Ny::Integer, jitter::Bool)
+    out = zeros(Float64, (Nx*Ny,2))
+    n = 1
+    for i = 1:Nx
+        for j = 1:Ny
+            out[n,1] = (i-1 + (jitter ? rand() : 0.5))/Nx
+            out[n,2] = (j-1 + (jitter ? rand() : 0.5))/Ny
+            n += 1
+        end
     end
     out
 end
@@ -180,11 +187,11 @@ function get_samples!(sampler::StratifiedSampler, state::Integer, out::Array{Cam
 
     xpos = sampler.xstart + state % dx
     ypos = sampler.ystart + div(state, dy)
-    N = sampler.xs * sampler.ys
-    img_samples = stratified2D(N, sampler.jitter)
-    lens_samples = stratified2D(N, sampler.jitter)
+    img_samples = stratified2D(sampler.xs, sampler.ys, sampler.jitter)
+    lens_samples = stratified2D(sampler.xs, sampler.ys, sampler.jitter)
     shuffle!(lens_samples[:,1])
     shuffle!(lens_samples[:,2])
+    N = sampler.xs * sampler.ys
     for i = 1:N
         out[i] = CameraSample(
             img_samples[i,1] + xpos,
