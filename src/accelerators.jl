@@ -1,12 +1,37 @@
 
 using Statistics
 
+
+"""
+    PrimitiveInfo
+
+A type holding information about a primitive (its index in an array, its centre point and
+its bounding box). These are used when constructing the BVH accelerator tree structure.
+    
+"""
 struct PrimitiveInfo
     number::Int64
     centroid::Point3
     BBox::BoundingBox
 end
 
+
+"""
+    LinearBVHNode
+
+A node of the flattened version of the BVH three. These nodes are used in the actual
+ray-tracer acceleration.
+
+# Fields
+
+- `BBox::BoundingBox`: Bounding box of the primitive(s) contained in this node.
+- `offset::Int64`: If this is a leaf node, contains the index of the corresponding primitive
+  in the `primitives` array of the `BVHAccelerator`.
+- `leaf::Bool`: Whether this is a leaf or branch node.
+- `axis::Int64`: The axis along which the primitives are split if this is a branch node.
+  Knowing this relative to the ray direction is relevant in the traversal of the tree.
+
+"""
 struct LinearBVHNode
     BBox::BoundingBox
     offset::Int64
@@ -15,9 +40,16 @@ struct LinearBVHNode
 end
 
 
-# BVH build process
-#
 
+
+"""
+    BVHBuildNode
+
+A mutable type representing a node in the Bounding Volume Hierarchy tree. This is used when
+creating the tree, which is then flattened into a more efficient structure using the
+immutable `LinearBVHNode` types.
+
+"""
 mutable struct BVHBuildNode
     leaf::Bool
     split_axis::Int64
@@ -28,6 +60,13 @@ mutable struct BVHBuildNode
     BVHBuildNode() = new()
 end
 
+
+"""
+    init_leaf!(node::BVHBuildNode, idx::Integer, BB::BoundingBox)
+
+Initialize the `BVHBuildNode` as a leaf node of the BVH tree.
+
+"""
 function init_leaf!(node::BVHBuildNode, idx::Integer, BB::BoundingBox)
     node.leaf = true
     node.first_offset = idx
@@ -36,6 +75,13 @@ function init_leaf!(node::BVHBuildNode, idx::Integer, BB::BoundingBox)
     return node
 end
 
+
+"""
+    init_interior!(node::BVHBuildNode, idx::Integer, BB::BoundingBox)
+
+Initialize the `BVHBuildNode` as an interior node of the BVH tree.
+
+"""
 
 function init_interior!(node::BVHBuildNode, axis::Integer, childA::BVHBuildNode, childB::BVHBuildNode)
     node.leaf = false
@@ -48,6 +94,16 @@ function init_interior!(node::BVHBuildNode, axis::Integer, childA::BVHBuildNode,
 end
 
 
+
+"""
+    BVH_build_recursive(build_data, startN, endN, primitives, ordered_primitives,
+                        total_nodes)
+
+Recursively construct the BVH tree using `build_data` and `primitives`. This will populate
+the array `ordered_primitives` with the primitives in the same order as to the tree leaf
+nodes which refer to them.
+
+"""
 function BVH_build_recursive(build_data::Array{PrimitiveInfo,1}, startN::Integer, 
                              endN::Integer, primitives::Array{T,1}, ordered_primitives::Array{T,1}, 
                              total_nodes::Integer) where T <: Primitive
@@ -91,19 +147,26 @@ function BVH_build_recursive(build_data::Array{PrimitiveInfo,1}, startN::Integer
     return node, total_nodes
 end
 
-# This function takes the BVH binary tree structure and transforms it into a more
-# efficient form as a linear array.
-function flatten_BVH(node::BVHBuildNode, tree::Array{LinearBVHNode,1}, idx::Integer)
+
+
+"""
+    flatten_BVH!(node::BVHBuildNode, linear::Array{LinearBVHNode,1}, idx::Integer)
+
+Recursively traverse the BVH tree starting from `node`, and produce the flattened version
+of the tree in the array `linear`.
+
+"""
+function flatten_BVH!(node::BVHBuildNode, linear::Array{LinearBVHNode,1}, idx::Integer)
     idx0 = idx
     if node.leaf
         new_node = LinearBVHNode(node.BBox, node.first_offset, true, -1)
     else
-        idx1 = flatten_BVH(node.childA, tree, idx+1)
-        idx2 = flatten_BVH(node.childB, tree, idx1+1)
+        idx1 = flatten_BVH(node.childA, linear, idx+1)
+        idx2 = flatten_BVH(node.childB, linear, idx1+1)
         new_node = LinearBVHNode(node.BBox, idx1+1, false, node.split_axis)
         idx = idx2
     end
-    tree[idx0] = new_node
+    linear[idx0] = new_node
     return idx
 end
 
@@ -114,16 +177,37 @@ end
 
 
 
-# BHVAccelerator constructor from a list of primitives
-#
 
+
+"""
+    BVHAccelerator{P<:Primitive} <: Aggregate
+
+The Bounding Volume Hierarchy accelerator keeps the list of primitives, and a list of
+`LinearBVHNode` objects, which contain all the information about the tree structure.
+
+"""
 struct BVHAccelerator{P<:Primitive} <: Aggregate
     primitives::Array{P,1}
     nodes::Array{LinearBVHNode,1}
 end
 
+
+"""
+    world_bounds(B::BVHAccelerator)
+
+Return the bounding box containing all the primitives in the Accelerator.
+
+"""
 world_bounds(B::BVHAccelerator) = B.nodes[1].BBox
 
+
+
+"""
+    BVHAccelerator(prims::Array{T,1}) where T<:Primitive
+
+Construct a `BVHAccelerator` from the list of primitives.
+
+"""
 function BVHAccelerator(prims::Array{T,1}) where T<:Primitive
     # Refine primitives to their fully intersectable components
     primtype = eltype(prims)
@@ -148,28 +232,57 @@ function BVHAccelerator(prims::Array{T,1}) where T<:Primitive
 
     # Transform the tree structure into a more efficient form
     linear = Array{LinearBVHNode}(undef,total_nodes)
-    flatten_BVH(root_node, linear, 1)
+    flatten_BVH!(root_node, linear, 1)
     BVHAccelerator(ordered, linear)
 end
 
 
+# Two arrays that are reused by the `intersect` and `intersectP` methods to
+# avoid reallocating them every time those functions are called (which is very
+# often). A significant optimization.
 const TODO_ARRAY = zeros(Int64, 64)
 const dir_is_neg = zeros(Bool, 3)
 
 
-function update_isect(isect::Intersection, best_isect::Intersection, tmin::Real)
-    if isect.tmin < tmin
-        return isect, isect.tmin
+"""
+    update_isect(isect::Intersection, best_isect::Intersection)
+
+Compare `isect` and `best_isect` and return the one with a smaller `tmin`.
+
+"""
+function update_isect(isect::Intersection, best_isect::Intersection)
+    if isect.tmin < best_isect.tmin
+        return isect
     else
-        return best_isect, tmin
+        return best_isect
     end
 end
 
-update_isect(isect::Nothing, best_isect::Intersection, tmin::Real) = (best_isect, tmin)
-update_isect(isect::Nothing, best_isect::Nothing, tmin::Real) = (nothing, tmin)
-update_isect(isect::Intersection, best_isect::Nothing, tmin::Real) = (isect, isect.tmin)
+"""
+    update_isect(isect::Nothing, best_isect::Intersection)
+
+Always return `best_isect` when `isect` is `nothing`.
+"""
+update_isect(isect::Nothing, best_isect::Intersection) = best_isect
 
 
+"""
+    update_isect(isect, best_isect::Nothing)
+
+Always return `isect` when `best_isect` is `nothing`.
+"""
+update_isect(isect, best_isect::Nothing) = isect
+
+
+"""
+    intersect(ray::Ray, BVH::BVHAccelerator)
+
+Find the nearest intersection of the ray and the primitives in the `BVHAccelerator`. If you
+only need to know whether a ray intersects something or not, use [`intersectP`](@ref)
+instead, since `intersect` must find _all possible_ intersections to determine the nearest
+one and is therefore much slower.
+
+"""
 function intersect(ray::Ray, BVH::BVHAccelerator)
     if length(BVH.nodes) == 0
         return nothing
@@ -196,7 +309,7 @@ function intersect(ray::Ray, BVH::BVHAccelerator)
                 # This is a leaf node.
                 # Check intersection with the primitive in the node and keep best intersection.
                 isect = intersect(ray, BVH.primitives[node.offset])
-                best_isect, tmin = update_isect(isect, best_isect, tmin)
+                best_isect = update_isect(isect, best_isect)
 
                 # If there's nothing in the todo queue, we exit the loop.
                 if todo_offset == 0
@@ -235,6 +348,17 @@ function intersect(ray::Ray, BVH::BVHAccelerator)
     return best_isect
 end
 
+
+"""
+    intersectP(ray::Ray, BVH::BVHAccelerator)
+
+Returns `true` if the given ray intersects any primitive in the `BVHAccelerator`, else
+returns false. This is much faster to do than [`intersect`](@ref), since it's enough to
+find any intersection, not specifically the nearest one.
+
+Possibly the most often called function in the entire ray-tracer.
+
+"""
 function intersectP(ray::Ray, BVH::BVHAccelerator)
     if length(BVH.nodes) == 0
         return false
