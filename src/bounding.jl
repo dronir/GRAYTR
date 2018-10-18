@@ -1,9 +1,9 @@
 
-
 """
     BoundingBox(pMin::Point3, pMax::Point3)
 
 A bounding box is defined by its extreme corners `pMin` and `pMax`.
+
 """
 struct BoundingBox <: BoundingVolume
     pMin::Point3
@@ -19,7 +19,9 @@ end
 """
     BoundingBox(boxes::Array{BoundingBox,1})
 
-Construct the bounding box of a list of bounding boxes."""
+Construct the bounding box of a list of bounding boxes.
+
+"""
 function BoundingBox(boxes::Array{BoundingBox,1})
     pMin = Point3(Inf, Inf, Inf)
     pMax = Point3(-Inf, -Inf, -Inf)
@@ -35,6 +37,7 @@ end
     BoundingBox(p1::Point3, p2::Point3, p3::Point3)
     
 Construct the bounding box of three points.
+
 """
 function BoundingBox(p1::Point3, p2::Point3, p3::Point3)
     pMin = min(p1, p2, p3)
@@ -47,6 +50,7 @@ end
     BoundingBox(contents::Array{Point3,1})
 
 Construct the bounding box of a list of points.
+
 """
 function BoundingBox(contents::Array{Point3,1})
     pMin = Point3(Inf, Inf, Inf)
@@ -58,7 +62,12 @@ function BoundingBox(contents::Array{Point3,1})
     return BoundingBox(pMin, pMax)
 end
 
-"Apply a transformation on a bounding box (probably not in the most efficient way)."
+"""
+    (transform::Transformation)(BB::BoundingBox)
+
+Apply a transformation on a bounding box (probably not in the most efficient way).
+
+"""
 function (transform::Transformation)(BB::BoundingBox)
     corners = Point3[
         Point3(BB.pMin.x, BB.pMin.y, BB.pMin.z),
@@ -73,13 +82,16 @@ function (transform::Transformation)(BB::BoundingBox)
     return BoundingBox([transform(p) for p in corners])
 end
 
-"
+
+"""
     intersect(R::Ray, BB::BoundingBox)
 
 Ray intersection with a bounding box. 
 
 Returns `(hit::Bool, tmin::Float64, tmax::Float64)`, where tmin and tmax are the near and far
-hit locations on the box. They will be NaN if hit is false."
+hit locations on the box. They will be NaN if hit is false.
+
+"""
 function intersect(R::Ray, BB::BoundingBox)
     t0 = R.tmin
     t1 = R.tmax
@@ -100,7 +112,9 @@ end
 """
     intersectP(R::Ray, BB::BoundingBox)
 
-True/false intersection test with bounding box."""
+True/false intersection test with bounding box.
+
+"""
 function intersectP(R::Ray, BB::BoundingBox)
     t0 = R.tmin
     t1 = R.tmax
@@ -118,18 +132,50 @@ function intersectP(R::Ray, BB::BoundingBox)
     return true
 end
 
-"Compute area of bounding box."
+"""
+    area(BB::BoundingBox)
+
+Return the surface area of the bounding box.
+
+"""
 area(BB::BoundingBox) = 2 * ((BB.pMax[1] - BB.pMin[1]) * (BB.pMax[2] - BB.pMin[2])
                            + (BB.pMax[2] - BB.pMin[2]) * (BB.pMax[3] - BB.pMin[3])
                            + (BB.pMax[3] - BB.pMin[3]) * (BB.pMax[1] - BB.pMin[1]))
 
 
-"Compute union of a bounding box and a point, or two bounding boxes."
+"""
+    union(BB::BoundingBox, p::Point3)
+
+Return a bounding box that covers both the box `BB` and the point `p`.
+
+"""
 union(BB::BoundingBox, p::Point3) = BoundingBox(min(BB1.pMin, p), max(BB1.pMax, p))
+
+
+"""
+    union(p::Point3, BB::BoundingBox)
+
+Return a bounding box that covers both the box `BB` and the point `p`.
+
+"""
 union(p::Point3, BB::BoundingBox) = union(BB, p)
+
+
+"""
+    union(BB1::BoundingBox, BB2::BoundingBox)
+
+Return a bounding box that covers the two bounding boxes given.
+
+"""
 union(BB1::BoundingBox, BB2::BoundingBox) = BoundingBox(min(BB1.pMin, BB2.pMin), max(BB1.pMax, BB2.pMax))
 
-"Get the index of the axis where the bounding box is widest."
+
+"""
+    max_extent(BB::BoundingBox)
+
+Get the index of the axis where the bounding box is widest. X is 1, Y is 2 and Z is 3.
+
+"""
 function max_extent(BB::BoundingBox)
     dx = BB.pMax.x - BB.pMin.x
     dy = BB.pMax.y - BB.pMin.y
