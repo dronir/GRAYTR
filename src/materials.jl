@@ -1,7 +1,13 @@
 
 include("brdf.jl")
 
+"""
+    local_transformation(dg::DifferentialGeometry)
 
+Get the transformation which transforms a vector from the world coordinates to
+surface-local coordinates, where the Z-axis is along the surface normal.
+
+"""
 function local_transformation(dg::DifferentialGeometry)
     # Make an orthonormal basis of the normal vector, a vector tangent to the surface,
     # and their cross product.
