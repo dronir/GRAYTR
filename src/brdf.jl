@@ -80,10 +80,10 @@ TODO: check physics
 
 """
 function evaluate(B::LommelSeeliger, w0::Vector3, w1::Vector3) 
-    cos_alpha = dot(w0, w1)
+    cos_alpha = clamp(dot(w0, w1), -1.0, 1.0)
     alpha = acos(cos_alpha)
     phase = B.P(alpha)
-    return 0.25 * phase * B.R .* max(0.0, 1.0 / (costheta(w0) + costheta(w1)))
+    return 0.25 * phase * B.R * max(0.0, 1.0 / (costheta(w0) + costheta(w1)))
 end
 
 
