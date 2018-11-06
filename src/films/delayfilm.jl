@@ -67,6 +67,20 @@ end
 
 
 """
+    reset!(F::DelayFilm)
+
+Reset all the pixel values of the `DelayFilm` to zero. This is mainly useful if you want to
+use the same film in multiple computations, writing out the data and resetting in between.
+
+"""
+function reset!(F::DelayFilm)
+    F.counts .= 0
+    F.histogram .= 0.0
+    nothing
+end
+
+
+"""
     write_txt(F::DelayFilm, fname::String)
 
 Write the `DelayFilm` histogram into a text file. The file starts with seven lines of

@@ -49,6 +49,6 @@ export TriangleFilter, BoxFilter
 export OrthographicCamera
 export StratifiedSampler, WhittedIntegrator
 export render
-export write_image, write_txt
+export write_image, write_txt, reset!
 
 end #module

@@ -1,6 +1,29 @@
 using FileIO
 using Images
 
+
+
+
+"""
+    Pixel
+
+Representation of a pixel. A wrapper for the XYZ colors and a weight.
+"""
+struct Pixel
+    x::Float64
+    y::Float64
+    z::Float64
+    w::Float64
+end
+
+import Base.zero
+zero(::Type{Pixel}) = Pixel(0.0,0.0,0.0,0.0)
+add(P::Pixel, S::Array{Float64,1}) = Pixel(P.x+S[1], P.y+S[2], P.z+S[3], P.w+S[4])
+add(P::Pixel, S::Array{Float64,1}, w::Float64) = Pixel(P.x+S[1], P.y+S[2], P.z+S[3], P.w+w)
+add(P::Pixel, x, y, z, w) = Pixel(P.x+x, P.y+y, P.z+z, P.w+w)
+
+
+
 """
     ImageFilm
 
@@ -15,6 +38,8 @@ struct ImageFilm{T<:Filter} <: Film
     pixels::Array{Pixel,2}
     filtertable::Array{Float64,2}
 end
+
+
 
 
 const FILTERTABLE_SIZE = 16
@@ -67,6 +92,24 @@ function add_sample!(F::ImageFilm, sample::Sample, L::Spectrum, isect::Union{Int
             F.pixels[i,j] = add(F.pixels[i,j], w*x, w*y, w*z, w)
         end
     end
+end
+
+
+"""
+    reset!(F::ImageFilm)
+
+Reset all the pixel values of the `ImageFilm` to zero. This is mainly useful if you want to
+use the same `ImageFilm` in multiple computations, writing out the image and resetting in
+between.
+
+"""
+function reset!(F::ImageFilm)
+    for i = 1:F.resX
+        for j = 1:F.resY
+            F.pixels[i,j] = zero(Pixel)
+        end
+    end
+    nothing
 end
 
 
