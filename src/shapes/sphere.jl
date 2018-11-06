@@ -27,6 +27,10 @@ function world_bounds(s::Sphere)
     s.obj_to_world(obj_bounds(s))
 end
 
+function (T::Transformation)(S::Sphere)
+    T2 = T * S.obj_to_world
+    Sphere(S.id, S.radius, S.inverted, T2, inv(T2))
+end
 
 
 
