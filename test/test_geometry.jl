@@ -1,7 +1,5 @@
 
-using Base.Test
-include("geometry.jl")
-using Geometry
+using LinearAlgebra
 
 function test_vector3()
     @testset "Vector3" begin
@@ -10,13 +8,13 @@ function test_vector3()
         Z = Vector3(0.0, 0.0, 1.0)
         @testset "Creating" begin
             v = Vector3(1.0, 2.0, 3.0)
-            @test v.x ≈ 1
-            @test v.y ≈ 2
-            @test v.z ≈ 3
+            @test v.x ≈ 1.0
+            @test v.y ≈ 2.0
+            @test v.z ≈ 3.0
             v = Vector3(1,2,3)
-            @test v.x ≈ 1
-            @test v.y ≈ 2
-            @test v.z ≈ 3
+            @test v.x ≈ 1.0
+            @test v.y ≈ 2.0
+            @test v.z ≈ 3.0
             v = Vector3(1//2, 3//4, -2//1)
             @test v.x ≈ 0.5
             @test v.y ≈ 0.75
@@ -73,9 +71,8 @@ function test_transformations()
     @testset "Transformation" begin
         @testset "Basic" begin
             T = Transformation()
-            @test T.M ≈ eye(4)
-            @test T.MInv ≈ eye(4)
-            @test !swaps_handedness(T)
+            @test T.M ≈ Matrix{Float64}(I, 4, 4)
+            @test T.MInv ≈ Matrix{Float64}(I, 4, 4)
         end
         @testset "Translation" begin
             point = Point3(0)
