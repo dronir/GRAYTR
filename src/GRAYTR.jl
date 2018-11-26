@@ -35,7 +35,7 @@ include("parser.jl")
 include("films/imagefilm.jl")
 include("films/delayfilm.jl")
 
-export Vector3, Point3
+export Vector3, Point3, Normal3
 export X_AXIS, Y_AXIS, Z_AXIS
 export Transformation, rotation, translation, scaling
 
