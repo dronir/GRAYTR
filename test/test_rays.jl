@@ -1,8 +1,5 @@
-using Base.Test
-include("geometry.jl")
-using Geometry
 
-include("rays.jl")
+import GRAYTR.Ray
 
 function test_rays()
     @testset "Rays" begin
