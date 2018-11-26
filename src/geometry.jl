@@ -6,13 +6,10 @@ using Statistics
 import Statistics.mean, Statistics.normalize
 import LinearAlgebra.cross, LinearAlgebra.norm, LinearAlgebra.dot
 
-#Base.dot, Base.cross
-
 import Base.+, Base.-, Base.*, Base./, Base.isnan, Base.inv
 import Base.getindex, Base.min, Base.max
 import Base.convert, Base.isapprox
 import Base.size, Base.length, Base.iterate
-#import Base.AbstractArray
 
 export VectorLike, Vector3, Normal3, Point3
 export Transformation, translation, scaling, rotation, look_at, swaps_handedness
@@ -164,7 +161,7 @@ function rotation(axis::Vector3, angle::Number)
 end
 
 function look_at(camera::Vector3, target::Vector3, up::Vector3)
-    M = eye(4)
+    M = zeros(4, 4)
     dir = normalize(dir)
     left = normalize(cross(normalize(up), dir))
     newUp = normalize(cross(dir, left))
@@ -180,6 +177,7 @@ function look_at(camera::Vector3, target::Vector3, up::Vector3)
     M[1,4] = target.x
     M[2,4] = target.y
     M[3,4] = target.z
+    M[4,4] = 1.0
     return M
 end
 
