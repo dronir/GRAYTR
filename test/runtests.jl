@@ -7,6 +7,9 @@ include("test_geometry.jl")
 # Tests of rays.jl
 include("test_rays.jl")
 
+# Tests of bounding.jl
+include("test_bounding.jl")
+
 # Tests of materials.jl
 include("test_materials.jl")
 
