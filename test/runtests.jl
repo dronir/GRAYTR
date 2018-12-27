@@ -4,6 +4,9 @@ using Test
 # Geometry package tests
 include("test_geometry.jl")
 
+# Utility function tests
+include("test_utility.jl")
+
 # Tests of rays.jl
 include("test_rays.jl")
 
