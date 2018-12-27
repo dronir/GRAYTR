@@ -62,6 +62,34 @@ function BoundingBox(contents::Array{Point3,1})
     return BoundingBox(pMin, pMax)
 end
 
+
+"""
+    BoundingBox(BB::BoundingBox, p::Point3)
+
+Return a bounding box that covers both the box `BB` and the point `p`.
+
+"""
+BoundingBox(BB::BoundingBox, p::Point3) = BoundingBox(min(BB1.pMin, p), max(BB1.pMax, p))
+
+
+"""
+    BoundingBox(p::Point3, BB::BoundingBox)
+
+Return a bounding box that covers both the box `BB` and the point `p`.
+
+"""
+BoundingBox(p::Point3, BB::BoundingBox) = BoundingBox(BB, p)
+
+
+"""
+    BoundingBox(BB1::BoundingBox, BB2::BoundingBox)
+
+Return a bounding box that covers the two bounding boxes given.
+
+"""
+BoundingBox(BB1::BoundingBox, BB2::BoundingBox) = BoundingBox(min(BB1.pMin, BB2.pMin), max(BB1.pMax, BB2.pMax))
+
+
 """
     (transform::Transformation)(BB::BoundingBox)
 
@@ -141,33 +169,6 @@ Return the surface area of the bounding box.
 area(BB::BoundingBox) = 2 * ((BB.pMax[1] - BB.pMin[1]) * (BB.pMax[2] - BB.pMin[2])
                            + (BB.pMax[2] - BB.pMin[2]) * (BB.pMax[3] - BB.pMin[3])
                            + (BB.pMax[3] - BB.pMin[3]) * (BB.pMax[1] - BB.pMin[1]))
-
-
-"""
-    union(BB::BoundingBox, p::Point3)
-
-Return a bounding box that covers both the box `BB` and the point `p`.
-
-"""
-union(BB::BoundingBox, p::Point3) = BoundingBox(min(BB1.pMin, p), max(BB1.pMax, p))
-
-
-"""
-    union(p::Point3, BB::BoundingBox)
-
-Return a bounding box that covers both the box `BB` and the point `p`.
-
-"""
-union(p::Point3, BB::BoundingBox) = union(BB, p)
-
-
-"""
-    union(BB1::BoundingBox, BB2::BoundingBox)
-
-Return a bounding box that covers the two bounding boxes given.
-
-"""
-union(BB1::BoundingBox, BB2::BoundingBox) = BoundingBox(min(BB1.pMin, BB2.pMin), max(BB1.pMax, BB2.pMax))
 
 
 """

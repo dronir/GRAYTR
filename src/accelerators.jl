@@ -86,7 +86,7 @@ Initialize the `BVHBuildNode` as an interior node of the BVH tree.
 function init_interior!(node::BVHBuildNode, axis::Integer, childA::BVHBuildNode, childB::BVHBuildNode)
     node.leaf = false
     node.split_axis = axis
-    node.BBox = union(childA.BBox, childB.BBox)
+    node.BBox = BoundingBox(childA.BBox, childB.BBox)
     node.childA = childA
     node.childB = childB
     node.first_offset = -1

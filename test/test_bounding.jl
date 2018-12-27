@@ -88,11 +88,11 @@
         BB1 = GRAYTR.BoundingBox(p1, p2)
         BB2 = GRAYTR.BoundingBox(p3, p2)
         
-        BB = GRAYTR.BoundingBox([BB1, BB2])
+        BB = GRAYTR.BoundingBox(BB1, BB2)
         @test BB.pMin == p3
         @test BB.pMax == p2
         
-        BB = GRAYTR.BoundingBox([BB2, BB1])
+        BB = GRAYTR.BoundingBox(BB2, BB1)
         @test BB.pMin == p3
         @test BB.pMax == p2
     end
