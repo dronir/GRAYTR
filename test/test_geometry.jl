@@ -1,5 +1,6 @@
 
 using LinearAlgebra
+using Statistics
 
 @testset "Geometry" begin
 
@@ -92,12 +93,36 @@ for type_under_test in [Vector3, Point3, Normal3]
             @test isnan(type_under_test(1, NaN, 3))
             @test isnan(type_under_test(1, 2, NaN))
         end
+        
+        @testset "Conversions" begin
+            T = type_under_test(1, 2, 3)
+            @test convert(Array{Float64, 1}, T) ≈ [1.0, 2.0, 3.0]
+            
+            V = Vector3(1, 2, 3)
+            P = Point3(1, 4, 9)
+            N = Normal3(1, 8, 27)
+            @test convert(type_under_test, V) ≈ type_under_test(1, 2, 3)
+            @test convert(type_under_test, P) ≈ type_under_test(1, 4, 9)
+            @test convert(type_under_test, N) ≈ type_under_test(1, 8, 27)
+        end
     end
 end
 
+@testset "Type-specific functions" begin
+    P1 = Point3(2, 0, -4)
+    P2 = Point3(0, 0, -2)
+    @test mean(P1, P2) ≈ Point3(1, 0, -3)
+    
+    V1 = Vector3(1, 2, 3)
+    V2 = Vector3(1, 0, -1)
+    @test V1 + V2 ≈ Vector3(2, 2, 2)
+    @test V1 - V2 ≈ Vector3(0, 2, 4)
+end
 
-@testset "Transformation" begin
-    @testset "Basic" begin
+
+
+@testset "Transformations" begin
+    @testset "Identity transformation" begin
         T = Transformation()
         @test T.M ≈ Matrix{Float64}(I, 4, 4)
         @test T.MInv ≈ Matrix{Float64}(I, 4, 4)
@@ -153,6 +178,7 @@ end
         
     end
 end
+
 
 end # testset Geometry
 

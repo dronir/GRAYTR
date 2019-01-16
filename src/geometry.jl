@@ -1,10 +1,11 @@
 module Geometry
 
-using LinearAlgebra
-using Statistics
+#using LinearAlgebra
+#using Statistics
 
 import Statistics.mean, Statistics.normalize
-import LinearAlgebra.cross, LinearAlgebra.norm, LinearAlgebra.dot
+import LinearAlgebra.cross, LinearAlgebra.norm, LinearAlgebra.dot, LinearAlgebra.I
+import LinearAlgebra.det
 
 import Base.+, Base.-, Base.*, Base./, Base.isnan, Base.inv
 import Base.getindex, Base.min, Base.max
@@ -14,6 +15,7 @@ import Base.size, Base.length, Base.iterate
 export VectorLike, Vector3, Normal3, Point3
 export Transformation, translation, scaling, rotation, look_at, swaps_handedness
 export X_AXIS, Y_AXIS, Z_AXIS
+
 
 abstract type VectorLike end
 
@@ -162,26 +164,6 @@ function rotation(axis::Vector3, angle::Number)
     return Transformation(M, M')
 end
 
-function look_at(camera::Vector3, target::Vector3, up::Vector3)
-    M = zeros(4, 4)
-    dir = normalize(dir)
-    left = normalize(cross(normalize(up), dir))
-    newUp = normalize(cross(dir, left))
-    M[1,1] = left.x 
-    M[2,1] = left.y
-    M[3,1] = left.z
-    M[1,2] = newUp.x
-    M[2,2] = newUp.y
-    M[3,2] = newUp.z
-    M[1,3] = dir.x
-    M[2,3] = dir.y
-    M[3,3] = dir.z
-    M[1,4] = target.x
-    M[2,4] = target.y
-    M[3,4] = target.z
-    M[4,4] = 1.0
-    return M
-end
 
 function (T::Transformation)(v::Vector3)
     return Vector3(
