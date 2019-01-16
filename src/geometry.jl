@@ -50,8 +50,10 @@ Vector3(x::Real) = Vector3(x,x,x)
 Point3(x::Real) = Point3(x,x,x)
 Normal3(x::Real) = Normal3(x,x,x)
 
+Vector3(v::Vector3) = Vector3(v.x, v.y, v.z)
 Normal3(v::Vector3) = Normal3(v.x, v.y, v.z)
 Point3(v::Vector3) = Point3(v.x, v.y, v.z)
+
 
 size(A::VectorLike) = 3
 length(A::VectorLike) = 3

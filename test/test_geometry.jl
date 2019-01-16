@@ -3,67 +3,95 @@ using LinearAlgebra
 
 @testset "Geometry" begin
 
-@testset "Vector3" begin
-    X = Vector3(1.0, 0.0, 0.0)
-    Y = Vector3(0.0, 1.0, 0.0)
-    Z = Vector3(0.0, 0.0, 1.0)
-    @testset "Creating" begin
-        v = Vector3(1.0, 2.0, 3.0)
-        @test v.x ≈ 1.0
-        @test v.y ≈ 2.0
-        @test v.z ≈ 3.0
-        v = Vector3(1,2,3)
-        @test v.x ≈ 1.0
-        @test v.y ≈ 2.0
-        @test v.z ≈ 3.0
-        v = Vector3(1//2, 3//4, -2//1)
-        @test v.x ≈ 0.5
-        @test v.y ≈ 0.75
-        @test v.z ≈ -2.0
-    end
-    
-    @testset "Normalizing" begin
-        v = Vector3(2, 0, 0)
-        @test normalize(v) ≈ Vector3(1, 0, 0)
-        v = Vector3(0, -2, 0)
-        @test normalize(v) ≈ Vector3(0, -1, 0)
-        v = Vector3(3, -4, 0)
-        @test normalize(v) ≈ Vector3(3//5, -4//5, 0)
-    end
-    
-    @testset "Dot product" begin
-        v = Vector3(0.5, 1.0, -2.0)
-        @test dot(v, X) ≈ 0.5
-        @test dot(v, Y) ≈ 1.0
-        @test dot(v, Z) ≈ -2.0
+for type_under_test in [Vector3, Point3, Normal3]
+    typename = string(type_under_test)
+    @testset "Common tests: $typename" begin
+        X = type_under_test(1.0, 0.0, 0.0)
+        Y = type_under_test(0.0, 1.0, 0.0)
+        Z = type_under_test(0.0, 0.0, 1.0)
+        @testset "Creating" begin
+            v = type_under_test(1.0, 2.0, 3.0)
+            @test v.x ≈ 1.0
+            @test v.y ≈ 2.0
+            @test v.z ≈ 3.0
+            v = type_under_test(1,2,3)
+            @test v.x ≈ 1.0
+            @test v.y ≈ 2.0
+            @test v.z ≈ 3.0
+            v = type_under_test(1//2, 3//4, -2//1)
+            @test v.x ≈ 0.5
+            @test v.y ≈ 0.75
+            @test v.z ≈ -2.0
+            v = type_under_test(1.0)
+            @test v.x ≈ 1.0
+            @test v.y ≈ 1.0
+            @test v.x ≈ 1.0
+            v = type_under_test(Vector3(1, 2, 3))
+            @test v.x ≈ 1.0
+            @test v.y ≈ 2.0
+            @test v.z ≈ 3.0
+        end
         
-        u = Vector3(2, 1, 1)
-        @test dot(v, u) ≈ 0.0
-    end
-    
-    @testset "Min/max" begin
-        v = Vector3(-1, 0, 2)
-        u = Vector3(0, -1, 0)
-        @test min(v,u) ≈ Vector3(-1, -1, 0)
-        @test max(u,v) ≈ Vector3(0, 0, 2)
-    end
-    
-    @testset "Iteration" begin
-        V = Vector3(1, 2, 3)
-        A = [x for x in V]
-        @test A ≈ [1.0, 2.0, 3.0]
-    end
-    
-    @testset "Cross product" begin
-        X = Vector3(1,0,0)
-        Y = Vector3(0,1,0)
-        Z = Vector3(0,0,1)
-        @test cross(X,Y) ≈ Z
-        @test cross(X,Z) ≈ -Y
-        @test cross(Y,X) ≈ -Z
-        @test cross(Y,Z) ≈ X
-        @test cross(Z,X) ≈ Y
-        @test cross(Z,Y) ≈ -X
+        @testset "Arithmetic" begin
+            v = type_under_test(1, 2, 3)
+            @test 2.0 * v ≈ type_under_test(2, 4, 6)
+            @test v * 2.0 ≈ type_under_test(2, 4, 6)
+            @test v/2 ≈ type_under_test(0.5, 1.0, 1.5)
+        end
+        
+        @testset "Normalizing" begin
+            v = type_under_test(2, 0, 0)
+            @test normalize(v) ≈ type_under_test(1, 0, 0)
+            v = type_under_test(0, -2, 0)
+            @test normalize(v) ≈ type_under_test(0, -1, 0)
+            v = type_under_test(3, -4, 0)
+            @test normalize(v) ≈ type_under_test(3//5, -4//5, 0)
+        end
+        
+        @testset "Dot product" begin
+            v = type_under_test(0.5, 1.0, -2.0)
+            @test dot(v, X) ≈ 0.5
+            @test dot(v, Y) ≈ 1.0
+            @test dot(v, Z) ≈ -2.0
+            
+            u = type_under_test(2, 1, 1)
+            @test dot(v, u) ≈ 0.0
+        end
+        
+        @testset "Min/max" begin
+            v = type_under_test(-1, 0, 2)
+            u = type_under_test(0, -1, 0)
+            @test min(v,u) ≈ type_under_test(-1, -1, 0)
+            @test max(u,v) ≈ type_under_test(0, 0, 2)
+        end
+        
+        @testset "Iteration" begin
+            V = type_under_test(1, 2, 3)
+            A = [x for x in V]
+            @test A ≈ [1.0, 2.0, 3.0]
+        end
+        
+        @testset "Cross product" begin
+            X = type_under_test(1,0,0)
+            Y = type_under_test(0,1,0)
+            Z = type_under_test(0,0,1)
+            @test cross(X, Y) ≈ Vector3(0, 0, 1)
+            @test cross(X, Z) ≈ Vector3(0, -1, 0)
+            @test cross(Y, X) ≈ Vector3(0, 0, -1)
+            @test cross(Y, Z) ≈ Vector3(1, 0, 0)
+            @test cross(Z, X) ≈ Vector3(0, 1, 0)
+            @test cross(Z, Y) ≈ Vector3(-1, 0, 0)
+        end
+        
+        @testset "Various functions" begin
+            X = type_under_test(1, 2, 3)
+            @test size(X) == 3
+            @test length(X) == 3
+            @test !isnan(X)
+            @test isnan(type_under_test(NaN, 2, 3))
+            @test isnan(type_under_test(1, NaN, 3))
+            @test isnan(type_under_test(1, 2, NaN))
+        end
     end
 end
 
@@ -125,7 +153,6 @@ end
         
     end
 end
-
 
 end # testset Geometry
 
