@@ -1,5 +1,6 @@
 
 [![Build Status](https://travis-ci.org/dronir/GRAYTR.svg?branch=master)](https://travis-ci.org/dronir/GRAYTR)
+[![codecov](https://codecov.io/gh/dronir/GRAYTR/branch/master/graph/badge.svg)](https://codecov.io/gh/dronir/GRAYTR)
 
 # GRAYTR
 
