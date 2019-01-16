@@ -26,5 +26,5 @@ include("test_filters.jl")
 include("test_cameras.jl")
 
 # Full integration test for image rendering.
-#include("test_full_computation.jl")
+include("test_full_computation.jl")
 
