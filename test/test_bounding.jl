@@ -207,5 +207,107 @@ end
 end
 
 
+@testset "Full ray intersection test" begin
+    p1 = Point3(0, 0, 0)
+    p2 = Point3(2, 2, 1)
+    BB = GRAYTR.BoundingBox(p1, p2)
+    
+    @testset "Ray from inside box" begin
+        R = GRAYTR.Ray(Point3(1.0, 1.0, 0.5), Vector3(1, 0, 0))
+        isect, t0, t1 = GRAYTR.intersect(R, BB)
+        @test isect
+        @test t0 ≈ 0.0
+        @test t1 ≈ 1.0
+        
+        R = GRAYTR.Ray(Point3(1.0, 1.0, 0.5), Vector3(0, 1, 0))
+        isect, t0, t1 = GRAYTR.intersect(R, BB)
+        @test isect
+        @test t0 ≈ 0.0
+        @test t1 ≈ 1.0
+        
+        R = GRAYTR.Ray(Point3(1.0, 1.0, 0.5), Vector3(0, 0,  1))
+        isect, t0, t1 = GRAYTR.intersect(R, BB)
+        @test isect
+        @test t0 ≈ 0.0
+        @test t1 ≈ 0.5
+        
+        R = GRAYTR.Ray(Point3(1.0, 1.0, 0.5), Vector3(-1, 0, 0))
+        isect, t0, t1 = GRAYTR.intersect(R, BB)
+        @test isect
+        @test t0 ≈ 0.0
+        @test t1 ≈ 1.0
+        
+        R = GRAYTR.Ray(Point3(1.0, 1.0, 0.5), Vector3(0, -1, 0))
+        isect, t0, t1 = GRAYTR.intersect(R, BB)
+        @test isect
+        @test t0 ≈ 0.0
+        @test t1 ≈ 1.0
+        
+        R = GRAYTR.Ray(Point3(1.0, 1.0, 0.5), Vector3(0, 0, -1))
+        isect, t0, t1 = GRAYTR.intersect(R, BB)
+        @test isect
+        @test t0 ≈ 0.0
+        @test t1 ≈ 0.5
+    end
+    
+    @testset "Ray travelling in -Z direction" begin
+        R = GRAYTR.Ray(Point3(0.0, 0.0, 2.0), Vector3(0, 0, -1))
+        isect, t0, t1 =  GRAYTR.intersect(R, BB)
+        @test isect
+        @test t0 ≈ 1.0
+        @test t1 ≈ 2.0
+        
+        R = GRAYTR.Ray(Point3(1.0, 1.0, 2.0), Vector3(0, 0, -1))
+        isect, t0, t1 =  GRAYTR.intersect(R, BB)
+        @test isect
+        @test t0 ≈ 1.0
+        @test t1 ≈ 2.0
+        
+        
+        R = GRAYTR.Ray(Point3(-1.0, 1.0, 2.0), Vector3(0, 0, -1))
+        isect, t0, t1 =  GRAYTR.intersect(R, BB)
+        @test !isect
+        @test isnan(t0)
+        @test isnan(t1)
+        
+        R = GRAYTR.Ray(Point3(3.0, 1.0, 2.0), Vector3(0, 0, -1))
+        isect, t0, t1 =  GRAYTR.intersect(R, BB)
+        @test !isect
+        @test isnan(t0)
+        @test isnan(t1)
+    end
+    
+    @testset "Ray travelling +X direction" begin
+        R = GRAYTR.Ray(Point3(-1.0, 1.0, 0.5), Vector3(1, 0, 0))
+        isect, t0, t1 = GRAYTR.intersect(R, BB)
+        @test isect
+        @test t0 ≈ 1.0
+        @test t1 ≈ 3.0
+        
+        R = GRAYTR.Ray(Point3(-1.0, 3.0, 0.5), Vector3(1, 0, 0))
+        isect, t0, t1 = GRAYTR.intersect(R, BB)
+        @test !isect
+        @test isnan(t0)
+        @test isnan(t1)
+    end
+    
+    @testset "Ray travelling -X direction" begin
+        R = GRAYTR.Ray(Point3(3.0, 1.0, 0.5), Vector3(-1, 0, 0))
+        isect, t0, t1 = GRAYTR.intersect(R, BB)
+        @test isect
+        @test t0 ≈ 1.0
+        @test t1 ≈ 3.0
+        
+        R = GRAYTR.Ray(Point3(3.0, 3.0, 0.5), Vector3(-1, 0, 0))
+        isect, t0, t1 = GRAYTR.intersect(R, BB)
+        @test !isect
+        @test isnan(t0)
+        @test isnan(t1)
+    end
+    
+    
+end
+
+
 
 end # main testset
