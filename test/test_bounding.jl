@@ -95,6 +95,22 @@
         BB = GRAYTR.BoundingBox(BB2, BB1)
         @test BB.pMin == p3
         @test BB.pMax == p2
+        
+        BB = GRAYTR.BoundingBox([BB1, BB2])
+        @test BB.pMin == p3
+        @test BB.pMax == p2
+    end
+    
+    @testset "Bounding box from a bounding box and a point" begin
+        BB1 = GRAYTR.BoundingBox(p1, p2)
+        
+        BB = GRAYTR.BoundingBox(BB1, p3)
+        @test BB.pMin == p3
+        @test BB.pMax == p2
+        
+        BB = GRAYTR.BoundingBox(p3, BB1)
+        @test BB.pMin == p3
+        @test BB.pMax == p2
     end
 end
 
@@ -118,6 +134,7 @@ end
     p1 = Point3(0, 0, 0)
     p2 = Point3(1, 2, 3)
     p3 = Point3(-3, -2, -1)
+    p4 = Point3(1, 3, 2)
     
     BB = GRAYTR.BoundingBox(p1, p2)
     @test GRAYTR.max_extent(BB) == 3
@@ -130,6 +147,9 @@ end
     
     BB = GRAYTR.BoundingBox(p1, p1)
     @test GRAYTR.max_extent(BB) == 3
+    
+    BB = GRAYTR.BoundingBox(p1, p4)
+    @test GRAYTR.max_extent(BB) == 2
 end
 
 

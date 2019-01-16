@@ -69,7 +69,7 @@ end
 Return a bounding box that covers both the box `BB` and the point `p`.
 
 """
-BoundingBox(BB::BoundingBox, p::Point3) = BoundingBox(min(BB1.pMin, p), max(BB1.pMax, p))
+BoundingBox(BB::BoundingBox, p::Point3) = BoundingBox(min(BB.pMin, p), max(BB.pMax, p))
 
 
 """
