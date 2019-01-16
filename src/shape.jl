@@ -14,11 +14,6 @@ world_to_obj(S::Shape)::Transformation = S.world_to_obj
 obj_to_world(S::Shape)::Transformation = S.obj_to_world
 
 
-
-
-
-get_shading_geometry(S::Shape, dg::DifferentialGeometry, T::Transformation) = dg
-
 include("shapes/sphere.jl")
 include("shapes/cylinder.jl")
 include("shapes/disk.jl")
