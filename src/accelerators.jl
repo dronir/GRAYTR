@@ -161,8 +161,8 @@ function flatten_BVH!(node::BVHBuildNode, linear::Array{LinearBVHNode,1}, idx::I
     if node.leaf
         new_node = LinearBVHNode(node.BBox, node.first_offset, true, -1)
     else
-        idx1 = flatten_BVH(node.childA, linear, idx+1)
-        idx2 = flatten_BVH(node.childB, linear, idx1+1)
+        idx1 = flatten_BVH!(node.childA, linear, idx+1)
+        idx2 = flatten_BVH!(node.childB, linear, idx1+1)
         new_node = LinearBVHNode(node.BBox, idx1+1, false, node.split_axis)
         idx = idx2
     end

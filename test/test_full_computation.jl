@@ -17,11 +17,16 @@ function full_computation()
     Tsph = translation(0.0, 0.0, 0.0)
     sph = Sphere(1, 1.0, Tsph)
     
+    # Create open cylinder
+    Tcyl = translation(2.0, 2.0, 0.0) * scaling(1.0, 1.0, 2.0)
+    cyl = Cylinder(Tcyl)
+    
     # Create primitive combining shape and material
     sph_primitive = GeometricPrimitive(sph, mat, nothing, 1)
+    cyl_primitive = GeometricPrimitive(cyl, mat, nothing, 2)
     
     # Create list of primitives
-    primitives = GeometricPrimitive[sph_primitive]
+    primitives = GeometricPrimitive[sph_primitive, cyl_primitive]
     
     # Generate bounding box hierarchy from primitives
     stuff = BVHAccelerator(primitives)
