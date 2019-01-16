@@ -19,6 +19,9 @@ include("test_materials.jl")
 # Tests of samplers.jl
 include("test_samplers.jl")
 
+# Tests of filters.jl
+include("test_filters.jl")
+
 # Tests of cameras.jl
 include("test_cameras.jl")
 
