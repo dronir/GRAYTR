@@ -20,13 +20,11 @@ end
     
 Construct a ProjectiveCamera.
 """
-function ProjectiveCamera(cam2w::Transformation, proj::Transformation, window::Array{Float64,1}, lensr::Float64, focald::Float64, f::Film)
+function ProjectiveCamera(cam2w::Transformation, cam2screen::Transformation, window::Array{Float64,1}, lensr::Float64, focald::Float64, f::Film)
     screen2raster = (scaling(f.resX, f.resY, 1.0) 
                    * scaling(1.0/(window[2] - window[1]), 1.0/(window[4] - window[3]), 1.0) 
                    * translation(-window[1], -window[3], 0.0))
-    cam2screen = proj
-    raster2screen = inv(screen2raster)
-    raster2cam = inv(cam2screen) * raster2screen
+    raster2cam = inv(cam2screen) * inv(screen2raster)
     dxcam = raster2cam(Vector3(1,0,0))
     dycam = raster2cam(Vector3(0,1,0))
     ProjectiveCamera(f, cam2w, raster2cam, inv(raster2cam), cam2screen, inv(cam2screen), dxcam, dycam, lensr, focald)
