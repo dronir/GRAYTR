@@ -3,7 +3,7 @@
 
 
     sph1 = GRAYTR.Sphere()
-    sph2 = GRAYTR.Sphere(1.0, translation(0, -2, 0))
+    sph2 = GRAYTR.Sphere(translation(0, -2, 0))
     
     mat = GRAYTR.Lambert(GRAYTR.SingleLine(532.0, 1.0))
     

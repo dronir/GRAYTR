@@ -10,6 +10,7 @@ struct Sphere <: Shape
 end
 
 Sphere() = Sphere(1, 1.0, false, Transformation(), Transformation())
+Sphere(T::Transformation) = Sphere(1, 1.0, false, T, inv(T))
 Sphere(r::Real, T::Transformation) = Sphere(1, r, false, T, inv(T))
 Sphere(id::Int64, r::Real, T::Transformation) = Sphere(id, r, false, T, inv(T))
 Sphere(id::Int64, r::Real, inverted::Bool, T::Transformation) = Sphere(id, r, inverted, T, inv(T))
