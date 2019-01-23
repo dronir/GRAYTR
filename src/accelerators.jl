@@ -244,35 +244,6 @@ const TODO_ARRAY = zeros(Int64, 64)
 const dir_is_neg = zeros(Bool, 3)
 
 
-"""
-    update_isect(isect::Intersection, best_isect::Intersection)
-
-Compare `isect` and `best_isect` and return the one with a smaller `tmin`.
-
-"""
-function update_isect(isect::Intersection, best_isect::Intersection)
-    if isect.tmin < best_isect.tmin
-        return isect
-    else
-        return best_isect
-    end
-end
-
-"""
-    update_isect(isect::Nothing, best_isect::Intersection)
-
-Always return `best_isect` when `isect` is `nothing`.
-"""
-update_isect(isect::Nothing, best_isect::Intersection) = best_isect
-
-
-"""
-    update_isect(isect, best_isect::Nothing)
-
-Always return `isect` when `best_isect` is `nothing`.
-"""
-update_isect(isect, best_isect::Nothing) = isect
-
 
 """
     intersect(ray::Ray, BVH::BVHAccelerator)
