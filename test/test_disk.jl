@@ -21,7 +21,7 @@ D = T(Disk())
 @test GRAYTR.world_bounds(D) == GRAYTR.BoundingBox(Point3(-1, -2, 0), Point3(1, 2, 0))
 
 # intersectP
-D = Disk()
+D = Disk(translation(0, 0, -1))
 R = GRAYTR.Ray(Point3(0, 0, 1), Vector3(0, 0, -1))
 @test GRAYTR.intersectP(R, D)
 
@@ -34,16 +34,25 @@ R = GRAYTR.Ray(Point3(0.9*sqrt(2), 0.9*sqrt(2), 1), Vector3(0, 0, -1))
 R = GRAYTR.Ray(Point3(0, 0, -1), Vector3(0, 0, 1))
 @test GRAYTR.intersectP(R, D)
 
+R = GRAYTR.Ray(Point3(0, 0, 0), Vector3(0, 1, 0))
+@test !GRAYTR.intersectP(R, D)
+
 
 # intersect
 
 R = GRAYTR.Ray(Point3(0, 0, 1), Vector3(0, 0, -1))
 dg, t, e = GRAYTR.shape_intersect(R, D)
-@test dg.p ≈ Point3(0)
+@test dg.p ≈ Point3(0, 0, -1)
 @test dg.n ≈ Normal3(0, 0, 1)
-@test t ≈ 1.0
+@test t ≈ 2.0
 
 R = GRAYTR.Ray(Point3(0.9*sqrt(2), 0.9*sqrt(2), 1), Vector3(0, 0, -1))
+dg, t, e = GRAYTR.shape_intersect(R, D)
+@test dg == nothing
+@test isnan(t)
+@test isnan(e)
+
+R = GRAYTR.Ray(Point3(1, 0, 0), Vector3(-1, 0, 0))
 dg, t, e = GRAYTR.shape_intersect(R, D)
 @test dg == nothing
 @test isnan(t)
