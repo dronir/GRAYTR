@@ -28,6 +28,11 @@
     @test !GRAYTR.intersectP(R, Agg)
     isect = GRAYTR.intersect(R, Agg)
     @test isect == nothing
+    
+    R = Ray(Point3(5, 0.9*sqrt(2), 0.9*sqrt(2)), Vector3(-1, 0, 0))
+    @test !GRAYTR.intersectP(R, Agg)
+    isect = GRAYTR.intersect(R, Agg)
+    @test isect == nothing
 
 
 end
