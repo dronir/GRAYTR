@@ -56,7 +56,8 @@ function shape_intersect(R::Ray, D::Disk)
     dndv = Normal3(0.0)
     DG = DifferentialGeometry(
         D.obj_to_world(P),
-        u, v, D,
+        Normal3(0, 0, sign(ray.origin.z)),
+        u, v,
         D.obj_to_world(dpdu),
         D.obj_to_world(dpdv),
         D.obj_to_world(dndu),
