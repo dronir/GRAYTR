@@ -15,7 +15,7 @@ Triangle(p1::Point3, p2::Point3, p3::Point3) = Triangle(p1, p2, p3, Transformati
 
 
 can_intersect(T::Triangle) = true
-area(T::Triangle) = 0.5 * cross(T.p2 - T.p1, T.p3 - T.p1)
+area(T::Triangle) = 0.5 * norm(cross(T.p2 - T.p1, T.p3 - T.p1))
 
 function obj_bounds(T::Triangle)
     return BoundingBox(T.p1, T.p2, T.p3)
@@ -79,9 +79,12 @@ function shape_intersect(R::Ray, T::Triangle)
     dpdu = ( dv2 * dp1 - dv1 * dp2) * invdet
     dpdv = (-du2 * dp1 + du1 * dp2) * invdet
     
+    n = normalize(cross(e1, e2))
+    
     DG = DifferentialGeometry(
         T.obj_to_world(P),
-        u, v, T,
+        n * -sign(dot(ray.direction, n)),
+        u, v,
         T.obj_to_world(dpdu),
         T.obj_to_world(dpdv),
         Normal3(0,0,0),
