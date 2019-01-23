@@ -9,7 +9,7 @@ struct Cylinder <: Shape
     world_to_obj::Transformation
 end
 
-Cylinder(T::Transformation) = Cylinder(1, 1.0, 0.0, 1.0, false, T, inv(T))
+Cylinder(T::Transformation) = Cylinder(1, 1.0, -1.0, 1.0, false, T, inv(T))
 
 can_intersect(C::Cylinder) = true
 area(C::Cylinder) = 2π * C.radius * (C.zmax - C.zmin)
