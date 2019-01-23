@@ -16,6 +16,9 @@ include("test_bounding.jl")
 # Tests of materials.jl
 include("test_materials.jl")
 
+# Tests of dummy aggregate
+include("test_dumbaggregate.jl")
+
 # Tests of samplers.jl
 include("test_samplers.jl")
 

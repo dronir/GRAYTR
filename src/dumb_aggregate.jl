@@ -39,7 +39,29 @@ world_bounds(A::DumbAggregate) = A.bounds
 
 
 """
-    intersectP(ray::Ray, BVH::DumbAggregate)
+    intersect(ray::Ray, A::DumbAggregate)
+
+Find nearest intersection, if any, between `ray` and a `DumbAggregate`. 
+
+Returns `Intersection` or `nothing`.
+
+"""
+function intersect(ray::Ray, A::DumbAggregate)
+    best_tmin = Inf
+    best_isect = nothing
+    if !intersectP(ray, A.bounds)
+        return nothing
+    end
+    for primitive in A.primitives
+        best_isect = update_isect(best_isect, intersect(ray, primitive))
+    end
+    return best_isect
+end
+
+
+
+"""
+    intersectP(ray::Ray, A::DumbAggregate)
 
 Returns `true` if the given ray intersects any primitive in the `DumbAggregate`, else
 returns false. This is much faster to do than [`intersect`](@ref), since it's enough to

@@ -23,6 +23,7 @@ include("materials.jl")
 
 include("lights.jl")
 include("primitives.jl")
+include("dumb_aggregate.jl")
 include("accelerators.jl")
 include("scene.jl")
 include("integrator.jl")
