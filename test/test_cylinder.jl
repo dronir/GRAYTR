@@ -21,6 +21,8 @@ R = GRAYTR.Ray(Point3(5, 4, 0), Vector3(-1, 0, 0))
 R = GRAYTR.Ray(Point3(0, 0, 3), Vector3(0, 0, -1))
 @test !GRAYTR.intersectP(R, C)
 
+R = GRAYTR.Ray(Point3(5, 0, 0), Vector3(-1, 0, 0), 15.0, Inf, 1)
+@test !GRAYTR.intersectP(R, C)
 
 
 R = GRAYTR.Ray(Point3(5, 0, 0), Vector3(-1, 0, 0))
@@ -35,6 +37,13 @@ dg, t, e = GRAYTR.shape_intersect(R, C)
 @test isnan(e)
 
 R = GRAYTR.Ray(Point3(0, 0, 3), Vector3(0, 0, -1))
+dg, t, e = GRAYTR.shape_intersect(R, C)
+@test dg == nothing
+@test isnan(t)
+@test isnan(e)
+
+
+R = GRAYTR.Ray(Point3(5, 0, 0), Vector3(-1, 0, 0), 15.0, Inf, 1)
 dg, t, e = GRAYTR.shape_intersect(R, C)
 @test dg == nothing
 @test isnan(t)

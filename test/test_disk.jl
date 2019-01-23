@@ -25,6 +25,9 @@ D = Disk(translation(0, 0, -1))
 R = GRAYTR.Ray(Point3(0, 0, 1), Vector3(0, 0, -1))
 @test GRAYTR.intersectP(R, D)
 
+R = GRAYTR.Ray(Point3(0, 0, 1), Vector3(0, 0, -1), 10, Inf, 1)
+@test !GRAYTR.intersectP(R, D)
+
 R = GRAYTR.Ray(Point3(0, 2, 1), Vector3(0, 0, -1))
 @test !GRAYTR.intersectP(R, D)
 
@@ -58,6 +61,11 @@ dg, t, e = GRAYTR.shape_intersect(R, D)
 @test isnan(t)
 @test isnan(e)
 
+R = GRAYTR.Ray(Point3(0, 0, 1), Vector3(0, 0, -1), 10, Inf, 1)
+dg, t, e = GRAYTR.shape_intersect(R, D)
+@test dg == nothing
+@test isnan(t)
+@test isnan(e)
 
 end
 
