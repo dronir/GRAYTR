@@ -13,6 +13,9 @@ include("test_rays.jl")
 # Tests of bounding.jl
 include("test_bounding.jl")
 
+# Tests of shapes
+include("test_shapes.jl")
+
 # Tests of materials.jl
 include("test_materials.jl")
 
