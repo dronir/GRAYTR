@@ -3,8 +3,8 @@
 costheta(w::Vector3) = w.z
 sintheta2(w::Vector3) = max(0.0, 1.0 - costheta(w)^2)
 sintheta(w::Vector3) = sqrt(sintheta2(w))
-cosphi(w::Vector3) = sintheta(w) ≈ 0.0 ? 1.0 : clamp(w.x / sintheta(w), -1.0, 1.0)
-sinphi(w::Vector3) = sintheta(w) ≈ 0.0 ? 0.0 : clamp(w.y / sintheta(w), -1.0, 1.0)
+cosphi(w::Vector3) = costheta(w) ≈ 1.0 ? 1.0 : clamp(w.x / sintheta(w), -1.0, 1.0)
+sinphi(w::Vector3) = costheta(w) ≈ 1.0 ? 0.0 : clamp(w.y / sintheta(w), -1.0, 1.0)
 
 const BSDF_REFLECTION = 1
 const BSDF_TRANSMISSION = 2
