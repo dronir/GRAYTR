@@ -15,9 +15,14 @@ Tri = GRAYTR.Triangle(p1, p2, p3)
 T = GRAYTR.translation(-0.5, -0.5, -1)
 @test GRAYTR.world_bounds(T(Tri)) == GRAYTR.BoundingBox(Point3(-0.5, -0.5, -1), Point3(0.5, 0.5, -1))
 
+Tri2 = GRAYTR.Triangle(T)
+
 
 R = GRAYTR.Ray(Point3(0.2, 0.2, 3), Vector3(0, 0, -1))
 @test GRAYTR.intersectP(R, Tri)
+
+R = GRAYTR.Ray(Point3(0.6, 0.6, 3), Vector3(0, 0, -1))
+@test !GRAYTR.intersectP(R, Tri)
 
 R = GRAYTR.Ray(Point3(2, 1, 3), Vector3(0, 0, -1))
 @test !GRAYTR.intersectP(R, Tri)
@@ -28,7 +33,7 @@ R = GRAYTR.Ray(Point3(2, 1, 3), Vector3(0, 0, 1))
 R = GRAYTR.Ray(Point3(0.2, 0.2, 0), Vector3(1, 0, 0))
 @test !GRAYTR.intersectP(R, Tri)
 
-R = GRAYTR.Ray(Point3(0.2, 0.2, 0), Vector3(1, 0, 0), 5.0, Inf, 1)
+R = GRAYTR.Ray(Point3(0.2, 0.2, 2), Vector3(0, 0, -1), 5.0, Inf, 1)
 @test !GRAYTR.intersectP(R, Tri)
 
 
@@ -39,6 +44,10 @@ dg, t, e = GRAYTR.shape_intersect(R, Tri)
 @test dg.n == Normal3(0, 0, 1)
 @test t ≈ 3.0
 
+R = GRAYTR.Ray(Point3(0.6, 0.6, 3), Vector3(0, 0, -1))
+dg, t, e = GRAYTR.shape_intersect(R, Tri)
+@test dg == nothing
+
 R = GRAYTR.Ray(Point3(2, 1, 3), Vector3(0, 0, -1))
 dg, t, e = GRAYTR.shape_intersect(R, Tri)
 @test dg == nothing
@@ -51,7 +60,7 @@ R = GRAYTR.Ray(Point3(0.2, 0.2, 0), Vector3(1, 0, 0))
 dg, t, e = GRAYTR.shape_intersect(R, Tri)
 @test dg == nothing
 
-R = GRAYTR.Ray(Point3(0.2, 0.2, 0), Vector3(1, 0, 0), 5.0, Inf, 1)
+R = GRAYTR.Ray(Point3(0.2, 0.2, 2), Vector3(0, 0, -1), 5.0, Inf, 1)
 dg, t, e = GRAYTR.shape_intersect(R, Tri)
 @test dg == nothing
 
