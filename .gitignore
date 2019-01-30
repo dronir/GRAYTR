@@ -1,0 +1,6 @@
+*.mem
+*.txt
+*.png
+.ipynb_checkpoints
+.DS_Store
+docs/build
