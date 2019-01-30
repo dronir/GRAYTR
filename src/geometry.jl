@@ -14,6 +14,7 @@ import Base.size, Base.length, Base.iterate
 
 export VectorLike, Vector3, Normal3, Point3
 export Transformation, translation, scaling, rotation, look_at, swaps_handedness
+export rotate_z_to
 export X_AXIS, Y_AXIS, Z_AXIS
 
 
@@ -143,7 +144,7 @@ function scaling(scale::Vector3)
 end
 
 function rotation(axis::Vector3, angle::Number)
-    a = axis / norm(axis)
+    a = normalize(axis)
     s = sin(angle)
     c = cos(angle)
     M = zeros(Float64, 4, 4)
@@ -187,6 +188,45 @@ function (T::Transformation)(v::Normal3)
         T.MInv[1,2]*v.x + T.MInv[2,2]*v.y + T.MInv[3,2]*v.z,
         T.MInv[1,3]*v.x + T.MInv[2,3]*v.y + T.MInv[3,3]*v.z
     )
+end
+
+
+
+"""
+    rotate_z_to(direction::Vector3)
+
+Return a transformation that rotates the +Z axis to point in the given direction.
+
+"""
+function rotate_z_to(direction::Vector3)
+    direction = normalize(direction)
+    if direction ≈ Z_AXIS
+        return Transformation()
+    end
+    
+    c = direction.z
+    s = -sqrt(1.0 - c^2)
+    M = zeros(Float64, 4, 4)
+    
+    # TODO: this could probably be optimized a little. It's needed fairly often for some
+    # radiation pressure camera models.
+    a = normalize(Vector3(direction.y, -direction.x, 0.0))
+    
+    M[1,1] = a.x * a.x + (1.0 - a.x * a.x) * c
+    M[1,2] = a.x * a.y * (1.0 - c) - a.z * s
+    M[1,3] = a.x * a.z * (1.0 - c) + a.y * s
+    
+    M[2,1] = a.x * a.y * (1.0 - c) + a.z * s
+    M[2,2] = a.y * a.y + (1.0 - a.y * a.y) * c
+    M[2,3] = a.y * a.z * (1.0 - c) - a.x * s
+         
+    M[3,1] = a.x * a.z * (1.0 - c) - a.y * s
+    M[3,2] = a.y * a.z * (1.0 - c) + a.x * s
+    M[3,3] = a.z * a.z + (1.0 - a.z * a.z) * c
+    
+    M[4,4] = 1.0
+    
+    return Transformation(M, M')
 end
 
 end # module

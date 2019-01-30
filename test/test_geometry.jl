@@ -177,6 +177,13 @@ end
         @test U(T(P)) ≈ P
         
     end
+    @testset "Miscellaneous" begin
+        v = Vector3(1/sqrt(3), 1/sqrt(3), 1/sqrt(3))
+        for direction in [X_AXIS, Y_AXIS, Z_AXIS, v]
+            T = GRAYTR.rotate_z_to(direction)
+            @test isapprox(T(Z_AXIS), direction ; atol=1e-16)
+        end
+    end
 end
 
 
