@@ -189,3 +189,54 @@ function max_extent(BB::BoundingBox)
         return 3
     end 
 end
+
+
+##### BOUNDING SPHERE
+
+
+"""
+    BoundingSphere(center::Point3, radius::Float64)
+
+A spherical bounding volume.
+
+"""
+struct BoundingSphere <: BoundingVolume
+    center::Point3
+    radius::Float64
+end
+
+
+"""
+    BoundingSphere(BB:BoundingBox ; r_eps=1e-15)
+
+Construct a `BoundingSphere` which circumscribes the given `BoundingBox`.
+
+The small value `r_eps` is added to the computed radius to avoid clipping with the corners
+of the box.
+
+"""
+function BoundingSphere(BB::BoundingBox ; r_eps=1e-15)
+    c = mean(BB.pMin, BB.pMax)
+    r = norm(c - BB.pMax) + r_eps
+    return BoundingSphere(c, r)
+end
+
+
+"""
+    intersectP(R::Ray, BS::BoundingSphere)
+
+True/false intersection test between ray and given `BoundingSphere`.
+
+"""
+function intersectP(R::Ray, BS::BoundingSphere)
+    A = dot(R.direction, R.direction)
+    B = 2.0 * dot(R.direction, R.origin)
+    C = dot(R.origin, R.origin) - BS.radius^2
+    hit, tnear, tfar = quadratic(A, B, C)
+    
+    if !hit || tnear > R.tmax || tfar < R.tmin || (tnear < R.tmin && tfar > R.tmax)
+        return false
+    else
+        return true
+    end
+end

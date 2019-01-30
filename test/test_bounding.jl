@@ -309,5 +309,42 @@ end
 end
 
 
+@testset "Bounding Sphere" begin
+    @testset "Creating" begin
+        BSph = GRAYTR.BoundingSphere(Point3(0), 1.0)
+        @test BSph.center ≈ Point3(0)
+        @test BSph.radius ≈ 1.0
+    
+        p1 = Point3(0, 0, 0)
+        p2 = Point3(1, 2, 4)
+    
+        d = sqrt(1 + 4 + 16)
+    
+        BB = GRAYTR.BoundingBox(p1, p2)
+    
+        BSph = GRAYTR.BoundingSphere(BB)
+        @test BSph.center ≈ Point3(0.5, 1.0, 2.0)
+        @test isapprox(BSph.radius, d/2 ; atol=1e-14)
+    end
+    
+    @testset "Ray intersection" begin
+        BSph = GRAYTR.BoundingSphere(Point3(0), 1.0)
+        
+        R = GRAYTR.Ray(Point3(0.0, 0.0, 3.0), Vector3(0.0, 0.0, -1.0))
+        @test GRAYTR.intersectP(R, BSph)
+        
+        R = GRAYTR.Ray(Point3(0.0, 0.0, -3.0), Vector3(0.0, 0.0, 1.0))
+        @test GRAYTR.intersectP(R, BSph)
+        
+        R = GRAYTR.Ray(Point3(0.0, 0.0, -3.0), Vector3(0.0, 0.0, -1.0))
+        @test !GRAYTR.intersectP(R, BSph)
+        
+        R = GRAYTR.Ray(Point3(3.0, 0.0, 3.0), Vector3(0.0, 0.0, -1.0))
+        @test !GRAYTR.intersectP(R, BSph)
+        
+    end
+    
+end
+
 
 end # main testset
