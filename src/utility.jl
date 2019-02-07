@@ -54,3 +54,12 @@ function normal_derivatives(dpdu, dpdv, dpduu, dpduv, dpdvv)
     return dndu, dndv
 end
 
+
+
+"""
+    round_pow2(n::Integer)
+
+Round an integer up to nearest power of two.
+"""
+round_pow2(n::Integer) = 2^convert(typeof(n), ceil(log(2, n)))
+

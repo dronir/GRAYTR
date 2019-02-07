@@ -60,14 +60,6 @@ function render(scene::Scene, camera::Camera, integrator::SurfaceIntegrator,
 end
 
 
-"""
-    round_pow2(n::Integer)
-
-Round an integer up to nearest power of two.
-"""
-round_pow2(n::Integer) = 2^convert(typeof(n), ceil(log(2, n)))
-
-
 
 """
     run(task::SamplerRendererTask, write_lock::Threads.AbstractLock)
