@@ -52,7 +52,7 @@ function render(scene::Scene, camera::Camera, integrator::SurfaceIntegrator,
     # i.e. make an array of Samples to be filled?
     
     # create and launch tasks for rendering
-    nTasks = count_tasks(nprocs(), camera.film.resX, camera.film.resY)
+    nTasks = count_tasks(camera, nprocs())
     tasks = [SamplerRendererTask(scene, camera, integrator, sampler, n, nTasks) for n = 1:nTasks]
     
     println("Running $nTasks render tasks on $(Threads.nthreads()) threads...")
@@ -67,19 +67,6 @@ Round an integer up to nearest power of two.
 """
 round_pow2(n::Integer) = 2^convert(typeof(n), ceil(log(2, n)))
 
-
-"""
-    count_tasks(nCores::Integer, resX::Integer, resY::Integer)
-
-A heuristic function to count the number of rendering tasks given the number of processor
-cores and the resolution of the output image. This number is either four tasks per core,
-or the number of 16x16 pixel blocks in the output, whichever is higher..
-"""
-function count_tasks(nCores::Integer, resX::Integer, resY::Integer)
-    npix = resX * resY
-    nTasks = max(4*nCores, div(npix, 256))
-    return round_pow2(nTasks)
-end
 
 
 """

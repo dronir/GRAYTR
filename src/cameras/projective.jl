@@ -63,3 +63,19 @@ function generate_ray(C::ProjectiveCamera, sample::CameraSample)
     R = Ray(pcam, Vector3(0,0,1), 0.0, Inf, 1)
     return 1.0, C.camera_to_world(R)
 end
+
+
+"""
+    count_tasks(camera::ProjectiveCamera, nCores::Integer)
+
+A heuristic function to count the number of rendering tasks given the number of processor
+cores and the resolution of the output image. This number is either four tasks per core,
+or the number of 16x16 pixel blocks in the output, whichever is higher..
+
+"""
+function count_tasks(camera::ProjectiveCamera, nCores::Integer)
+    npix = camera.film.resX * camera.film.resY
+    nTasks = max(4*nCores, div(npix, 256))
+    return round_pow2(nTasks)
+end
+
