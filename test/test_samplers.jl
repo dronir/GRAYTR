@@ -3,11 +3,11 @@
 
 @testset "CameraSample" begin
     s = GRAYTR.CameraSample(4.0, 0.5, 1.5, 2.0)
-    t = s/2.0
+    t = normalize(s, 2.0, 0.5)
     @test t.imgX ≈ 2.00
-    @test t.imgY ≈ 0.25
+    @test t.imgY ≈ 1.0
     @test t.lensU ≈ 0.75
-    @test t.lensV ≈ 1.00
+    @test t.lensV ≈ 4.0
 end
 
 @testset "StratifiedSampler" begin

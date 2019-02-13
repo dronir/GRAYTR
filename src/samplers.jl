@@ -59,8 +59,8 @@ struct CameraSample <: Sample
     lensV::Float64
 end
 
-import Base./
-/(S::CameraSample, a::Number) = CameraSample(S.imgX/a, S.imgY/a, S.lensU/a, S.lensV/a)
+import Statistics.normalize
+normalize(S::CameraSample, a::Number, b::Number) = CameraSample(S.imgX/a, S.imgY/b, S.lensU/a, S.lensV/b)
 
 
 
