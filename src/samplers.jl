@@ -42,6 +42,70 @@ function stratified2D(Nx::Integer, Ny::Integer, jitter::Bool)
 end
 
 
+
+
+
+"""
+    CameraSample
+
+A wrapper for four floating point values, generally to represent two random points needed
+for ray creation from a camera: one point on the film and the other on the lens.
+
+"""
+struct CameraSample <: Sample
+    imgX::Float64
+    imgY::Float64
+    lensU::Float64
+    lensV::Float64
+end
+
+import Base./
+/(S::CameraSample, a::Number) = CameraSample(S.imgX/a, S.imgY/a, S.lensU/a, S.lensV/a)
+
+
+
+
+"""
+    StratifiedSampler <: Sampler
+
+A StratifiedSampler will generate CameraSamples. It handles a certain window of pixels and
+can be divided into subsamplers which are new copies of StratifiedSampler with the desired
+subwindow of pixels.
+
+It can generate multiple samples per pixel, either divided into clean bins, or jittered.
+
+# Fields
+
+- `xstart::Int64`: The start of the pixel range in the x direction.
+- `xend::Int64`: The end of the pixel range in the x direction.
+- `ystart::Int64`: The start of the pixel range in the y direction.
+- `yend::Int64`: The end of the pixel range in the y direction.
+- `xs::Int64`: The number of sample bins per pixel in the x direction.
+- `ys::Int64`: The number of sample bins per pixel in the y direction.
+- `jitter::Bool`: Whether to jitter samples or not.
+- `xnorm::Int64`: The maximum value of the overlying sampler. For a subsampler, equal to
+  the `xnorm` of the previous level. For the top level, equal to `xend`.
+- `ynorm::Int64`: As above, for y.
+
+"""
+struct StratifiedSampler <: Sampler
+    xstart::Int64
+    xend::Int64
+    ystart::Int64
+    yend::Int64
+    xs::Int64
+    ys::Int64
+    jitter::Bool
+    xnorm::Int64
+    ynorm::Int64
+end
+
+function StratifiedSampler(rangeX::Int64, rangeY::Int64, res::Int64) 
+    return StratifiedSampler(1, rangeX, 1, rangeY, res, res, true, rangeX, rangeY)
+end
+
+
+
 """
     compute_subwindow(sampler::Sampler, n::Int64, count::Int64)
 
@@ -74,57 +138,6 @@ function compute_subwindow(sampler::Sampler, n::Int64, count::Int64)
 end
 
 
-"""
-    CameraSample
-
-A wrapper for four floating point values, generally to represent two random points needed
-for ray creation from a camera: one point on the film and the other on the lens.
-
-"""
-struct CameraSample <: Sample
-    imgX::Float64
-    imgY::Float64
-    lensU::Float64
-    lensV::Float64
-end
-
-
-
-
-"""
-    StratifiedSampler <: Sampler
-
-A StratifiedSampler will generate CameraSamples. It handles a certain window of pixels and
-can be divided into subsamplers which are new copies of StratifiedSampler with the desired
-subwindow of pixels.
-
-It can generate multiple samples per pixel, either divided into clean bins, or jittered.
-
-# Fields
-
-- `xstart::Int64`: The start of the pixel range in the x direction.
-- `xend::Int64`: The end of the pixel range in the x direction.
-- `ystart::Int64`: The start of the pixel range in the y direction.
-- `yend::Int64`: The end of the pixel range in the y direction.
-- `xs::Int64`: The number of sample bins per pixel in the x direction.
-- `ys::Int64`: The number of sample bins per pixel in the y direction.
-- `jitter::Bool`: Whether to jitter samples or not.
-
-"""
-struct StratifiedSampler <: Sampler
-    xstart::Int64
-    xend::Int64
-    ystart::Int64
-    yend::Int64
-    xs::Int64
-    ys::Int64
-    jitter::Bool
-end
-
-
-StratifiedSampler(rangeX::Int64, rangeY::Int64, res::Int64) = StratifiedSampler(1,rangeX,1,
-                                                               rangeY,res,res,true)
-
 
 """
     get_subsampler(sampler::StratifiedSampler, n::Integer, count::Integer)
@@ -138,7 +151,8 @@ function get_subsampler(sampler::StratifiedSampler, n::Integer, count::Integer)
     if x0 == x1 || y0 == y1
         return nothing
     else
-        return StratifiedSampler(x0, x1, y0, y1, sampler.xs, sampler.ys, sampler.jitter)
+        return StratifiedSampler(x0, x1, y0, y1, sampler.xs, sampler.ys, sampler.jitter, 
+                sampler.xnorm, sampler.ynorm)
     end
 end
 
@@ -165,7 +179,7 @@ samples and the new state of the sampler.
 
 """
 function get_samples(sampler::StratifiedSampler, state::Integer)
-    out = Array{CameraSample}(N)
+    out = Array{CameraSample,1}(undef, sampler.xs * sampler.ys)
     state = get_samples!(sampler, state, out)
     return out, state
 end
@@ -202,3 +216,5 @@ function get_samples!(sampler::StratifiedSampler, state::Integer, out::Array{Cam
     end
     return state+1
 end
+
+
