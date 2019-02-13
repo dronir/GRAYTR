@@ -21,6 +21,7 @@ include("bounding.jl")
 include("spectrum.jl")
 include("materials.jl")
 
+include("ray_generators.jl")
 include("lights.jl")
 include("primitives.jl")
 include("dumb_aggregate.jl")
@@ -29,12 +30,14 @@ include("scene.jl")
 include("integrator.jl")
 include("renderer.jl")
 include("filters.jl")
-include("cameras.jl")
+
+include("cameras/projective.jl")
 
 include("parser.jl")
 
 include("films/imagefilm.jl")
 include("films/delayfilm.jl")
+
 
 export Vector3, Point3, Normal3
 export X_AXIS, Y_AXIS, Z_AXIS
@@ -48,7 +51,7 @@ export Scene, BVHAccelerator
 export ImageFilm, DelayFilm, PhotometricFilm
 export TriangleFilter, BoxFilter
 export OrthographicCamera
-export StratifiedSampler, WhittedIntegrator
+export StratifiedSampler, WhittedIntegrator, PressureIntegrator
 export render
 export write_image, write_txt, reset!
 

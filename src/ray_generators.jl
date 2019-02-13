@@ -63,3 +63,16 @@ function ray_from_point(radius::Real, distance::Real, u1::Real, u2::Real)
     direction = Vector3(r*cos(phi), r*sin(phi), -z)
     return Ray(Point3(0.0, 0.0, distance), direction)
 end
+
+
+
+
+
+
+
+
+
+
+
+
+
