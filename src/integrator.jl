@@ -77,31 +77,58 @@ end
 A Whitted integrator that computes radiation pressure force and torque.
 """
 struct PressureIntegrator <: SurfaceIntegrator
+    n_rays::Int64
     maxdepth::Int64
+    force::Array{Vector3,1}
+    torque::Array{Vector3,1}
 end
 
 
 """
-    PressureIntegrator()
+    PressureIntegrator(n_rays::Integer)
 
-Constructor for single-scattering integrator. Equivalent to PressureIntegrator(1).
-"""
-PressureIntegrator() = PressureIntegrator(1)
-
+Constructor for single-scattering integrator. Equivalent to `PressureIntegrator(n_rays, 1)`.
 
 """
-    intensity(integrator, scene, isect, ray, sample)
+PressureIntegrator(n_rays::Integer) = PressureIntegrator(n_rays, 1)
 
-Return intensity given a WhittedIntegrator, a scene, intersection point, ray and camera
-sample. 
 
-# Arguments
-- `integrator::WhittedIntegrator`: a WhittedIntegrator instance.
-- `scene::Scene`: the Scene to trace illumination rays in.
-- `isect::Intersection`: an Intersection, giving the local geometry at ray intersection.
-- `ray::Ray`, the incident Ray (not used by this function but part of SurfaceIntegrator API)
-- `sample::Sample`, a Sample (not used by this function but part of SurfaceIntegrator API)
+
+const TARGET_RAYS_PER_TASK = 1024
+
 """
-function intensity(intgr::PressureIntegrator, scene::Scene, isect::Intersection, 
+    count_tasks(integrator::PressureIntegrator, scene::Scene, nprocs::Integer)
+
+Return the number of PressureRendererTasks per light source for a given
+`PressureIntegrator`, and number of processors `nprocs`.
+
+Uses a heuristic which tries to keep the number of rays per task close to a constant 1024,
+but also uses at least two tasks per processor core.
+
+"""
+function count_tasks(integrator::PressureIntegrator, nprocs::Integer)
+    rays_per_light = integrator.n_rays
+    m1 = div(rays_per_light, TARGET_RAYS_PER_TASK)
+    m2 = 2*nprocs
+    
+    return max(m1, m2)
+end
+
+
+
+
+
+"""
+
+"""
+function compute_pressure(intgr::PressureIntegrator, scene::Scene, isect::Intersection, 
                    ray::Ray, sample::Sample)
+    #
+    
+
+#    p = compute_pressure(isect.material, L, direction)
+    f = Vector3(0)
+    t = cross(f, isect.geometry.p)
+    
+    return Vector3(0), Vector3(0)
 end

@@ -34,9 +34,8 @@ include("test_filters.jl")
 # Tests of cameras.jl
 include("test_cameras.jl")
 
-# Test of radiation pressure camera
-include("test_pressurecam.jl")
-
 # Full integration test for image rendering.
 include("test_full_computation.jl")
 
+# Full radiation pressure test computation
+include("test_pressure.jl")

@@ -47,6 +47,11 @@ end
 direct(L::PointLight) = true
 background(L::PointLight) = nolight
 
+function generate_ray(light::PointLight, bounds::BoundingSphere, S::Sample)
+    ray = ray_from_point(bounds.radius, S.imgX, S.imgY)
+    return light.light_to_world(ray)
+end
+
 
 ################################
 # Distanct light source
@@ -70,6 +75,14 @@ direct(L::DistantLight) = true
 background(L::DistantLight) = nolight
 
 
+function generate_ray(light::DistantLight, bounds::BoundingSphere, S::Sample)
+    ray = ray_parallel(bounds.radius, S.imgX, S.imgY)
+    return light.light_to_world(ray)
+end
+
+
+
+
 ################################
 # Background light source
 
@@ -83,9 +96,46 @@ direct(L::Background) = false
 background(L::Background) = L.intensity
 
 
+# TODO: Area light
+#
+struct AreaLight <: LightSource end
+
 
 ################################
-# Area Light (TODO)
+# Disk Light (TODO)
 
-struct AreaLight <: LightSource end
+struct DiskLight{S<:Spectrum} <: LightSource 
+    direction::Vector3
+    radius::Float64
+    intensity::S
+    light_to_world::Transformation
+    world_to_light::Transformation
+end
+
+
+function DiskLight(direction::Vector3, radius::Float64, intensity::Spectrum)
+    rot_z = rotate_z_to(direction)
+    return DiskLight(direction, radius, intensity, rot_z, inv(rot_z))
+end
+
+background(L::DiskLight) = nolight
+direct(L::DiskLight) = true
+
+
+sample_L(light::DiskLight, p::Point3) = sample_L(light, p, rand(), rand())
+
+function sample_L(light::DiskLight, p::Point3, u1::Real, u2::Real)
+    transform = light.light_to_world
+    direction = transform(disk_light_sample(light.radius, u1, u2))
+    return light.intensity, light.direction, 1.0, VisibilityTester(p, direction, 2e-5)
+end
+
+function disk_light_sample(radius::Real, u1::Real, u2::Real)
+    cos_th = cos(radius)
+    z = cos_th + (1.0 - cos_th) * u1
+    phi = 2π * u2
+    r = sqrt(1.0 - z^2)
+    return Vector3(r*cos(phi), r*sin(phi), z)
+end
+
 

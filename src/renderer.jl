@@ -1,4 +1,6 @@
 
+abstract type RenderTask end
+
 
 """
     SamplerRendererTask{S<:Scene, C<:Camera, I<:SurfaceIntegrator}
@@ -8,7 +10,7 @@ tasks. This information represents a piece of the full render job and is used to
 the correct pixels of the output.
 
 """
-struct SamplerRendererTask{S<:Scene, C<:Camera, I<:SurfaceIntegrator, T<:Sampler}
+struct SamplerRendererTask{S<:Scene, C<:Camera, I<:SurfaceIntegrator, T<:Sampler} <: RenderTask
     scene::S
     camera::C
     integrator::I
@@ -32,9 +34,21 @@ many films, a ray can affect multiple pixels or bins, including ones "belonging"
 different thread.
 
 """
-function enqueue_and_run(Tasks::Array{S,1}) where S<:SamplerRendererTask
+function enqueue_and_run(Tasks::Array{S,1}) where S<:RenderTask
     lock = Threads.SpinLock()
     Threads.@threads for task in Tasks
+        run(task, lock)
+    end
+end
+
+
+
+
+
+
+function enqueue_debug(Tasks::Array{S,1}) where S<:RenderTask
+    lock = Threads.SpinLock()
+    for task in Tasks
         run(task, lock)
     end
 end
@@ -111,4 +125,90 @@ function run(task::SamplerRendererTask, write_lock::Threads.AbstractLock)
     return nothing
 end
 
+
+
+
+
+
+"""
+    PressureRendererTask{S<:Scene, T<:Sampler} <: RenderTask
+
+A structure that contains the information needed to render one part of the scene.
+
+"""
+struct PressureRendererTask{S<:Scene, T<:Sampler, L<:LightSource} <: RenderTask
+    scene::S
+    integrator::PressureIntegrator
+    sampler::T
+    light::L
+    nlight::Int64
+    number::Int64
+    count::Int64
+    sphere::BoundingSphere
+end
+
+
+"""
+    function render(scene::Scene, integrator::PressureIntegrator, sampler::Sampler)
+
+Compute the radiation pressure and torque on a given scene, using given PressureIntegrator
+and Sampler.
+
+"""
+function render(scene::Scene, integrator::PressureIntegrator, sampler::Sampler)
+    # create and launch tasks for rendering
+   
+    N_lights = length(scene.lights)
+    tasks_per_light = count_tasks(integrator, nprocs())
+    N_tasks = N_lights * tasks_per_light
+    tasks = PressureRendererTask[]
+    sphere = BoundingSphere(scene.bounds)
+    for (l, light) in enumerate(scene.lights)
+        for n = 1:tasks_per_light
+            push!(tasks, PressureRendererTask(scene, integrator, sampler, light, l,
+                    n, tasks_per_light, sphere))
+        end
+    end
+    
+    println("Running $(N_tasks) render tasks on $(Threads.nthreads()) threads...")
+    enqueue_debug(tasks)
+end
+
+
+
+
+
+function run(task::PressureRendererTask, write_lock::Threads.AbstractLock)
+    subsampler = get_subsampler(task.sampler, task.number, task.count)
+    subsampler == nothing && return nothing
+    Nsamples = subsampler.xs * subsampler.ys
+    samples = Array{CameraSample}(undef, Nsamples)
+
+    state = 0
+
+    while true
+        finished(subsampler, state) && break
+        state = get_samples!(subsampler, state, samples)
+        
+        force = Vector3(0)
+        torque = Vector3(0)
+        
+        # Get more samples from sampler
+        
+        for i = 1:length(samples)
+            sample = normalize(samples[i], subsampler.xnorm, subsampler.ynorm)
+            ray = generate_ray(task.light, task.sphere, sample)
+            isect = intersect(ray, task.scene)
+            if isect != nothing
+                f, t = compute_pressure(task.integrator, task.scene, isect, ray, sample)
+                force += f
+                torque += t
+            end
+        end
+        lock(write_lock)
+        task.integrator.force[task.nlight] += force
+        task.integrator.torque[task.nlight] += torque
+        unlock(write_lock)
+    end
+end
 
