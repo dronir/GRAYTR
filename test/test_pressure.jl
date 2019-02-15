@@ -30,16 +30,15 @@ function full_pressure()
     res = 256
     sampler = StratifiedSampler(res, res, 3)
     
-    # Declare an integrator with maximum ray depth of 1, using 10000 rays per light source
+    # Declare an integrator with maximum ray depth of 1, using 100000 rays per light source
     # and initialize empty arrays to store the force and torque from each light source.
-    Nrays = 10000
+    Nrays = 100000
     forces = [Vector3(0) for i in lights]
     torques = [Vector3(0) for i in lights]
     integrator = PressureIntegrator(Nrays, 1, forces, torques)
     
     # Run the renderer
-    @time render(scene, integrator, sampler)
-    
+    @time render(scene, integrator, sampler ; debug=true)
 
     return true
     

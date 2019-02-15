@@ -61,7 +61,7 @@ end
 Render a given scene, as seen by a given camera, using given SurfaceIntegrator and Sampler.
 """
 function render(scene::Scene, camera::Camera, integrator::SurfaceIntegrator, 
-                sampler::Sampler)
+                sampler::Sampler ; debug=false)
     # initialize sample storage
     # i.e. make an array of Samples to be filled?
     
@@ -69,8 +69,13 @@ function render(scene::Scene, camera::Camera, integrator::SurfaceIntegrator,
     nTasks = count_tasks(camera, nprocs())
     tasks = [SamplerRendererTask(scene, camera, integrator, sampler, n, nTasks) for n = 1:nTasks]
     
-    println("Running $nTasks render tasks on $(Threads.nthreads()) threads...")
-    enqueue_and_run(tasks)
+    if debug
+        println("Running $(nTasks) render tasks in single-thread debug mode...")
+        enqueue_debug(tasks)
+    else
+        println("Running $(nTasks) render tasks on $(Threads.nthreads()) threads...")
+        enqueue_and_run(tasks)
+    end
 end
 
 
@@ -155,7 +160,7 @@ Compute the radiation pressure and torque on a given scene, using given Pressure
 and Sampler.
 
 """
-function render(scene::Scene, integrator::PressureIntegrator, sampler::Sampler)
+function render(scene::Scene, integrator::PressureIntegrator, sampler::Sampler ; debug=false)
     # create and launch tasks for rendering
    
     N_lights = length(scene.lights)
@@ -170,8 +175,13 @@ function render(scene::Scene, integrator::PressureIntegrator, sampler::Sampler)
         end
     end
     
-    println("Running $(N_tasks) render tasks on $(Threads.nthreads()) threads...")
-    enqueue_debug(tasks)
+    if debug
+        println("Running $(N_tasks) render tasks in single-thread debug mode...")
+        enqueue_debug(tasks)
+    else
+        println("Running $(N_tasks) render tasks on $(Threads.nthreads()) threads...")
+        enqueue_and_run(tasks)
+    end
 end
 
 

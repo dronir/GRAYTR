@@ -53,7 +53,7 @@ function full_computation()
     whitted = WhittedIntegrator(1)
     
     # Run the renderer
-    @time render(scene, image_cam, whitted, sampler)
+    @time render(scene, image_cam, whitted, sampler ; debug=true)
     
     # Write the output
     write_image(F, "test.png")
