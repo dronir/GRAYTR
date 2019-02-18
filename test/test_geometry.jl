@@ -1,6 +1,7 @@
 
 using LinearAlgebra
 using Statistics
+using StaticArrays
 
 @testset "Geometry" begin
 

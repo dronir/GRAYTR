@@ -9,6 +9,7 @@ using Random
 using Distributed
 using FileIO
 using Images
+using StaticArrays
 
 include("abstracts.jl")
 include("utility.jl")

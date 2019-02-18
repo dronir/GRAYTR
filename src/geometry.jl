@@ -2,6 +2,7 @@ module Geometry
 
 #using LinearAlgebra
 #using Statistics
+using StaticArrays
 
 import Statistics.mean, Statistics.normalize
 import LinearAlgebra.cross, LinearAlgebra.norm, LinearAlgebra.dot, LinearAlgebra.I
@@ -115,14 +116,14 @@ convert(::Type{Point3}, v::Normal3) = Point3(v.x, v.y, v.z)
 
 
 struct Transformation
-    M::Array{Float64,2}
-    MInv::Array{Float64,2}
+    M::SMatrix{4,4}
+    MInv::SMatrix{4,4}
 end
 
-const EYE = Matrix{Float64}(1.0I, 4, 4)
+const EYE = @SMatrix [1.0 0.0 0.0 0.0 ; 0.0 1.0 0.0 0.0 ; 0.0 0.0 1.0 0.0 ; 0.0 0.0 0.0 1.0]
 Transformation() = Transformation(EYE, EYE)
-Transformation(M::Array{Float64,2}) = Transformation(M, inv(M))
-Transformation(M::Array{T,2}) where {T<:Real} = Transformation(convert(Array{Float64,2}, M))
+Transformation(M::Array{Float64,2}) = Transformation(SMatrix{4,4}(M), SMatrix{4,4}(inv(M)))
+Transformation(M::Array{T,2}) where {T<:Real} = Transformation(convert(SArray{4,4}, M))
 inv(T::Transformation) = Transformation(T.MInv, T.M)
 *(T::Transformation, U::Transformation) = Transformation(T.M*U.M, U.MInv*T.MInv)
 # TODO: check maths above
