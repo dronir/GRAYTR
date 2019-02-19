@@ -131,12 +131,16 @@ const IDENTITY_TRANSFORM = Transformation()
 
 swaps_handedness(T::Transformation) = det(view(T.M, 1:3, 1:3)) < 0.0
 
-translation(x::Real, y::Real, z::Real) = translation(Vector3(x,y,z))
-function translation(delta::Vector3)
-    M = Matrix{Float64}(1.0I, 4, 4)
-    M[1,4] = delta.x
-    M[2,4] = delta.y
-    M[3,4] = delta.z
+translation(delta::Vector3) = translation(delta.x, delta.y, delta.z)
+function translation(x::Real, y::Real, z::Real) 
+    M = zeros(Float64, 4, 4)
+    M[1,4] = x
+    M[2,4] = y
+    M[3,4] = z
+    M[1,1] = 1.0
+    M[2,2] = 1.0
+    M[3,3] = 1.0
+    M[4,4] = 1.0
     return Transformation(M)
 end
 function translation(delta::Point3)
@@ -147,12 +151,13 @@ function translation(delta::Point3)
     return Transformation(M)
 end
 
-scaling(x::Real, y::Real, z::Real) = scaling(Vector3(x,y,z))
-function scaling(scale::Vector3)
-    M = Matrix{Float64}(1.0I, 4, 4)
-    M[1,1] = scale.x
-    M[2,2] = scale.y
-    M[3,3] = scale.z
+scaling(v::Vector3) = scaling(v.x, v.y, v.z)
+function scaling(x::Real, y::Real, z::Real)
+    M = zeros(4,4)
+    M[1,1] = x
+    M[2,2] = y
+    M[3,3] = z
+    M[4,4] = 1.0
     return Transformation(M)
 end
 
@@ -161,19 +166,19 @@ function rotation(axis::Vector3, angle::Number)
     s = sin(angle)
     c = cos(angle)
     M = zeros(Float64, 4, 4)
-    M[1,1] = a.x * a.x + (1.0 - a.x * a.x) * c
-    M[1,2] = a.x * a.y * (1.0 - c) - a.z * s
-    M[1,3] = a.x * a.z * (1.0 - c) + a.y * s
-    
-    M[2,1] = a.x * a.y * (1.0 - c) + a.z * s
-    M[2,2] = a.y * a.y + (1.0 - a.y * a.y) * c
-    M[2,3] = a.y * a.z * (1.0 - c) - a.x * s
-         
-    M[3,1] = a.x * a.z * (1.0 - c) - a.y * s
-    M[3,2] = a.y * a.z * (1.0 - c) + a.x * s
-    M[3,3] = a.z * a.z + (1.0 - a.z * a.z) * c
-    
-    M[4,4] = 1.0
+    @inbounds M[1,1] = a.x * a.x + (1.0 - a.x * a.x) * c
+    @inbounds M[2,1] = a.x * a.y * (1.0 - c) + a.z * s
+    @inbounds M[3,1] = a.x * a.z * (1.0 - c) - a.y * s
+
+    @inbounds M[1,2] = a.y * a.x * (1.0 - c) - a.z * s
+    @inbounds M[2,2] = a.y * a.y + (1.0 - a.y * a.y) * c
+    @inbounds M[3,2] = a.y * a.z * (1.0 - c) + a.x * s
+
+    @inbounds M[1,3] = a.z * a.x * (1.0 - c) + a.y * s
+    @inbounds M[2,3] = a.z * a.y * (1.0 - c) - a.x * s
+    @inbounds M[3,3] = a.z * a.z + (1.0 - a.z * a.z) * c
+
+    @inbounds M[4,4] = 1.0
     
     return Transformation(M, M')
 end
