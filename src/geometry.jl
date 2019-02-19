@@ -116,8 +116,8 @@ convert(::Type{Point3}, v::Normal3) = Point3(v.x, v.y, v.z)
 
 
 struct Transformation
-    M::SMatrix{4,4}
-    MInv::SMatrix{4,4}
+    M::SArray{Tuple{4,4},Float64,2,16}
+    MInv::SArray{Tuple{4,4},Float64,2,16}
 end
 
 const EYE = @SMatrix [1.0 0.0 0.0 0.0 ; 0.0 1.0 0.0 0.0 ; 0.0 0.0 1.0 0.0 ; 0.0 0.0 0.0 1.0]
@@ -186,7 +186,8 @@ end
 
 
 function (T::Transformation)(v::Vector3)
-    return Vector3(
+    
+    @inbounds return Vector3(
         T.M[1,1]*v.x + T.M[1,2]*v.y + T.M[1,3]*v.z,
         T.M[2,1]*v.x + T.M[2,2]*v.y + T.M[2,3]*v.z,
         T.M[3,1]*v.x + T.M[3,2]*v.y + T.M[3,3]*v.z
@@ -194,15 +195,15 @@ function (T::Transformation)(v::Vector3)
 end
 
 function (T::Transformation)(v::Point3)
-    invw = 1.0 / (T.M[4,1]*v.x + T.M[4,2]*v.y + T.M[4,3]*v.z + T.M[4,4])
-    p = Point3((T.M[1,1]*v.x + T.M[1,2]*v.y + T.M[1,3]*v.z + T.M[1,4]) * invw,
+    @inbounds invw = 1.0 / (T.M[4,1]*v.x + T.M[4,2]*v.y + T.M[4,3]*v.z + T.M[4,4])
+    @inbounds p = Point3((T.M[1,1]*v.x + T.M[1,2]*v.y + T.M[1,3]*v.z + T.M[1,4]) * invw,
                (T.M[2,1]*v.x + T.M[2,2]*v.y + T.M[2,3]*v.z + T.M[2,4]) * invw,
                (T.M[3,1]*v.x + T.M[3,2]*v.y + T.M[3,3]*v.z + T.M[3,4]) * invw)
     return p
 end
 
 function (T::Transformation)(v::Normal3)
-    return Normal3(
+    @inbounds return Normal3(
         T.MInv[1,1]*v.x + T.MInv[2,1]*v.y + T.MInv[3,1]*v.z,
         T.MInv[1,2]*v.x + T.MInv[2,2]*v.y + T.MInv[3,2]*v.z,
         T.MInv[1,3]*v.x + T.MInv[2,3]*v.y + T.MInv[3,3]*v.z
