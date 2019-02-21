@@ -98,10 +98,12 @@ struct StratifiedSampler <: Sampler
     jitter::Bool
     xnorm::Int64
     ynorm::Int64
+    max::Int64
 end
 
-function StratifiedSampler(rangeX::Int64, rangeY::Int64, res::Int64) 
-    return StratifiedSampler(1, rangeX, 1, rangeY, res, res, true, rangeX, rangeY)
+function StratifiedSampler(rangeX::Int64, rangeY::Int64, res::Int64)
+    Nmax = rangeX * rangeY
+    return StratifiedSampler(1, rangeX, 1, rangeY, res, res, true, rangeX, rangeY, Nmax)
 end
 
 
@@ -118,7 +120,7 @@ Returns four integers, given the pixel coordinates (x0, x1, y0, y1) of the subwi
 Note that indexing starts from 1 unlike in book's C++ code.
 
 """
-function compute_subwindow(sampler::Sampler, n::Int64, count::Int64)
+function compute_subwindow(sampler::Sampler, n::Int64, count::Int64)    
     dx = sampler.xend - sampler.xstart + 1
     dy = sampler.yend - sampler.ystart + 1
     n -= 1
@@ -151,8 +153,9 @@ function get_subsampler(sampler::StratifiedSampler, n::Integer, count::Integer)
     if x0 == x1 || y0 == y1
         return nothing
     else
+        Nmax = (1 + x1 - x0) * (1 + y1 - y0)
         return StratifiedSampler(x0, x1, y0, y1, sampler.xs, sampler.ys, sampler.jitter, 
-                sampler.xnorm, sampler.ynorm)
+                sampler.xnorm, sampler.ynorm, Nmax)
     end
 end
 
@@ -164,11 +167,7 @@ Returns `true` when `state` indicates that `sampler` is "finished", i.e. cannot 
 any more samples.
 
 """
-function finished(sampler::StratifiedSampler, state::Integer)
-    dx = sampler.xend - sampler.xstart + 1
-    dy = sampler.yend - sampler.ystart + 1
-    return state >= dx*dy
-end
+finished(sampler::StratifiedSampler, state::Integer) = state >= sampler.max
 
 
 """
