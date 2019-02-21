@@ -98,6 +98,11 @@ import Base.broadcast, Base.size, Base.length
 size(S::SampledSpectrum{N}) where N = N
 length(S::SampledSpectrum{N}) where N = N
 
+function integrate(S::SampledSpectrum)
+    dl = (S.high - S.low) / length(S.values)
+    return dl * sum(S.values)
+end
+
 function interpolate(S::SampledSpectrum, a::Real)
     if a < S.low
         return S.values[1]
@@ -262,6 +267,7 @@ end
 
 interpolate(S::SingleLine, wavelength::Real) = S.wavelength ≈ wavelength ? S.intensity : 0.0
 
+integrate(S::SingleLine) = S.intensity
 
 function to_XYZ(S::SingleLine)
     x,y,z = 0.0, 0.0, 0.0
