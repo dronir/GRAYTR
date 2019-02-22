@@ -60,7 +60,7 @@ struct CameraSample <: Sample
 end
 
 import Statistics.normalize
-normalize(S::CameraSample, a::Number, b::Number) = CameraSample(S.imgX/a, S.imgY/b, S.lensU/a, S.lensV/b)
+normalize(S::CameraSample, a::Number, b::Number) = CameraSample(S.imgX/a, S.imgY/b, S.lensU, S.lensV)
 
 
 
@@ -207,8 +207,8 @@ function get_samples!(sampler::StratifiedSampler, state::Integer, out::Array{Cam
     N = sampler.xs * sampler.ys
     for i = 1:N
         out[i] = CameraSample(
-            img_samples[i,1] + xpos,
-            img_samples[i,2] + ypos,
+            img_samples[i,1] + xpos - 1,
+            img_samples[i,2] + ypos - 1,
             lens_samples[i,1],
             lens_samples[i,2]
         )
