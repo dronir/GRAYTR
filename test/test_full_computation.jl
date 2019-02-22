@@ -32,7 +32,7 @@ function full_computation()
     stuff = BVHAccelerator(primitives)
     
     # Create a distant light source with a single-line 532 nm spectrum
-    p_light = DistantLight(-Z_AXIS, SingleLine(532.0, 1.0), rotation(X_AXIS, 0.0))
+    p_light = DistantLight(SingleLine(532.0, 1.0), IDENTITY_TRANSFORM)
     
     # Create scene with bounding box hierarchy and light source
     scene = Scene(stuff, LightSource[p_light])
