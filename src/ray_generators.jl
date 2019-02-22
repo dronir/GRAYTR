@@ -26,7 +26,7 @@ points on the disk.
 function ray_parallel(radius::Real, u1::Real, u2::Real)
     r = sqrt(u1) * radius
     phi = 2π * u2
-    ray_origin = Point3(r * cos(phi), r * sin(phi), 1)
+    ray_origin = Point3(r * cos(phi), r * sin(phi), radius + 1.0)
     return Ray(ray_origin, -Z_AXIS)
 end
 
