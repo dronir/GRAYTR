@@ -9,14 +9,15 @@ function full_pressure()
     # Create sphere shape
     Tsph = translation(0.0, 0.0, 0.0)
     sph = Sphere(1, 1.0, Tsph)
-    disk = Disk()
+    disk = Disk(translation(2, 0, 0))
         
     # Create primitive combining shape and material
     sph_primitive = GeometricPrimitive(sph, mat, nothing, 1)
     dsk_primitive = GeometricPrimitive(disk, mat, nothing, 1)
     
+    
     # Create list of primitives
-    primitives = GeometricPrimitive[sph_primitive]
+    primitives = GeometricPrimitive[sph_primitive, dsk_primitive]
     
     # Generate bounding box hierarchy from primitives
     stuff = BVHAccelerator(primitives)
@@ -43,19 +44,15 @@ function full_pressure()
     # Run the renderer
     @time render(scene, integrator, sampler ; debug=true)
     
-    #@test integrator.force[1] ≈ Vector3(0.0, 0.0, (1 + π/6))
+    forces = forces ./ counts
+    torques = torques ./ counts
     
-    println(integrator.force ./ integrator.counts)
-    println(integrator.torque ./ integrator.counts)
-    
-
-    return true
-    
-    
+    return forces, torques
 end
 
 @testset "Full pressure computation" begin
-    @test full_pressure()
+    f, t = full_pressure()
+    @test isapprox(f[1].z, -13/9*π  - 5/3 * π ; atol=5)
 end
 
 
