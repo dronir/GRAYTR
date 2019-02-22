@@ -15,7 +15,7 @@ import Base.size, Base.length, Base.iterate
 export VectorLike, Vector3, Normal3, Point3
 export Transformation, translation, scaling, rotation, look_at, swaps_handedness
 export rotate_z_to
-export X_AXIS, Y_AXIS, Z_AXIS
+export X_AXIS, Y_AXIS, Z_AXIS, NEG_X_AXIS, NEG_Y_AXIS, NEG_Z_AXIS, IDENTITY_TRANSFORM
 
 
 abstract type VectorLike end
@@ -48,6 +48,9 @@ end
 const X_AXIS = Vector3(1,0,0)
 const Y_AXIS = Vector3(0,1,0)
 const Z_AXIS = Vector3(0,0,1)
+const NEG_X_AXIS = Vector3(-1,0,0)
+const NEG_Y_AXIS = Vector3(0,-1,0)
+const NEG_Z_AXIS = Vector3(0,0,-1)
 
 Vector3(x::Real) = Vector3(x,x,x)
 Point3(x::Real) = Point3(x,x,x)
@@ -122,6 +125,8 @@ Transformation(M::Array{T,2}) where {T<:Real} = Transformation(convert(Array{Flo
 inv(T::Transformation) = Transformation(T.MInv, T.M)
 *(T::Transformation, U::Transformation) = Transformation(T.M*U.M, U.MInv*T.MInv)
 # TODO: check maths above
+
+const IDENTITY_TRANSFORM = Transformation()
 
 swaps_handedness(T::Transformation) = det(view(T.M, 1:3, 1:3)) < 0.0
 

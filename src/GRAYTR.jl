@@ -40,7 +40,7 @@ include("films/delayfilm.jl")
 
 
 export Vector3, Point3, Normal3
-export X_AXIS, Y_AXIS, Z_AXIS
+export X_AXIS, Y_AXIS, Z_AXIS, NEG_X_AXIS, NEG_Y_AXIS, NEG_Z_AXIS, IDENTITY_TRANSFORM
 export Transformation, rotation, translation, scaling
 
 export SampledSpectrum, SingleLine
