@@ -48,7 +48,7 @@ end
 
 function enqueue_debug(Tasks::Array{S,1}) where S<:RenderTask
     lock = Threads.SpinLock()
-    for task in Tasks
+    for (t, task) in enumerate(Tasks)
         run(task, lock)
     end
 end
@@ -141,11 +141,10 @@ end
 A structure that contains the information needed to render one part of the scene.
 
 """
-struct PressureRendererTask{S<:Scene, T<:Sampler, L<:LightSource} <: RenderTask
+struct PressureRendererTask{S<:Scene, T<:Sampler} <: RenderTask
     scene::S
     integrator::PressureIntegrator
     sampler::T
-    light::L
     nlight::Int64
     number::Int64
     count::Int64
@@ -164,15 +163,18 @@ function render(scene::Scene, integrator::PressureIntegrator, sampler::Sampler ;
     # create and launch tasks for rendering
    
     N_lights = length(scene.lights)
-    tasks_per_light = count_tasks(integrator, nprocs())
+    nbins = sampler.xend * sampler.yend
+    rays_per_bin = sampler.xs * sampler.ys
+    tasks_per_light = round_pow2(max(div(nbins * rays_per_bin, 1024), 4*nprocs()))
     N_tasks = N_lights * tasks_per_light
     tasks = PressureRendererTask[]
     sphere = BoundingSphere(scene.bounds)
     for (l, light) in enumerate(scene.lights)
         for n = 1:tasks_per_light
-            push!(tasks, PressureRendererTask(scene, integrator, sampler, light, l,
+            push!(tasks, PressureRendererTask(scene, integrator, sampler, l,
                     n, tasks_per_light, sphere))
         end
+        println()
     end
     
     if debug
@@ -182,6 +184,7 @@ function render(scene::Scene, integrator::PressureIntegrator, sampler::Sampler ;
         println("Running $(N_tasks) render tasks on $(Threads.nthreads()) threads...")
         enqueue_and_run(tasks)
     end
+    
 end
 
 
@@ -194,30 +197,30 @@ function run(task::PressureRendererTask, write_lock::Threads.AbstractLock)
     Nsamples = subsampler.xs * subsampler.ys
     samples = Array{CameraSample}(undef, Nsamples)
 
+    light = task.scene.lights[task.nlight]
+    
     state = 0
 
-    while true
-        finished(subsampler, state) && break
+    while !finished(subsampler, state)
         state = get_samples!(subsampler, state, samples)
         
         force = Vector3(0)
         torque = Vector3(0)
         
-        # Get more samples from sampler
-        
         for i = 1:length(samples)
             sample = normalize(samples[i], subsampler.xnorm, subsampler.ynorm)
-            ray = generate_ray(task.light, task.sphere, sample)
+            ray = generate_ray(light, task.sphere, sample)
             isect = intersect(ray, task.scene)
             if isect != nothing
-                f, t = compute_pressure(task.integrator, task.scene, isect, ray, sample)
+                f, t = compute_pressure(task.integrator, light, isect, ray)
                 force += f
                 torque += t
             end
+           task.integrator.counts[task.nlight] += 1
         end
         lock(write_lock)
-        task.integrator.force[task.nlight] += force
-        task.integrator.torque[task.nlight] += torque
+        task.integrator.force[task.nlight] += force * cross_section(task.sphere)
+        task.integrator.torque[task.nlight] += torque * cross_section(task.sphere)
         unlock(write_lock)
     end
 end

@@ -77,43 +77,16 @@ end
 A Whitted integrator that computes radiation pressure force and torque.
 """
 struct PressureIntegrator <: SurfaceIntegrator
-    n_rays::Int64
     maxdepth::Int64
     force::Array{Vector3,1}
     torque::Array{Vector3,1}
+    counts::Array{Int64,1}
 end
-
-
-"""
-    PressureIntegrator(n_rays::Integer)
-
-Constructor for single-scattering integrator. Equivalent to `PressureIntegrator(n_rays, 1)`.
-
-"""
-PressureIntegrator(n_rays::Integer) = PressureIntegrator(n_rays, 1)
 
 
 
 const TARGET_RAYS_PER_TASK = 1024
 
-"""
-    count_tasks(integrator::PressureIntegrator, scene::Scene, nprocs::Integer)
-
-Return the number of PressureRendererTasks per light source for a given
-`PressureIntegrator`, and number of processors `nprocs`.
-
-Uses a heuristic which tries to keep the number of rays per task close to a constant 1024,
-but also uses at least two tasks per processor core.
-
-"""
-function count_tasks(integrator::PressureIntegrator, nprocs::Integer)
-    rays_per_light = integrator.n_rays
-    m1 = div(rays_per_light, TARGET_RAYS_PER_TASK)
-    m2 = 2*nprocs
-    
-    return max(m1, m2)
-end
-
 
 
 
@@ -121,14 +94,14 @@ end
 """
 
 """
-function compute_pressure(intgr::PressureIntegrator, scene::Scene, isect::Intersection, 
-                   ray::Ray, sample::Sample)
-    #
-    
-
-#    p = compute_pressure(isect.material, L, direction)
-    f = Vector3(0)
+function compute_pressure(intgr::PressureIntegrator, light::LightSource, isect::Intersection, 
+                   ray::Ray)
+    world_to_local = local_transformation(isect.geometry)
+    local_to_world = inv(world_to_local)
+    incident_direction = world_to_local(-ray.direction)
+    f = compute_pressure(isect.material, incident_direction, light.intensity)
+    f = local_to_world(f)
     t = cross(f, isect.geometry.p)
     
-    return Vector3(0), Vector3(0)
+    return f, t
 end
