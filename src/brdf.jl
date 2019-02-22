@@ -17,6 +17,8 @@ const BSDF_ALL_TRANSMISSION = BSDF_TRANSMISSION | BSDF_ALL_TYPES
 const BSDF_ALL = BSDF_ALL_TRANSMISSION | BSDF_ALL_REFLECTION
 
 
+
+
 ######################################################################
 
 """
@@ -42,6 +44,36 @@ evaluate(B::Lambert, w0::Vector3, w1::Vector3) = B.R / π
 
 """"""
 rho(B::Lambert, w0::Vector3) = B.R
+
+
+"""
+    generate_ray(B::Lambert, w0::Vector3) = nothing
+
+Generate a new ray, weighed by the emergent light distribution of the Lambertian BRDF.
+
+TODO: not implemented yet
+
+"""
+generate_ray(B::Lambert, w0::Vector3) = nothing
+
+
+"""
+    compute_pressure(B::Lambert, w0::Vector3)
+
+Compute the radiation pressure on a surface
+
+"""
+function compute_pressure(B::Lambert, w0::Vector3, S::Spectrum)
+    if costheta(w0) < 0.0
+        return Vector3(0)
+    end
+    total_energy = integrate(B.R * S)
+    return -total_energy * (w0 + 2/3 * Z_AXIS)
+end
+
+
+
+
 
 
 ######################################################################
