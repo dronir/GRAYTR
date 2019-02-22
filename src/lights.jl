@@ -57,18 +57,17 @@ end
 # Distanct light source
 
 struct DistantLight{S<:Spectrum} <: LightSource
-    direction::Vector3
     intensity::S
     light_to_world::Transformation
     world_to_light::Transformation
 end
 
-function DistantLight(dir::Vector3, L::Spectrum, l2w::Transformation)
-    DistantLight(normalize(l2w(dir)), L, l2w, inv(l2w))
+function DistantLight(L::Spectrum, l2w::Transformation)
+    DistantLight(L, l2w, inv(l2w))
 end
 
 function sample_L(light::DistantLight, p::Point3)
-    return light.intensity, light.direction, 1.0, VisibilityTester(p, light.direction, 2e-5)
+    return light.intensity, NEG_Z_AXIS, 1.0, VisibilityTester(p, NEG_Z_AXIS, 2e-5)
 end
 
 direct(L::DistantLight) = true
