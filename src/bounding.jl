@@ -240,3 +240,6 @@ function intersectP(R::Ray, BS::BoundingSphere)
         return true
     end
 end
+
+
+cross_section(B::BoundingSphere) = π * B.radius^2
