@@ -1,4 +1,6 @@
 
+const LIGHT_SPEED = 299792458 # m/s^2
+
 """
     lerp(t, a, b)
 
