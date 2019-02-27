@@ -36,7 +36,7 @@ end
 
 
 """
-    PointLight{S<:Spectrum} <: LightSource
+    PointLight{S<:Spectrum} <: DirectLight
 
 Point light source. It's located at a given point and radiates isotropically. The intensity
 value given is interpreted as the intensity in Watts/m^2 at a distance of 1 meter.
@@ -50,7 +50,7 @@ value given is interpreted as the intensity in Watts/m^2 at a distance of 1 mete
 - `world_to_light::Transformation`, inverse transformation of the above.
 
 """
-struct PointLight{S<:Spectrum} <: LightSource
+struct PointLight{S<:Spectrum} <: DirectLight
     position::Point3
     intensity::S
     light_to_world::Transformation
@@ -89,20 +89,10 @@ Returns:
 function sample_L(light::PointLight, p::Point3)
     distance = norm(light.position - p)
     L = light.intensity / distance^2
-    wi = (light.position - p) / distance
     pdf = 1.0
     vis = VisibilityTester(p, light.position, 2e-5, 0.0)
-    return L, wi, pdf, vis
+    return L, pdf, vis
 end
-
-
-"""
-    direct(L::PointLight)
-
-Is the given light a direct light source? Returns true for a `PointLight`.
-
-"""
-direct(L::PointLight) = true
 
 
 """
@@ -132,7 +122,7 @@ end
 # Distanct light source
 
 """
-    DistantLight{S<:Spectrum} <: LightSource
+    DistantLight{S<:Spectrum} <: DirectLight
     
 A point light source infinitely far away, i.e. parallel rays with a given intensity spectrum
 interpreted as Watts / m^2.
@@ -149,7 +139,7 @@ the light rays travel in the -Z direction.
 
 
 """
-struct DistantLight{S<:Spectrum} <: LightSource
+struct DistantLight{S<:Spectrum} <: DirectLight
     intensity::S
     light_to_world::Transformation
     world_to_light::Transformation
@@ -178,23 +168,13 @@ light.
 Returns:
 
 - Intensity `Spectrum`
-- Direction `Vector3` of the light.
 - A weight coefficient which is always 1.0
 - A ray from the light source to the given point.
 
 """
 function sample_L(light::DistantLight, p::Point3)
-    return light.intensity, NEG_Z_AXIS, 1.0, VisibilityTester(p, NEG_Z_AXIS, 2e-5)
+    return light.intensity, 1.0, VisibilityTester(p, light.light_to_world(NEG_Z_AXIS), 2e-5)
 end
-
-
-"""
-    direct(L::DistantLight)
-
-Is the given light a direct light? Returns `true` for a `DistantLight`.
-
-"""
-direct(L::DistantLight) = true
 
 
 """
@@ -227,7 +207,7 @@ end
 # Background light source
 
 """
-    Background{S<:Spectrum} <: LightSource
+    Background{S<:Spectrum} <: IndirectLight
     
 Background light. If one of these is in the scene, every ray that escapes to infinity hits
 this light source.
@@ -249,15 +229,6 @@ sample_L(light::Background, p::Point3) = nolight
 
 
 """
-    direct(L::Background)
-
-Is this light source direct? Returns false for `Background` source.
-
-"""
-direct(L::Background) = false
-
-
-"""
     background(L::Background)
     
 Returns the background light produced by the lightsource. Returns the intensity of a
@@ -269,16 +240,33 @@ background(L::Background) = L.intensity
 
 
 
+###### ########################
 # TODO: Area light
-#
 struct AreaLight <: LightSource end
+
+
 
 
 ################################
 # Disk Light (TODO)
 
-struct DiskLight{S<:Spectrum} <: LightSource 
-    direction::Vector3
+"""
+    DiskLight{S<:Spectrum} <: DirectLight 
+
+A light source which is a uniformly illuminated disk far away. Expressed in terms of its
+angular radius. By default it's in the positive Z direction, and can be rotated with
+a transformation.
+
+# Fields:
+
+- `radius::Float64`, angular radius (in radians) of the source
+- `intensity::S`, 
+- `light_to_world::Transformation`, transformation to adjust the direction of the source.
+   Chosen to rotate the +Z axis into the desired direction of the light.
+- `world_to_light::Transformation`, inverse transformation of the above
+
+"""
+struct DiskLight{S<:Spectrum} <: DirectLight 
     radius::Float64
     intensity::S
     light_to_world::Transformation
@@ -286,23 +274,45 @@ struct DiskLight{S<:Spectrum} <: LightSource
 end
 
 
+"""
+    DiskLight(direction::Vector3, radius::Float64, intensity::Spectrum)
+
+Create new `DiskLight` in the desired direction, angular radius and intensity.
+
+"""
 function DiskLight(direction::Vector3, radius::Float64, intensity::Spectrum)
     rot_z = rotate_z_to(direction)
-    return DiskLight(direction, radius, intensity, rot_z, inv(rot_z))
+    return DiskLight(radius, intensity, rot_z, inv(rot_z))
 end
 
+
+"""
+    background(L::DiskLight)
+    
+Returns the background light produced by the lightsource. Returns `nolight` for a
+`DiskLight` source.
+
+"""
 background(L::DiskLight) = nolight
-direct(L::DiskLight) = true
 
 
 sample_L(light::DiskLight, p::Point3) = sample_L(light, p, rand(), rand())
 
 function sample_L(light::DiskLight, p::Point3, u1::Real, u2::Real)
-    transform = light.light_to_world
-    direction = transform(disk_light_sample(light.radius, u1, u2))
-    return light.intensity, light.direction, 1.0, VisibilityTester(p, direction, 2e-5)
+    direction = light.light_to_world(disk_light_sample(light.radius, u1, u2))
+    return light.intensity, 1.0, VisibilityTester(p, direction, 2e-5)
 end
 
+
+"""
+    disk_light_sample(radius::Real, u1::Real, u2::Real)
+
+Create a vector which points from origin to a point on the surface of a disk with given
+angular radius centered on the +Z axis. It is parametrized by two numbers, `u1` and `u2`,
+which range from zero to one. Using uniform random numbers will result in the surface of
+the disk to be uniformly sampled.
+
+"""
 function disk_light_sample(radius::Real, u1::Real, u2::Real)
     cos_th = cos(radius)
     z = cos_th + (1.0 - cos_th) * u1
