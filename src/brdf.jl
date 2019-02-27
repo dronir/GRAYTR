@@ -183,3 +183,65 @@ function evaluate(B::AshkhminShirleySingle, w0::Vector3, w1::Vector3)
     return d * specular + s * diffuse
 end
 
+
+
+
+######################################################################
+
+
+"""
+    SpecularDiffuse{T<:Spectrum} <: BxDF
+
+Specular + Diffuse reflection. The fraction of diffusely refelcte light is `fd`, the
+fraction of specularly reflected light is `fs`. Absorbtion is `1 - fd - fs`.
+
+TODO: Make all the parameters spectral.
+
+"""
+struct SpecularDiffuse{T<:Spectrum} <: BxDF
+    R::T
+    fd::Float64
+    fs::Float64
+end
+
+
+"""
+    BSDF_type(B::SpecularDiffuse)
+
+The BSDF type for the diffuse + specular BRDF.
+
+"""
+BSDF_type(B::SpecularDiffuse) = BSDF_REFLECTION | BSDF_DIFFUSE | BSDF_SPECULAR
+
+
+"""
+    evaluate(B::SpecularDiffuse, w0::Vector3, w1::Vector3)
+
+Evaluate diffuse + specular BRDF for given direction vectors.
+
+TODO: normalization is probably off...
+
+"""
+function evaluate(B::SpecularDiffuse, w0::Vector3, w1::Vector3)
+    if normalize(w0 + w1) ≈ Z_AXIS
+        return (B.fd/π + B.fs) * B.R
+    else
+        return B.fd/π * B.R
+    end
+end
+
+
+"""
+    compute_pressure(B::SpecularDiffuse, w0::Vector3)
+
+Compute the radiation pressure on a surface.
+
+"""
+function compute_pressure(B::SpecularDiffuse, w0::Vector3, S::Spectrum)
+    fa = 1.0 - B.fd - B.fs
+    if costheta(w0) < 0.0
+        return Vector3(0)
+    end
+    total_energy = integrate(B.R * S)
+    return -total_energy * ((fa + fd) * (w0 + 2/3 * Z_AXIS) + 2*fd*costheta(w0) * Z_AXIS)
+end
