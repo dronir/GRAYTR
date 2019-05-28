@@ -6,18 +6,6 @@ sintheta(w::Vector3) = sqrt(sintheta2(w))
 cosphi(w::Vector3) = costheta(w) ≈ 1.0 ? 1.0 : clamp(w.x / sintheta(w), -1.0, 1.0)
 sinphi(w::Vector3) = costheta(w) ≈ 1.0 ? 0.0 : clamp(w.y / sintheta(w), -1.0, 1.0)
 
-const BSDF_REFLECTION = 1
-const BSDF_TRANSMISSION = 2
-const BSDF_SPECULAR = 4
-const BSDF_DIFFUSE = 8
-const BSDF_GLOSSY = 16
-const BSDF_ALL_TYPES = BSDF_DIFFUSE | BSDF_GLOSSY | BSDF_SPECULAR
-const BSDF_ALL_REFLECTION = BSDF_REFLECTION | BSDF_ALL_TYPES
-const BSDF_ALL_TRANSMISSION = BSDF_TRANSMISSION | BSDF_ALL_TYPES
-const BSDF_ALL = BSDF_ALL_TRANSMISSION | BSDF_ALL_REFLECTION
-
-
-
 
 ######################################################################
 
@@ -31,7 +19,6 @@ struct Lambert{T<:Spectrum} <: BxDF
     R::T
 end
 
-BSDF_type(B::Lambert) = BSDF_REFLECTION | BSDF_DIFFUSE
 
 """
     evaluate(B::Lambert, w0::Vector3, w1::Vector3)
@@ -94,14 +81,6 @@ struct LommelSeeliger{T<:Spectrum} <: BxDF
 end
 
 
-"""
-    BSDF_type(B::LommelSeeliger)
-
-Returns the BSDF type of the Lommel-Seeliger BRDF (which is a constant).
-
-"""
-BSDF_type(B::LommelSeeliger) = BSDF_REFLECTION | BSDF_DIFFUSE
-
 
 """
     evaluate(B::LommelSeeliger, w0::Vector3, w1::Vector3) 
@@ -136,14 +115,6 @@ struct AshkhminShirleySingle{T<:Spectrum} <: BxDF
     n::Float64
 end
 
-
-"""
-    BSDF_type(B::AshkhminShirleySingle)
-
-The BSDF type for the Ashkhmin-Shirley BRDF.
-
-"""
-BSDF_type(B::AshkhminShirleySingle) = BSDF_REFLECTION | BSDF_DIFFUSE
 
 
 """
@@ -192,8 +163,8 @@ end
 """
     SpecularDiffuse{T<:Spectrum} <: BxDF
 
-Specular + Diffuse reflection. The fraction of diffusely refelcte light is `fd`, the
-fraction of specularly reflected light is `fs`. Absorbtion is `1 - fd - fs`.
+Specular + Diffuse reflection. The fraction of diffusely reflected light is `fd`, the
+fraction of specularly reflected light is `fs`. Absorption is `1 - fd - fs`.
 
 TODO: Make all the parameters spectral.
 
@@ -204,14 +175,6 @@ struct SpecularDiffuse{T<:Spectrum} <: BxDF
     fs::Float64
 end
 
-
-"""
-    BSDF_type(B::SpecularDiffuse)
-
-The BSDF type for the diffuse + specular BRDF.
-
-"""
-BSDF_type(B::SpecularDiffuse) = BSDF_REFLECTION | BSDF_DIFFUSE | BSDF_SPECULAR
 
 
 """
@@ -243,5 +206,5 @@ function compute_pressure(B::SpecularDiffuse, w0::Vector3, S::Spectrum)
         return Vector3(0)
     end
     total_energy = integrate(B.R * S)
-    return -total_energy * ((fa + fd) * (w0 + 2/3 * Z_AXIS) + 2*fd*costheta(w0) * Z_AXIS)
+    return -total_energy * ((fa + B.fd) * (w0 + 2/3 * Z_AXIS) + 2*B.fs*costheta(w0) * Z_AXIS)
 end

@@ -18,7 +18,6 @@ ws = normalize(Vector3(-1, 0, 1))
 @testset "Lambert" begin
     R = GRAYTR.Lambert(spec)
     
-    @test GRAYTR.BSDF_type(R) == 9
     @test GRAYTR.evaluate(R, w0, w1) == GRAYTR.SingleLine(532.0, 1) / π
     @test GRAYTR.rho(R, w0) == GRAYTR.SingleLine(532.0, 1)
 end
@@ -27,7 +26,6 @@ end
     P(alpha) = 1.0
     R = GRAYTR.LommelSeeliger(spec, P)
     
-    @test GRAYTR.BSDF_type(R) == 9
     @test GRAYTR.evaluate(R, w0, w1) == GRAYTR.SingleLine(532.0, 1) * 0.25 / (1.0 + sqrt(2)/2)
     
     
@@ -35,8 +33,6 @@ end
 
 @testset "Ashkhmin-Shirley" begin
 #    R = GRAYTR.AshkhminShirleySingle(spec, 0.5, 100.0)
-#    @test GRAYTR.BSDF_type(R) == 9
-    
 #    @test GRAYTR.evaluate(R, w0, w1) <: GRAYTR.Spectrum    
 end
 
@@ -50,6 +46,8 @@ end
     
     R = GRAYTR.SpecularDiffuse(spec, 0.5, 0.5)
     @test GRAYTR.evaluate(R, w1, ws) == GRAYTR.SingleLine(532.0, 1) * (0.5 + 0.5/π)
+    
+    @test GRAYTR.compute_pressure(R, w0, spec) ≈ Vector3(0.0, 0.0, -(1 + 5/6))
 end
 
 
