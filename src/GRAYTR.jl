@@ -19,7 +19,7 @@ include("samplers.jl")
 include("bounding.jl")
 
 include("spectrum.jl")
-include("materials.jl")
+include("brdf.jl")
 
 include("ray_generators.jl")
 include("lights.jl")

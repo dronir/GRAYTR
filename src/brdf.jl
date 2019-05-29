@@ -7,6 +7,20 @@ cosphi(w::Vector3) = costheta(w) ≈ 1.0 ? 1.0 : clamp(w.x / sintheta(w), -1.0, 
 sinphi(w::Vector3) = costheta(w) ≈ 1.0 ? 0.0 : clamp(w.y / sintheta(w), -1.0, 1.0)
 
 
+"""
+    evaluate(B::BxDF, world_to_local::Transformation, w0::Vector3, w1::Vector3)
+
+Evaluate the value of a BRDF given a local transformation and the incident and emergent
+directions. The local transformation is one that rotates the surface normal to coincide
+with the +Z direction.
+
+"""
+function evaluate(B::BxDF, world_to_local::Transformation, w0::Vector3, w1::Vector3) 
+    return evaluate(B, world_to_local(w0), world_to_local(w1))
+end
+    
+
+
 ######################################################################
 
 """
