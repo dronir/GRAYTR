@@ -56,26 +56,11 @@ function shape_intersect(R::Ray, cyl::Cylinder)
         return nothing, NaN, NaN
     end
     
-    phi = atan(P.y, P.x)
-    phi = phi >= 0.0 ? phi : phi + 2π
-    u = phi / 2π
-    v = (P.z - cyl.zmin) / (cyl.zmax - cyl.zmin)
+    n = normalize(Normal3(P.x, P.y, 0.0))
+    s = Vector3(0.0, 0.0, 1.0)
     
-    dpdu = Vector3(-2π * P.y, 2π * P.x, 0.0)
-    dpdv = Vector3(0.0, 0.0, cyl.zmax - cyl.zmin)
-    dpduu = Vector3(-4π^2*P.x, -4π^2*P.y, 0.0)
-    dpduv = Vector3(0.0)
-    dpdvv = Vector3(0.0)
-    dndu, dndv = normal_derivatives(dpdu, dpdv, dpduu, dpduv, dpdvv)
+    DG = DifferentialGeometry(cyl.obj_to_world(P), cyl.obj_to_world(n), cyl.obj_to_world(s))
     
-    DG = DifferentialGeometry(
-        cyl.obj_to_world(P),
-        u, v, cyl,
-        cyl.obj_to_world(dpdu),
-        cyl.obj_to_world(dpdv),
-        cyl.obj_to_world(dndu),
-        cyl.obj_to_world(dndv)
-    )
     return DG, t, 5e-4 * t
 end
 

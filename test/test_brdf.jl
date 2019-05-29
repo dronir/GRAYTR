@@ -20,12 +20,11 @@ dg, a, b = GRAYTR.shape_intersect(R, S)
 @test dg != nothing
 
 @testset "World to local transformation" begin
-    T = GRAYTR.local_transformation(dg)
-    @test typeof(T) == Transformation
+    @test typeof(dg.T) == Transformation
     
-    invT = inv(T)
+    invT = inv(dg.T)
     
-    @test T(dg.n) ≈ Normal3(0.0, 0.0, 1.0)
+    @test dg.T(dg.n) ≈ Normal3(0.0, 0.0, 1.0)
     @test invT(Normal3(0.0, 0.0, 1.0)) ≈ dg.n
 
     u = invT(Normal3(0.0, 1.0, 0.0))

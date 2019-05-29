@@ -7,49 +7,33 @@ struct DifferentialGeometry
     # Location and normal vector on the surface
     p::Point3
     n::Normal3
-    # Surface coordinates
-    u::Float64
-    v::Float64
-
-    # Partial derivatives of the point and normal wrt surface coordinates
-    dpdu::Vector3
-    dpdv::Vector3
-    dndu::Normal3
-    dndv::Normal3
+    T::Transformation
 end
 
-# Constructor that computes the normal vector.
-function DifferentialGeometry(p::Point3, u::Float64, v::Float64, sh::Shape,
-                              dpdu::Vector3, dpdv::Vector3, 
-                              dndu::Normal3, dndv::Normal3)
-    normal = normalize(cross(dpdu, dpdv))
-    if sh.inverted ⊻ swaps_handedness(sh.obj_to_world)
-        normal = -normal
-    end
-    DifferentialGeometry(p, normal, u, v, dpdu, dpdv, dndu, dndv)
-end
 
+function DifferentialGeometry(p::Point3, n::Normal3, s::Vector3)
+    return DifferentialGeometry(p, n, local_transformation(n, s))
+end
 
 
 
 """
-    local_transformation(dg::DifferentialGeometry)
+    local_transformation(n::Normal3, s::Vector3)
 
 Get the transformation which transforms a vector from the world coordinates to
 surface-local coordinates, where the Z-axis is along the surface normal.
 
+Makes an orthonormal basis of the normal vector `n`, a vector `s` tangent to the surface,
+and their cross product. Both vectors are assumed to be normalized.
+
 """
-function local_transformation(dg::DifferentialGeometry)
-    # Make an orthonormal basis of the normal vector, a vector tangent to the surface,
-    # and their cross product.
-    s = normalize(dg.dpdu)
-    t = cross(dg.n, s)
-    
+function local_transformation(n::Normal3, s::Vector3)
+    t = cross(n, s)
     M = zeros(4,4)
     for i = 1:3
         M[1,i] = s[i]
         M[2,i] = t[i]
-        M[3,i] = dg.n[i]
+        M[3,i] = n[i]
     end
     M[4,4] = 1.0
     

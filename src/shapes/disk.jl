@@ -45,24 +45,14 @@ function shape_intersect(R::Ray, D::Disk)
     if r2 > D.rmax^2 || r2 < D.rmin^2
         return nothing, NaN, NaN
     end
-    phi = atan(P.y, P.x)
-    phi = phi < 0.0 ? phi+2π : phi
-    u = phi / 2π
-    v = 1.0 - (sqrt(r2) - D.rmin) / (D.rmax - D.rmin)
-    dpdu = Vector3(-2π * P.y, 2π * P.x, 0.0)
-    dr = 1.0 - D.rmin / D.rmax
-    dpdv = Vector3(-dr*P.x/(1.0-v), -dr*P.y/(1.0-v), 0.0)
-    dndu = Normal3(0.0)
-    dndv = Normal3(0.0)
-    DG = DifferentialGeometry(
-        D.obj_to_world(P),
-        Normal3(0, 0, sign(ray.origin.z)),
-        u, v,
-        D.obj_to_world(dpdu),
-        D.obj_to_world(dpdv),
-        D.obj_to_world(dndu),
-        D.obj_to_world(dndv)
-    )
+
+    dpdu = Vector3(-P.y, P.x, 0.0)
+
+    n =Normal3(0, 0, sign(ray.origin.z))
+    s =normalize(dpdu)
+
+    DG = DifferentialGeometry(D.obj_to_world(P), D.obj_to_world(n), D.obj_to_world(s))
+    
     return DG, t, 5e-4 * t
 end
 
