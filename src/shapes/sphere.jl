@@ -98,6 +98,8 @@ function shape_intersect(r::Ray, sph::Sphere)
     n = normalize(Normal3(P.x, P.y, P.z))
     s = normalize(Vector3(-2π*P.y, 2π*P.x, 0.0))
     
+    n = flip_normal(n, ray.direction)
+    
     DG = DifferentialGeometry(sph.obj_to_world(P), sph.obj_to_world(n), sph.obj_to_world(s))
     return DG, t, 5e-4 * t
 end

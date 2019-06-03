@@ -53,6 +53,8 @@ function shape_intersect(R::Ray, D::Disk)
 
     DG = DifferentialGeometry(D.obj_to_world(P), D.obj_to_world(n), D.obj_to_world(s))
     
+    n = flip_normal(n, ray.direction)
+    
     return DG, t, 5e-4 * t
 end
 

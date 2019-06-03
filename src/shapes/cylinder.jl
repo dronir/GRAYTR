@@ -59,6 +59,8 @@ function shape_intersect(R::Ray, cyl::Cylinder)
     n = normalize(Normal3(P.x, P.y, 0.0))
     s = Vector3(0.0, 0.0, 1.0)
     
+    n = flip_normal(n, ray.direction)
+    
     DG = DifferentialGeometry(cyl.obj_to_world(P), cyl.obj_to_world(n), cyl.obj_to_world(s))
     
     return DG, t, 5e-4 * t
