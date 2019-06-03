@@ -75,6 +75,14 @@ end
 
 
 
+function sphere_coefs(ray::Ray, sph::Sphere)
+    A = dot(ray.direction, ray.direction)
+    B = 2.0 * dot(ray.direction, ray.origin)
+    C = dot(ray.origin, ray.origin) - sph.radius^2
+    return A, B, C
+end
+
+
 """
     shape_intersect(r::Ray, sph::Sphere)
 
@@ -83,10 +91,8 @@ Compute intersection geometry between given ray and sphere.
 """
 function shape_intersect(r::Ray, sph::Sphere)
     ray = sph.world_to_obj(r)
-    A = dot(ray.direction, ray.direction)
-    B = 2.0 * dot(ray.direction, ray.origin)
-    C = dot(ray.origin, ray.origin) - sph.radius^2
-    hit, tnear, tfar = quadratic(A, B, C)
+    
+    hit, tnear, tfar = quadratic(sphere_coefs(ray, sph)...)
     
     # Not hit or both hits out of bounds
     if !hit || tnear > r.tmax || tfar < r.tmin || (tnear < r.tmin && tfar > r.tmax)
@@ -114,10 +120,8 @@ Quick true/false intersection test between ray and sphere.
 """
 function intersectP(r::Ray, sph::Sphere)
     ray = sph.world_to_obj(r)
-    A = dot(ray.direction, ray.direction)
-    B = 2.0 * dot(ray.direction, ray.origin)
-    C = dot(ray.origin, ray.origin) - sph.radius^2
-    hit, tnear, tfar = quadratic(A, B, C)
+   
+    hit, tnear, tfar = quadratic(sphere_coefs(ray, sph)...)
     
     # Not hit or both hits out of bounds
     if !hit || tnear > r.tmax || tfar < r.tmin || (tnear < r.tmin && tfar > r.tmax)

@@ -30,15 +30,21 @@ function (T::Transformation)(C::Cylinder)
 end
 
 
+function cylinder_coefs(ray::Ray, cyl::Cylinder)
+    A = ray.direction.x^2 + ray.direction.y^2
+    B = 2.0 * (ray.direction.x * ray.origin.x + ray.direction.y * ray.origin.y)
+    C = ray.origin.x^2 + ray.origin.y^2 - cyl.radius^2
+    return A, B, C
+end
+
 
 function shape_intersect(R::Ray, cyl::Cylinder)
     ray = cyl.world_to_obj(R)
-    A = ray.direction.x^2 + ray.direction.y^2
+    
+    A, B, C = cylinder_coefs(ray, cyl)
     if A ≈ 0.0
         return nothing, NaN, NaN
     end
-    B = 2.0 * (ray.direction.x * ray.origin.x + ray.direction.y * ray.origin.y)
-    C = ray.origin.x^2 + ray.origin.y^2 - cyl.radius^2
     hit, tnear, tfar = quadratic(A,B,C)
     
     if !hit || tnear > ray.tmax || tfar < ray.tmin || (tnear < ray.tmin && tfar > ray.tmax)
@@ -68,9 +74,10 @@ end
 
 function intersectP(r::Ray, cyl::Cylinder)
     ray = cyl.world_to_obj(r)
-    A = ray.direction.x^2 + ray.direction.y^2
-    B = 2.0 * (ray.direction.x * ray.origin.x + ray.direction.y * ray.origin.y)
-    C = ray.origin.x^2 + ray.origin.y^2 - cyl.radius^2
+    A, B, C = cylinder_coefs(ray, cyl)
+    if A ≈ 0.0
+        return false
+    end
     hit, tnear, tfar = quadratic(A,B,C)
     
     if !hit || tnear > ray.tmax || tfar < ray.tmin || (tnear < ray.tmin && tfar > ray.tmax)

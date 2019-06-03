@@ -66,13 +66,18 @@ end
 
 
 
-function shape_intersect(r::Ray, Par::Paraboloid)
-    ray = Par.world_to_obj(r)
+function paraboloid_coefs(ray::Ray, Par::Paraboloid)
     A = Par.h1 * (ray.direction.x^2 + ray.direction.y^2)
     B = 2*Par.h1 * (ray.origin.x * ray.direction.x + ray.origin.y * ray.direction.y) - Par.radius^2 * ray.direction.z
     C = Par.h1 * (ray.origin.x^2 + ray.origin.y^2) - Par.radius^2 * ray.origin.z
+    return A, B, C
+end
+
+
+function shape_intersect(r::Ray, Par::Paraboloid)
+    ray = Par.world_to_obj(r)
     
-    hit, tnear, tfar = quadratic(A, B, C)
+    hit, tnear, tfar = quadratic(paraboloid_coefs(ray, Par)...)
     
     # Not hit or both hits out of bounds
     if !hit || tnear > r.tmax || tfar < r.tmin || (tnear < r.tmin && tfar > r.tmax)
@@ -109,11 +114,8 @@ end
 """
 function intersectP(r::Ray, Par::Paraboloid)
     ray = Par.world_to_obj(r)
-    A = Par.h1 * (ray.direction.x^2 + ray.direction.y^2)
-    B = 2.0 * Par.h1 *(ray.origin.x * ray.direction.x + ray.origin.y * ray.direction.y) - Par.radius^2 * ray.direction.z
-    C = Par.h1 * (ray.origin.x^2 + ray.origin.y^2) - Par.radius^2 * ray.origin.z
-    
-    hit, tnear, tfar = quadratic(A, B, C)
+   
+    hit, tnear, tfar = quadratic(paraboloid_coefs(ray, Par)...)
     
     # Not hit or both hits out of bounds
     if !hit || tnear > r.tmax || tfar < r.tmin || (tnear < r.tmin && tfar > r.tmax)
