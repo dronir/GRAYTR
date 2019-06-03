@@ -65,6 +65,7 @@ size(A::VectorLike) = 3
 length(A::VectorLike) = 3
 
 mean(A::Point3, B::Point3) = 0.5 * Point3(A.x+B.x, A.y+B.y, A.z+B.z)
++(A::Point3, B::Normal3) = Point3(A.x+B.x, A.y+B.y, A.z+B.z)
 +(A::Point3, B::Vector3) = Point3(A.x+B.x, A.y+B.y, A.z+B.z)
 +(B::Vector3, A::Point3) = A+B
 +(v::Vector3, u::Vector3) = Vector3(v.x+u.x, v.y+u.y, v.z+u.z)
