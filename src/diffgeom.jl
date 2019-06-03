@@ -17,6 +17,19 @@ end
 
 
 
+
+"""
+    flip_normal(n::Normal3, d::Vector3)
+
+Inverts the normal vector `n` if the normal and the direction vector `d` are in the same
+hemisphere. This is to always get normals pointing "out" of a surface regardless of whether
+the ray comes from "inside" or "outside" the shape.
+
+"""
+flip_normal(n::Normal3, d::Vector3) = dot(n,d) < 0.0 ? n : -n
+
+
+
 """
     local_transformation(n::Normal3, s::Vector3)
 

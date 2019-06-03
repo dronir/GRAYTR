@@ -18,6 +18,8 @@ include("shapes/sphere.jl")
 include("shapes/cylinder.jl")
 include("shapes/disk.jl")
 include("shapes/triangle.jl")
+include("shapes/paraboloid.jl")
+
 #include("shapes/plane.jl")
 #include("shapes/box.jl")
 

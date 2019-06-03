@@ -44,7 +44,7 @@ export X_AXIS, Y_AXIS, Z_AXIS, NEG_X_AXIS, NEG_Y_AXIS, NEG_Z_AXIS, IDENTITY_TRAN
 export Transformation, rotation, translation, scaling
 
 export SampledSpectrum, SingleLine
-export GeometricPrimitive, Sphere, Disk, Cylinder, Triangle
+export GeometricPrimitive, Sphere, Disk, Cylinder, Triangle, Paraboloid
 export AshkhminShirleySingle, Lambert, LommelSeeliger
 export LightSource, DistantLight, PointLight
 export Scene, BVHAccelerator

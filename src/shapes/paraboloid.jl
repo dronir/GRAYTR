@@ -15,8 +15,8 @@ struct Paraboloid <: Shape
     world_to_obj::Transformation
 end
 
-Paraboloid() = Sphere(1, 0.0, 1.0, 1.0, false, Transformation(), Transformation())
-Paraboloid(T::Transformation) = Sphere(1, 0.0, 1.0, 1.0, false, T, inv(T))
+Paraboloid() = Paraboloid(1, 0.0, 1.0, 1.0, false, Transformation(), Transformation())
+Paraboloid(T::Transformation) = Paraboloid(1, 0.0, 1.0, 1.0, false, T, inv(T))
 
 """
     can_intersect(s::Paraboloid) = true
@@ -61,16 +61,16 @@ Apply a `Transformation` to a `Paraboloid` object, return a new object.
 """
 function (T::Transformation)(P::Paraboloid)
     T2 = T * P.obj_to_world
-    Paraboloid() = Sphere(P.id, P.h0, P.h1, P.radius, P.inverted, T2, inv(T2))
+    Paraboloid(P.id, P.h0, P.h1, P.radius, P.inverted, T2, inv(T2))
 end
 
 
 
 function shape_intersect(r::Ray, Par::Paraboloid)
     ray = Par.world_to_obj(r)
-    A = 0
-    B = 0
-    C = 0
+    A = Par.h1 * (ray.direction.x^2 + ray.direction.y^2)
+    B = 2*Par.h1 * (ray.origin.x * ray.direction.x + ray.origin.y * ray.direction.y) - Par.radius^2 * ray.direction.z
+    C = Par.h1 * (ray.origin.x^2 + ray.origin.y^2) - Par.radius^2 * ray.origin.z
     
     hit, tnear, tfar = quadratic(A, B, C)
     
@@ -88,12 +88,14 @@ function shape_intersect(r::Ray, Par::Paraboloid)
     
     r = sqrt(P.x^2 + P.y^2)
     
-    n = normalize(Normal3(2r, -1.0, 0.0))
-    s = normalize(Vector3(2r, 1.0, 0.0))
+    n = normalize(Normal3(2r, 0.0, -1.0))
+    s = normalize(Vector3(2r, 0.0, 1.0))
     
-    DG = DifferentialGeometry(sph.obj_to_world(P), sph.obj_to_world(n), sph.obj_to_world(s))
+    n = flip_normal(n, ray.direction)
     
-    return true, t, 5e-4 * t
+    DG = DifferentialGeometry(Par.obj_to_world(P), Par.obj_to_world(n), Par.obj_to_world(s))
+    
+    return DG, t, 5e-4 * t
 
 end
 
