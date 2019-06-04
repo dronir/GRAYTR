@@ -20,9 +20,10 @@ include("shapes/disk.jl")
 include("shapes/triangle.jl")
 include("shapes/paraboloid.jl")
 include("shapes/cone.jl")
+include("shapes/box.jl")
 
 #include("shapes/plane.jl")
-#include("shapes/box.jl")
+
 
 
 
