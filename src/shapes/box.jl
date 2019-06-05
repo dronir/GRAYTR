@@ -61,8 +61,6 @@ function shape_intersect(r::Ray, B::Box)
     elseif ibest == 3
         n = Normal3(0,0,1)
         s = Vector3(1,0,0)
-    else
-        error("Weirdness in box intersection.")
     end
     
     n = flip_normal(n, ray.direction)
