@@ -6,6 +6,7 @@ P = Paraboloid()
 @test P.h0 == 0.0
 @test P.h1 == 1.0
 @test P.radius == 1.0
+@test GRAYTR.can_intersect(P)
 
 # Create with transformation
 P = Paraboloid(GRAYTR.scaling(2.0, 1.0, 1.0))
@@ -39,6 +40,12 @@ R = GRAYTR.Ray(Point3(0, 0, -2), Vector3(0, 0, 1))
 R = GRAYTR.Ray(Point3(0, 0, 0), Vector3(0, 1, 0))
 @test GRAYTR.intersectP(R, D)
 
+R = GRAYTR.Ray(Point3(3, 0, 1), Vector3(-1, 0, 0))
+@test !GRAYTR.intersectP(R, D)
+
+R = GRAYTR.Ray(Point3(3, 0, -2), Vector3(-1, 0, 0))
+@test !GRAYTR.intersectP(R, D)
+
 
 # intersect
 
@@ -67,6 +74,12 @@ dg, t, e = GRAYTR.shape_intersect(R, D)
 @test t ≈ 1 - 1/sqrt(2)
 
 R = GRAYTR.Ray(Point3(0, 0, 1), Vector3(0, 0, -1), 10, Inf, 1)
+dg, t, e = GRAYTR.shape_intersect(R, D)
+@test dg == nothing
+@test isnan(t)
+@test isnan(e)
+
+R = GRAYTR.Ray(Point3(3, 0, 1), Vector3(-1, 0, 0))
 dg, t, e = GRAYTR.shape_intersect(R, D)
 @test dg == nothing
 @test isnan(t)
