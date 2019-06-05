@@ -1,15 +1,21 @@
 @testset "Cone" begin
 
 cone = Cone()
-
 @test cone.id == 1
 @test cone.top == 1.0
+@test GRAYTR.can_intersect(cone)
 
+cone = Cone(2)
+@test cone.id == 2
+@test cone.top == 1.0
 
 # Create with transformation
 cone = Cone(GRAYTR.scaling(2.0, 1.0, 1.0))
 @test GRAYTR.obj_bounds(cone) == GRAYTR.BoundingBox(Point3(-1, -1, 0), Point3(1, 1, 1))
 @test GRAYTR.world_bounds(cone) == GRAYTR.BoundingBox(Point3(-2, -1, 0), Point3(2, 1, 1))
+
+cone = Cone(2, GRAYTR.scaling(2.0, 1.0, 1.0))
+@test cone.id == 2
 
 # Transform after creation
 T = GRAYTR.scaling(1.0, 2.0, 1.0)
@@ -38,6 +44,9 @@ R = GRAYTR.Ray(Point3(0.5, 0, -2), Vector3(0, 0, 1))
 
 R = GRAYTR.Ray(Point3(0.0, 0, -0.2), Vector3(0, 1, 0))
 @test GRAYTR.intersectP(R, D)
+
+R = GRAYTR.Ray(Point3(2.0, 0, 0.2), Vector3(-1, 0, 0))
+@test !GRAYTR.intersectP(R, D)
 
 
 # intersect
@@ -72,5 +81,10 @@ dg, t, e = GRAYTR.shape_intersect(R, D)
 @test isnan(t)
 @test isnan(e)
 
+R = GRAYTR.Ray(Point3(2.0, 0, 0.2), Vector3(-1, 0, 0))
+dg, t, e = GRAYTR.shape_intersect(R, D)
+@test dg == nothing
+@test isnan(t)
+@test isnan(e)
 
 end
