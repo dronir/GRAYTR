@@ -33,30 +33,6 @@ end
 
 
 
-"""
-    normal_derivatives(dpdu, dpdv, dpduu, dpduv, dpdvv)
-
-Compute partial derivatives of normal vectors from Weingarten equations,
-given first and second derivatives of position vector.
-Used by several shape models.
-
-"""
-function normal_derivatives(dpdu, dpdv, dpduu, dpduv, dpdvv)
-    E = dot(dpdu, dpdu)
-    F = dot(dpdu, dpdv)
-    G = dot(dpdv, dpdv)
-    N = normalize(cross(dpdu, dpdv))
-    e = dot(N, dpduu)
-    f = dot(N, dpduv)
-    g = dot(N, dpdvv)
-    
-    invEG = 1.0 / (E*G - F^2)
-    dndu = Normal3((f*F - e*G) * invEG * dpdu + (e*F - f*E) * invEG * dpdv)
-    dndv = Normal3((g*F - f*G) * invEG * dpdu + (f*F - g*E) * invEG * dpdv)
-    return dndu, dndv
-end
-
-
 
 """
     round_pow2(n::Integer)
