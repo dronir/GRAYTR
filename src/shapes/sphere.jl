@@ -10,16 +10,17 @@ Sphere shape model.
 struct Sphere <: Shape
     id::Int64
     radius::Float64
-    inverted::Bool
+    angle::Float64
     obj_to_world::Transformation
     world_to_obj::Transformation
 end
 
-Sphere() = Sphere(1, 1.0, false, Transformation(), Transformation())
-Sphere(T::Transformation) = Sphere(1, 1.0, false, T, inv(T))
-Sphere(r::Real, T::Transformation) = Sphere(1, r, false, T, inv(T))
-Sphere(id::Int64, r::Real, T::Transformation) = Sphere(id, r, false, T, inv(T))
-Sphere(id::Int64, r::Real, inverted::Bool, T::Transformation) = Sphere(id, r, inverted, T, inv(T))
+Sphere() = Sphere(1, 1.0, π, Transformation(), Transformation())
+Sphere(T::Transformation) = Sphere(1, 1.0, π, T, inv(T))
+Sphere(r::Real, T::Transformation) = Sphere(1, r, π, T, inv(T))
+Sphere(r::Real, angle::Real, T::Transformation) = Sphere(1, r, angle, T, inv(T))
+Sphere(id::Int64, r::Real, T::Transformation) = Sphere(id, r, π, T, inv(T))
+Sphere(id::Int64, r::Real, angle::Real, T::Transformation) = Sphere(id, r, angle, T, inv(T))
 
 
 """
@@ -34,6 +35,8 @@ can_intersect(s::Sphere) = true
     area(s::Sphere)
 
 Compute surface area of a sphere (doesn't into account scaling...)
+
+TODO: fix for angle (pen and paper required)
 
 """
 area(s::Sphere) = 4π * s.radius^2
@@ -70,7 +73,7 @@ Apply a transformation to a sphere.
 """
 function (T::Transformation)(S::Sphere)
     T2 = T * S.obj_to_world
-    Sphere(S.id, S.radius, S.inverted, T2, inv(T2))
+    Sphere(S.id, S.radius, S.angle, T2, inv(T2))
 end
 
 
@@ -98,8 +101,19 @@ function shape_intersect(r::Ray, sph::Sphere)
     if !hit || tnear > r.tmax || tfar < r.tmin || (tnear < r.tmin && tfar > r.tmax)
         return nothing, NaN, NaN
     end
-    t = tnear > r.tmin ? tnear : tfar
-    P = ray(t)
+    P1 = ray(tnear)
+    P2 = ray(tfar)
+    if P1.z / sph.radius < cos(sph.angle)
+        if P2.z / sph.radius < cos(sph.angle)
+            return nothing, NaN, NaN
+        else
+            P = P2
+            t = tfar
+        end
+    else
+        P = P1
+        t = tnear
+    end
     
     n = normalize(Normal3(P.x, P.y, P.z))
     s = normalize(Vector3(-2π*P.y, 2π*P.x, 0.0))
@@ -126,7 +140,17 @@ function intersectP(r::Ray, sph::Sphere)
     # Not hit or both hits out of bounds
     if !hit || tnear > r.tmax || tfar < r.tmin || (tnear < r.tmin && tfar > r.tmax)
         return false
-    else
-        return true
     end
+    
+    P1 = ray(tnear)
+    P2 = ray(tfar)
+    if P1.z / sph.radius < cos(sph.angle)
+        if P2.z / sph.radius < cos(sph.angle)
+            return false
+        else
+            return true
+        end
+    end
+    
+    return true
 end
