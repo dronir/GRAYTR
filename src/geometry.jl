@@ -139,6 +139,13 @@ function translation(delta::Vector3)
     M[3,4] = delta.z
     return Transformation(M)
 end
+function translation(delta::Point3)
+    M = Matrix{Float64}(1.0I, 4, 4)
+    M[1,4] = delta.x
+    M[2,4] = delta.y
+    M[3,4] = delta.z
+    return Transformation(M)
+end
 
 scaling(x::Real, y::Real, z::Real) = scaling(Vector3(x,y,z))
 function scaling(scale::Vector3)

@@ -16,6 +16,32 @@ Cone() = Cone(1, 1.0, Transformation(), Transformation())
 Cone(id::Integer) = Cone(id, 1.0, Transformation(), Transformation())
 Cone(T::Transformation) = Cone(1, 1.0, T, inv(T))
 Cone(id::Integer, T::Transformation) = Cone(id, 1.0, T, inv(T))
+Cone(id::Integer, h::Real, T::Transformation) = Cone(id, h, T, inv(T))
+
+
+
+function cone_between_points(id::Integer, P1::Point3, r1::Real, P2::Point3, r2::Real)
+    if r2 ≈ r1
+        error("Cone degenerate into cylinder (TODO: implement)")
+    elseif r2 > r1
+        error("Cone reveresed (TODO: implement reversal)")
+    end
+    invrted = r2 >= r1
+    
+    s = norm(P2 - P1)
+    h = 1.0 - r2/r1
+    zscale = s * r1 / (r1 - r2)
+    
+    scale = scaling(r1, r1, zscale)
+    rot = rotate_z_to(P2 - P1)
+    trans = translation(P1...)
+    
+    C = Cone(id, h, trans*rot*scale)
+    
+    return C
+end
+
+
 
 
 """
