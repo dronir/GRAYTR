@@ -9,6 +9,8 @@ struct Cylinder <: Shape
 end
 
 Cylinder(T::Transformation) = Cylinder(1, 1.0, -1.0, 1.0, T, inv(T))
+Cylinder(id::Int64, radius::Real, zmin::Real, zmax::Real) = Cylinder(id, radius, zmin, zmax, Transformation(), Transformation())
+
 
 can_intersect(C::Cylinder) = true
 area(C::Cylinder) = 2π * C.radius * (C.zmax - C.zmin)
