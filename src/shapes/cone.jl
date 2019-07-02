@@ -7,7 +7,7 @@ Cone shape model.
 """
 struct Cone <: Shape
     id::Int64
-    top::Float64
+    h::Float64
     obj_to_world::Transformation
     world_to_obj::Transformation
 end
@@ -23,20 +23,22 @@ Cone(id::Integer, h::Real, T::Transformation) = Cone(id, h, T, inv(T))
 function cone_between_points(id::Integer, P1::Point3, r1::Real, P2::Point3, r2::Real)
     if r2 ≈ r1
         error("Cone degenerate into cylinder (TODO: implement)")
-    elseif r2 > r1
-        error("Cone reveresed (TODO: implement reversal)")
     end
-    invrted = r2 >= r1
-    
+    reversed = r2 > r1
+    if reversed
+        r1, r2 = r2, r1
+    end
+        
     s = norm(P2 - P1)
     h = 1.0 - r2/r1
     zscale = s * r1 / (r1 - r2)
     
+    flip = reversed ? translation(Z_AXIS * h) * rotation(X_AXIS, π) : Transformation()
     scale = scaling(r1, r1, zscale)
     rot = rotate_z_to(P2 - P1)
     trans = translation(P1...)
     
-    C = Cone(id, h, trans*rot*scale)
+    C = Cone(id, h, trans*rot*flip*scale)
     
     return C
 end
@@ -63,7 +65,7 @@ The bounding box or a paraboloid in object space.
 """
 function obj_bounds(cone::Cone)
     v0 = Point3(-1.0, -1.0, 0.0)
-    v1 = Point3(1.0, 1.0, cone.top)
+    v1 = Point3(1.0, 1.0, cone.h)
     return BoundingBox(v0, v1)
 end
 
@@ -87,7 +89,7 @@ Apply a `Transformation` to a `Cone` object, return a new object.
 """
 function (T::Transformation)(P::Cone)
     T2 = T * P.obj_to_world
-    Cone(P.id, P.top, T2, inv(T2))
+    Cone(P.id, P.h, T2, inv(T2))
 end
 
 
@@ -113,19 +115,19 @@ function shape_intersect(r::Ray, cone::Cone)
     # Compute hit point, check if it's on our cone
     P1 = ray(tnear)
     P2 = ray(tfar)
-    if P1.z < cone.top && P2.z < cone.top
+    if P1.z < cone.h && P2.z < cone.h
         t = tnear > r.tmin ? tnear : tfar
         P = ray(t)
-    elseif P1.z < cone.top
+    elseif P1.z < cone.h
         t = tnear
         P = P1
-    elseif P2.z < cone.top
+    elseif P2.z < cone.h
         t = tfar
         P = P2
     else
         return nothing, NaN, NaN
     end
-    if P.z > 1.0 || P.z > cone.top || P.z < 0.0
+    if P.z > 1.0 || P.z > cone.h || P.z < 0.0
         return nothing, NaN, NaN
     end
     
@@ -167,18 +169,18 @@ function intersectP(r::Ray, cone::Cone)
     
     # If both hit points are on the right cone, take the closer one, otherwise take
     # whichever is, or return false if neither is.
-    if P1.z < cone.top && P2.z < cone.top
+    if P1.z < cone.h && P2.z < cone.h
         t = tnear > r.tmin ? tnear : tfar
         P = ray(t)
-    elseif P1.z < cone.top
+    elseif P1.z < cone.h
         P = P1
-    elseif P2.z < cone.top
+    elseif P2.z < cone.h
         P = P2
     else
         return false
     end
     
-    if P.z > 1.0 || P.z > cone.top || P.z < 0.0
+    if P.z > 1.0 || P.z > cone.h || P.z < 0.0
         return false
     else
         return true

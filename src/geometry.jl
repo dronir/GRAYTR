@@ -216,6 +216,9 @@ function rotate_z_to(direction::Vector3)
     if direction ≈ Z_AXIS
         return Transformation()
     end
+    if direction ≈ -Z_AXIS
+        return rotation(X_AXIS, π)
+    end
     
     c = direction.z
     s = -sqrt(1.0 - c^2)

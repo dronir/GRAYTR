@@ -2,12 +2,12 @@
 
 cone = Cone()
 @test cone.id == 1
-@test cone.top == 1.0
+@test cone.h == 1.0
 @test GRAYTR.can_intersect(cone)
 
 cone = Cone(2)
 @test cone.id == 2
-@test cone.top == 1.0
+@test cone.h == 1.0
 
 # Create with transformation
 cone = Cone(GRAYTR.scaling(2.0, 1.0, 1.0))
@@ -96,12 +96,43 @@ end # testset "intersections"
 
 @testset "Create from point to point" begin
 
+    cone = GRAYTR.cone_between_points(1, Point3(0,0,0), 1.0, Point3(0,0,1), 0.5)
+    @test cone.h ≈ 0.5
+    @test !any(isnan, cone.obj_to_world.M)
+    @test !any(isnan, cone.world_to_obj.M)
+    @test !any(isnan, cone.obj_to_world.MInv)
+    @test !any(isnan, cone.world_to_obj.MInv)
+    
+    cone = GRAYTR.cone_between_points(1, Point3(0,0,0), 0.5, Point3(0,0,1), 1.0)
+    @test cone.h ≈ 0.5
+    @test !any(isnan, cone.obj_to_world.M)
+    @test !any(isnan, cone.world_to_obj.M)
+    @test !any(isnan, cone.obj_to_world.MInv)
+    @test !any(isnan, cone.world_to_obj.MInv)
+    
+    cone = GRAYTR.cone_between_points(1, Point3(0,0,0), 1.0, Point3(0,0,-1), 0.5)
+    @test cone.h ≈ 0.5
+    @test !any(isnan, cone.obj_to_world.M)
+    @test !any(isnan, cone.world_to_obj.M)
+    @test !any(isnan, cone.obj_to_world.MInv)
+    @test !any(isnan, cone.world_to_obj.MInv)
+    
+    cone = GRAYTR.cone_between_points(1, Point3(0,0,0), 0.5, Point3(0,0,-1), 1.0)
+    @test cone.h ≈ 0.5
+    @test !any(isnan, cone.obj_to_world.M)
+    @test !any(isnan, cone.world_to_obj.M)
+    @test !any(isnan, cone.obj_to_world.MInv)
+    @test !any(isnan, cone.world_to_obj.MInv)
+    
+    
+
     P1 = Point3(1, 0, 0)
     P2 = Point3(3, 0, 0)
     r1 = 2.0
     r2 = 1.0
 
     cone = GRAYTR.cone_between_points(1, P1, r1, P2, r2)
+    @test cone.h ≈ 0.5
     
     # Intersections from Y direction
     R = GRAYTR.Ray(Point3(0.0, -5.0, 0.0), Vector3(0, 1, 0))
