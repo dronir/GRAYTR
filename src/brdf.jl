@@ -1,4 +1,6 @@
 
+export AshkhminShirleySingle, Lambert, LommelSeeliger
+
 # Utility functions
 costheta(w::Vector3) = w.z
 sintheta2(w::Vector3) = max(0.0, 1.0 - costheta(w)^2)

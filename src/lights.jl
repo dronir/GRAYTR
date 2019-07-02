@@ -1,4 +1,5 @@
 
+export LightSource, DistantLight, PointLight
 
 
 ################################

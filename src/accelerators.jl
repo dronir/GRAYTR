@@ -1,6 +1,8 @@
 
 using Statistics
 
+export BVHAccelerator
+
 
 """
     PrimitiveInfo

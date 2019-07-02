@@ -10,6 +10,12 @@
 
 import Base.intersect
 
+
+export Sphere, Disk, Cylinder, Triangle, Paraboloid, Cone, Box
+export cone_between_points
+
+
+
 world_to_obj(S::Shape)::Transformation = S.world_to_obj
 obj_to_world(S::Shape)::Transformation = S.obj_to_world
 

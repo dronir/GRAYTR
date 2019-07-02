@@ -1,5 +1,7 @@
 import Base.+, Base.-, Base.*, Base./, Base.convert, Base.zero, Base.one
 
+export SampledSpectrum, SingleLine, NoLight, nolight
+
 using Pkg
 using DelimitedFiles
 
