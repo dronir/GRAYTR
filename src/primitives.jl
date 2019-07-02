@@ -1,5 +1,8 @@
 
 
+export GeometricPrimitive, apply_material
+
+
 """
     GeometricPrimitive{T<:Shape, M<:BxDF}
 
@@ -12,6 +15,16 @@ struct GeometricPrimitive{T<:Shape, M<:BxDF} <: Primitive
     id::Int64
 end
 
+
+"""
+    apply_material(shapes::Array{T}, mat::Material) where T<:Shape
+
+Return an array of GeometricPrimitives
+
+"""
+function apply_material(shapes::Array{T}, mat::BxDF) where T<:Shape
+    return GeometricPrimitive[GeometricPrimitive(S, mat, nothing, S.id) for S in shapes]
+end
 
 
 """

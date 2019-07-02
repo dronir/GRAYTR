@@ -19,6 +19,9 @@ include("test_shapes.jl")
 # Tests of brdf.jl
 include("test_brdf.jl")
 
+# Tests of geometric primitives
+include("test_primitives.jl")
+
 # Tests of dummy aggregate
 include("test_dumbaggregate.jl")
 
