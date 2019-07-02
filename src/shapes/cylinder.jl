@@ -4,12 +4,11 @@ struct Cylinder <: Shape
     radius::Float64
     zmin::Float64
     zmax::Float64
-    inverted::Bool
     obj_to_world::Transformation
     world_to_obj::Transformation
 end
 
-Cylinder(T::Transformation) = Cylinder(1, 1.0, -1.0, 1.0, false, T, inv(T))
+Cylinder(T::Transformation) = Cylinder(1, 1.0, -1.0, 1.0, T, inv(T))
 
 can_intersect(C::Cylinder) = true
 area(C::Cylinder) = 2π * C.radius * (C.zmax - C.zmin)
@@ -26,7 +25,7 @@ end
 
 function (T::Transformation)(C::Cylinder)
     T2 = T * C.obj_to_world
-    Cylinder(C.id, C.radius, C.zmin, C.zmax, C.inverted, T2, inv(T2))
+    Cylinder(C.id, C.radius, C.zmin, C.zmax, T2, inv(T2))
 end
 
 
