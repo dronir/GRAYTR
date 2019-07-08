@@ -5,6 +5,10 @@ export SampledSpectrum, SingleLine, NoLight, nolight
 using Pkg
 using DelimitedFiles
 
+
+struct SpectrumStyle <: Broadcast.BroadcastStyle end
+
+
 # ------------------------------------------------
 # Load CIE spectra
 
@@ -32,73 +36,89 @@ const nolight = NoLight()
 isblack(N::NoLight) = true
 to_XYZ(S::NoLight) = [0.0, 0.0, 0.0]
 
-*(x::Number, N::NoLight) = nolight
-+(N::NoLight, M::NoLight) = nolight
-+(N::NoLight, S::Spectrum) = S
-+(S::Spectrum, N::NoLight) = S
-#*(N::NoLight, S::Spectrum) = nolight
-#*(S::Spectrum, N::NoLight) = nolight
-#/(N::NoLight, S::Spectrum) = S
+Base.broadcastable(N::NoLight) = N
 
-interpolate(N::NoLight, x) = NoLight()
+interpolate(N::NoLight, x) = nolight
+
+@inline Base.broadcasted(::typeof(+), s::NoLight, t::NoLight) = NoLight()
+@inline Base.broadcasted(::typeof(*), n::NoLight, t::NoLight) = NoLight()
+
+@inline Base.broadcasted(::typeof(*), n::Number, t::NoLight) = NoLight()
+@inline Base.broadcasted(::typeof(*), t::NoLight, n::Number) = NoLight()
+@inline Base.broadcasted(::typeof(+), n::Number, t::NoLight) = n
+@inline Base.broadcasted(::typeof(+), t::NoLight, n::Number) = n
+
+@inline Base.broadcasted(::typeof(*), t::NoLight, s::Spectrum) = NoLight()
+@inline Base.broadcasted(::typeof(*), s::Spectrum, t::NoLight) = NoLight()
+@inline Base.broadcasted(::typeof(+), t::NoLight, s::Spectrum) = s
+@inline Base.broadcasted(::typeof(+), s::Spectrum, t::NoLight) = s
+
+@inline Base.broadcasted(::typeof(*), t::NoLight, s::Broadcast.Broadcasted{SpectrumStyle,N}) where N = NoLight()
+@inline Base.broadcasted(::typeof(+), t::NoLight, s::Broadcast.Broadcasted{SpectrumStyle,N}) where N = s
+
+
+
 
 # ------------------------------------------------
 # The SampledSpectrum type
 
-struct SampledSpectrum{N} <: Spectrum
+struct SampledSpectrum <: Spectrum
     low::Int64
     high::Int64
     values::Array{Float64,1}
-    function SampledSpectrum{N}(low::Int64, high::Int64, values::Array{Float64,1}) where N 
-        length(values) != N ? error("Type parameter N not equal to length(values): $N != $(length(values))") : new(low, high, values)
-    end
 end
 
-one(S::SampledSpectrum{N}) where N = SampledSpectrum{N}(S.low, S.high, ones(Float64, N))
-zero(S::SampledSpectrum{N}) where N = SampledSpectrum{N}(S.low, S.high, zeros(Float64, N))
-convert(T::Type{SampledSpectrum{N}}, L::NoLight) where N = SampledSpectrum(200, 1000, zeros(Float64, N))
 
-SampledSpectrum(low::Integer, high::Integer, values::Array{Float64,1}) = SampledSpectrum{length(values)}(low, high, values)
+maximum(S::SampledSpectrum) = maximum(S.values)
+minimum(S::SampledSpectrum) = minimum(S.values)
 
 isblack(S::SampledSpectrum) = maximum(S.values) ≈ 0.0
 
 # Addition of SampledSpectrum objects
-function +(S1::SampledSpectrum{N}, S2::SampledSpectrum{N}) where N
+function +(S1::SampledSpectrum, S2::SampledSpectrum) 
     if !(S1.low == S2.low && S1.high == S2.high) 
         error("Spectrum limits don't match:\n$S1 \n $S2")
     end
     return typeof(S1)(S1.low, S2.high, S1.values + S2.values)
 end
-+(S::SampledSpectrum{N}, c::Real) where N = SampledSpectrum{N}(S.low, S.high, S.values + c)
-+(c::Real, S::SampledSpectrum) = S+c
--(c::Real, S::SampledSpectrum{N}) where N = SampledSpectrum{N}(S.low, S.high, c - S.values)
 
-function -(S1::SampledSpectrum{N}, S2::SampledSpectrum{N}) where N
+function -(S1::SampledSpectrum, S2::SampledSpectrum)
     if !(S1.low == S2.low && S1.high == S2.high) 
         error("Spectrum limits don't match:\n$S1 \n $S2")
     end
-    return typeof(S1)(S1.low, S2.high, S1.values - S2.values)
+    return SampledSpectrum(S1.low, S2.high, S1.values - S2.values)
 end
 
-
-# Multiplication of SampledSpectrum objects with reals
-function *(S1::SampledSpectrum{N}, S2::SampledSpectrum{N}) where N
-    if !(S1.low == S2.low && S1.high == S2.high) 
-        error("Spectrum limits don't match:\n$S1 \n $S2")
-    end
-    return typeof(S1)(S1.low, S2.high, S1.values .* S2.values)
-end
-*(S::SampledSpectrum, c::Real) = c*S
-*(c::Real, S::SampledSpectrum{N}) where N = SampledSpectrum{N}(S.low, S.high, c*S.values)
-/(S::SampledSpectrum{N}, c::Real) where N = SampledSpectrum{N}(S.low, S.high, S.values/c)
 
 # Various functions
-import Base.broadcast, Base.size, Base.length
-#broadcast(f::Function, S::SampledSpectrum{N}) where N = SampledSpectrum{N}(S.low, S.high, broadcast(f, S.values))
-#broadcast(f::Function, S::SampledSpectrum{N}, Y::SampledSpectrum{N}) where N = SampledSpectrum{N}(S.low, S.high, broadcast(f, S.values, Y.values))
-#broadcast(f::Function, S::SampledSpectrum{N}, y...) where N = SampledSpectrum{N}(S.low, S.high, broadcast(f, S.values, y...))
-size(S::SampledSpectrum{N}) where N = N
-length(S::SampledSpectrum{N}) where N = N
+Base.length(S::SampledSpectrum) = Base.length(S.values)
+Base.size(S::SampledSpectrum) = Base.size(S.values)
+Base.getindex(S::SampledSpectrum, inds::Vararg{Int,N}) where N = S.values[inds...]
+Base.getindex(S::SampledSpectrum, inds::CartesianIndex{1}) = S.values[inds]
+Base.setindex!(S::SampledSpectrum, val, inds::Vararg{Int,N}) where N = S.values[inds...] = val
+Base.setindex!(S::SampledSpectrum, val, inds::CartesianIndex{1}) = S.values[inds] = val
+
+Base.collect(S::SampledSpectrum) = S.values
+
+Base.broadcastable(S::SampledSpectrum) = S
+
+# Broadcasting style for SampledSpectrum
+Base.BroadcastStyle(::Type{<:SampledSpectrum}) = SpectrumStyle()
+Base.BroadcastStyle(::SpectrumStyle, ::SpectrumStyle) = SpectrumStyle()
+Base.BroadcastStyle(::SpectrumStyle, ::Broadcast.AbstractArrayStyle{0}) = SpectrumStyle()
+
+
+function Base.similar(bc::Broadcast.Broadcasted{SpectrumStyle}, ::Type{ElType}) where ElType
+    if !check_limits(bc.args...)
+        error("Spectrum bounds mismatch")
+    end
+    first = bc.args[1] # TODO: find first SampledSpectrum in args
+    return SampledSpectrum(first.low, first.high, similar(Array{ElType}, axes(bc)))
+end
+
+check_limits(S::SampledSpectrum, T::SampledSpectrum) = (S.low == T.low) && (S.high == T.high)
+
+
 
 function integrate(S::SampledSpectrum)
     dl = (S.high - S.low) / length(S.values)

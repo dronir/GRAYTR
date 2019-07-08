@@ -16,6 +16,9 @@ include("test_bounding.jl")
 # Tests of shapes
 include("test_shapes.jl")
 
+# Tests of spectra
+include("test_spectrum.jl")
+
 # Tests of brdf.jl
 include("test_brdf.jl")
 
