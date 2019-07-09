@@ -10,7 +10,8 @@ as an `ImageFilm` camera, renders the image and writes it to disk.
 function full_computation()
     
     # Create material with flat white spectrum
-    whitespec = SampledSpectrum(300, 800, [1.0, 1.0, 1.0])
+    whitespec = SampledSpectrum(300, 800, [1.0 for i = 1:256])
+    redspec = SampledSpectrum(300, 800, collect(range(0.0, 1.0, length=256)))
     mat = Lambert(whitespec)
     
     # Create sphere shape
@@ -32,7 +33,7 @@ function full_computation()
     stuff = BVHAccelerator(primitives)
     
     # Create a distant light source with a single-line 532 nm spectrum
-    p_light = DistantLight(SingleLine(532.0, 1.0), IDENTITY_TRANSFORM)
+    p_light = DistantLight(redspec, IDENTITY_TRANSFORM)
     
     # Create scene with bounding box hierarchy and light source
     scene = Scene(stuff, LightSource[p_light])

@@ -33,7 +33,7 @@ function intensity(intgr::WhittedIntegrator, scene::Scene, isect::Intersection,
     # add contribution of each light source
     L = nolight
     for light in scene.lights
-        L += inner_int(light, isect.geometry, isect.material, -ray.direction, scene)
+        L = L .+ inner_int(light, isect.geometry, isect.material, -ray.direction, scene)
     end
     return L
     
@@ -61,7 +61,7 @@ function inner_int(light::DirectLight, dg::DifferentialGeometry, mat::BxDF, w1::
     else
         w0 = -light_ray.direction
         brdf_value = evaluate(mat, dg.T, w1, w0)
-        return (brdf_value * light_spectrum) * abs(dot(w0, dg.n))
+        return (brdf_value .* light_spectrum) .* abs(dot(w0, dg.n))
     end
 end
 

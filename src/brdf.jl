@@ -42,7 +42,7 @@ end
 Evaluate the Lambertian BRDF for given direction vectors.
 
 """
-evaluate(B::Lambert, w0::Vector3, w1::Vector3) = B.R / π
+evaluate(B::Lambert, w0::Vector3, w1::Vector3) = B.R ./ π
 
 
 """"""

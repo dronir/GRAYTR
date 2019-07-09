@@ -7,6 +7,7 @@ using DelimitedFiles
 
 
 struct SpectrumStyle <: Broadcast.BroadcastStyle end
+struct LineStyle <: Broadcast.BroadcastStyle end
 
 
 # ------------------------------------------------
@@ -69,10 +70,10 @@ struct SampledSpectrum <: Spectrum
 end
 
 
-maximum(S::SampledSpectrum) = maximum(S.values)
-minimum(S::SampledSpectrum) = minimum(S.values)
+Base.maximum(S::SampledSpectrum) = Base.maximum(S.values)
+Base.minimum(S::SampledSpectrum) = Base.minimum(S.values)
 
-isblack(S::SampledSpectrum) = maximum(S.values) ≈ 0.0
+isblack(S::SampledSpectrum) = Base.maximum(S.values) ≈ 0.0
 
 # Addition of SampledSpectrum objects
 function +(S1::SampledSpectrum, S2::SampledSpectrum) 
@@ -109,15 +110,26 @@ Base.BroadcastStyle(::SpectrumStyle, ::Broadcast.AbstractArrayStyle{0}) = Spectr
 
 
 function Base.similar(bc::Broadcast.Broadcasted{SpectrumStyle}, ::Type{ElType}) where ElType
-    if !check_limits(bc.args...)
-        error("Spectrum bounds mismatch")
-    end
-    first = bc.args[1] # TODO: find first SampledSpectrum in args
+#    flat = Broadcast.flatten(bc)
+#    if !check_limits(flat.args)
+#        error("Spectrum bounds mismatch")
+#    end
+    first = find_first(bc)
     return SampledSpectrum(first.low, first.high, similar(Array{ElType}, axes(bc)))
 end
 
-check_limits(S::SampledSpectrum, T::SampledSpectrum) = (S.low == T.low) && (S.high == T.high)
+find_first(bc::Base.Broadcast.Broadcasted) = find_first(bc.args)
+find_first(args::Tuple) = find_first(find_first(args[1]), Base.tail(args))
+find_first(x) = x
+find_first(a::SampledSpectrum, rest) = a
+find_first(::Any, rest) = find_first(rest)
 
+check_limits(x) = true
+check_limits(args::Tuple{Any}) = true
+check_limits(args::Tuple) = check_limits(args[1], check_limits(Base.tail(args)))
+check_limits(S1::SampledSpectrum, S2::SampledSpectrum) = (S1.low == S2.low) && (S1.high == S2.high)
+check_limits(S::SampledSpectrum, ::Any) = true
+check_limits(::Any, ::Any) = true
 
 
 function integrate(S::SampledSpectrum)
@@ -276,6 +288,62 @@ function *(S1::SingleLine, S2::SingleLine)
     end
     return SingleLine(S1.wavelength, S1.intensity * S2.intensity)
 end
+
+
+Base.broadcastable(S::SingleLine) = S
+
+# Multiplication broadcasting
+
+@inline function Base.broadcasted(::typeof(*), S1::SingleLine, S2::SingleLine)
+    if S1.wavelength != S2.wavelength
+        return SingleLine(S1.wavelength, 0.0)
+    end
+    return SingleLine(S1.wavelength, S1.intensity * S2.intensity)
+end
+
+@inline function Base.broadcasted(::typeof(*), S1::SingleLine, S2::SampledSpectrum)
+    return SingleLine(S1.wavelength, S1.intensity * interpolate(S2, S1.wavelength))
+end
+@inline function Base.broadcasted(::typeof(*), S2::SampledSpectrum, S1::SingleLine)
+    return SingleLine(S1.wavelength, S1.intensity * interpolate(S2, S1.wavelength))
+end
+@inline function Base.broadcasted(::typeof(*), S1::SingleLine, n::Number)
+    return SingleLine(S1.wavelength, S1.intensity * n)
+end
+@inline function Base.broadcasted(::typeof(*), n::Number, S1::SingleLine)
+    return SingleLine(S1.wavelength, S1.intensity * n)
+end
+
+@inline function Base.broadcasted(::typeof(/), S1::SingleLine, n::Number)
+    return SingleLine(S1.wavelength, S1.intensity / n)
+end
+
+@inline function Base.broadcasted(::typeof(+), S1::SingleLine, S2::SingleLine)
+    if S1.wavelength != S2.wavelength
+        return SingleLine(S1.wavelength, 0.0)
+    end
+    return SingleLine(S1.wavelength, S1.intensity + S2.intensity)
+end
+
+@inline function Base.broadcasted(::typeof(+), S1::SingleLine, S2::SampledSpectrum)
+    return SingleLine(S1.wavelength, S1.intensity + interpolate(S2, S1.wavelength))
+end
+@inline function Base.broadcasted(::typeof(+), S2::SampledSpectrum, S1::SingleLine)
+    return SingleLine(S1.wavelength, S1.intensity + interpolate(S2, S1.wavelength))
+end
+@inline function Base.broadcasted(::typeof(+), S1::SingleLine, n::Number)
+    return SingleLine(S1.wavelength, S1.intensity + n)
+end
+@inline function Base.broadcasted(::typeof(+), n::Number, S1::SingleLine)
+    return SingleLine(S1.wavelength, S1.intensity + n)
+end
+
+
+@inline Base.broadcasted(::typeof(*), S::SingleLine, B::Broadcast.Broadcasted{SpectrumStyle,N}) where N = S .* materialize(B)
+@inline Base.broadcasted(::typeof(+), S::SingleLine, B::Broadcast.Broadcasted{SpectrumStyle,N}) where N = S .+ materialize(B)
+
+
+
 
 function *(S1::SingleLine, S2::SampledSpectrum)
     return SingleLine(S1.wavelength, S1.intensity * interpolate(S2, S1.wavelength))
