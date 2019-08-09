@@ -38,7 +38,7 @@ function cone_between_points(id::Integer, P1::Point3, r1::Real, P2::Point3, r2::
     rot = rotate_z_to(P2 - P1)
     trans = translation(P1...)
     
-    C = Cone(id, h, trans*rot*flip*scale)
+    C = Cone(id, h, trans*rot*scale*flip)
     
     return C
 end

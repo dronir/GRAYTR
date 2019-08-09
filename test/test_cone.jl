@@ -102,6 +102,8 @@ end # testset "intersections"
     @test !any(isnan, cone.world_to_obj.M)
     @test !any(isnan, cone.obj_to_world.MInv)
     @test !any(isnan, cone.world_to_obj.MInv)
+    @test cone.obj_to_world(Point3(0,0,0)) ≈ Point3(0,0,0)
+    @test cone.obj_to_world(Point3(0,0,0.5)) ≈ Point3(0,0,1)
     
     cone = GRAYTR.cone_between_points(1, Point3(0,0,0), 0.5, Point3(0,0,1), 1.0)
     @test cone.h ≈ 0.5
@@ -109,6 +111,8 @@ end # testset "intersections"
     @test !any(isnan, cone.world_to_obj.M)
     @test !any(isnan, cone.obj_to_world.MInv)
     @test !any(isnan, cone.world_to_obj.MInv)
+    @test cone.obj_to_world(Point3(0,0,0)) ≈ Point3(0,0,1)
+    @test isapprox(cone.obj_to_world(Point3(0,0,0.5)), Point3(0,0,0) ; atol=1e-14)
     
     cone = GRAYTR.cone_between_points(1, Point3(0,0,0), 1.0, Point3(0,0,-1), 0.5)
     @test cone.h ≈ 0.5
@@ -116,6 +120,8 @@ end # testset "intersections"
     @test !any(isnan, cone.world_to_obj.M)
     @test !any(isnan, cone.obj_to_world.MInv)
     @test !any(isnan, cone.world_to_obj.MInv)
+    @test cone.obj_to_world(Point3(0,0,0)) ≈ Point3(0,0,0)
+    @test isapprox(cone.obj_to_world(Point3(0,0,0.5)), Point3(0,0,-1) ; atol=1e-14)
     
     cone = GRAYTR.cone_between_points(1, Point3(0,0,0), 0.5, Point3(0,0,-1), 1.0)
     @test cone.h ≈ 0.5
@@ -123,6 +129,8 @@ end # testset "intersections"
     @test !any(isnan, cone.world_to_obj.M)
     @test !any(isnan, cone.obj_to_world.MInv)
     @test !any(isnan, cone.world_to_obj.MInv)
+    @test isapprox(cone.obj_to_world(Point3(0,0,0)), Point3(0,0,-1) ; atol=1e-15)
+    @test isapprox(cone.obj_to_world(Point3(0,0,0.5)), Point3(0,0,0) ; atol=1e-15)
     
     
 
@@ -133,6 +141,8 @@ end # testset "intersections"
 
     cone = GRAYTR.cone_between_points(1, P1, r1, P2, r2)
     @test cone.h ≈ 0.5
+    @test isapprox(cone.obj_to_world(Point3(0,0,0)), Point3(1,0,0) ; atol=1e-15)
+    @test isapprox(cone.obj_to_world(Point3(0,0,0.5)), Point3(3,0,0) ; atol=1e-15)
     
     # Intersections from Y direction
     R = GRAYTR.Ray(Point3(0.0, -5.0, 0.0), Vector3(0, 1, 0))
