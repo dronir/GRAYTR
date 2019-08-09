@@ -167,7 +167,7 @@ function evaluate(B::AshkhminShirleySingle, w0::Vector3, w1::Vector3)
     F = Fresnel(B.R, costheta(w1), s)
     specular = F .* (D / (4π * dot(h,w1) * max(costheta(w0), costheta(w1))))
     
-    return d * specular + s * diffuse
+    return d .* specular .+ s .* diffuse
 end
 
 
