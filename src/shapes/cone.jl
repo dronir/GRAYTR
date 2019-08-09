@@ -115,22 +115,17 @@ function shape_intersect(r::Ray, cone::Cone)
     # Compute hit point, check if it's on our cone
     P1 = ray(tnear)
     P2 = ray(tfar)
-    if P1.z < cone.h && P2.z < cone.h
-        t = tnear > r.tmin ? tnear : tfar
-        P = ray(t)
-    elseif P1.z < cone.h
-        t = tnear
+    
+    if (0.0 <= P1.z <= cone.h && tnear >= r.tmin)
         P = P1
-    elseif P2.z < cone.h
-        t = tfar
+        t = tnear
+    elseif (0.0 <= P2.z <= cone.h && tfar <= r.tmax)
         P = P2
+        t = tfar
     else
         return nothing, NaN, NaN
     end
-    if P.z > 1.0 || P.z > cone.h || P.z < 0.0
-        return nothing, NaN, NaN
-    end
-    
+        
     phi = atan(P.y, P.x)
     
     n = Normal3(cos(phi)*sqrt(2)/2, sin(phi)*sqrt(2)/2, sqrt(2)/2)
@@ -162,27 +157,10 @@ function intersectP(r::Ray, cone::Cone)
         return false
     end
     
-    # Compute hit point, check if it's on our actual cone (not on the dual cone opening
-    # upwards from z=1).
+    # Compute hit points (on dual cone)
     P1 = ray(tnear)
     P2 = ray(tfar)
-    
-    # If both hit points are on the right cone, take the closer one, otherwise take
-    # whichever is, or return false if neither is.
-    if P1.z < cone.h && P2.z < cone.h
-        t = tnear > r.tmin ? tnear : tfar
-        P = ray(t)
-    elseif P1.z < cone.h
-        P = P1
-    elseif P2.z < cone.h
-        P = P2
-    else
-        return false
-    end
-    
-    if P.z > 1.0 || P.z > cone.h || P.z < 0.0
-        return false
-    else
-        return true
-    end
+
+    # Return true if either point is on the "actual" cone surface
+    return (0.0 <= P1.z <= cone.h && tnear > r.tmin) || (0.0 <= P2.z <= cone.h && tfar < r.tmax)
 end
