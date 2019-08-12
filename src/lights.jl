@@ -1,5 +1,5 @@
 
-export LightSource, DistantLight, PointLight
+export LightSource, DistantLight, PointLight, DiskLight
 
 
 ################################
@@ -28,6 +28,20 @@ given direction, with a given ray epsilon.
 function VisibilityTester(origin::Point3, direction::Vector3, eps::Float64)
     return Ray(origin, direction, eps, Inf, 1)
 end
+
+
+
+################################
+# No background for direct light sources
+
+"""
+    background(L::DirectLight)
+
+Give the background contribution of the given light source. Return `nolight` for a
+`DirectLight`.
+
+"""
+@inline background(L::DirectLight) = nolight
 
 
 
@@ -94,16 +108,6 @@ function sample_L(light::PointLight, p::Point3)
     vis = VisibilityTester(p, light.position, 2e-5, 0.0)
     return L, pdf, vis
 end
-
-
-"""
-    background(L::PointLight)
-
-Give the background contribution of the given light source. Return `nolight` for a
-`PointLight`.
-
-"""
-background(L::PointLight) = nolight
 
 
 """
@@ -174,18 +178,8 @@ Returns:
 
 """
 function sample_L(light::DistantLight, p::Point3)
-    return light.intensity, 1.0, VisibilityTester(p, light.light_to_world(NEG_Z_AXIS), 2e-5)
+    return light.intensity, 1.0, VisibilityTester(p, light.light_to_world(NEG_Z_AXIS), 1e-9)
 end
-
-
-"""
-    background(L::DistantLight)
-
-Returns the background light produced by the lightsource. Returns `nolight` for a
-`DistantLight`.
-
-"""
-background(L::DistantLight) = nolight
 
 
 """
@@ -214,7 +208,7 @@ Background light. If one of these is in the scene, every ray that escapes to inf
 this light source.
 
 """
-struct Background{S<:Spectrum} <: LightSource
+struct Background{S<:Spectrum} <: IndirectLight
     intensity::S
 end
 
