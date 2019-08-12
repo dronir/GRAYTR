@@ -32,8 +32,6 @@ include("filters.jl")
 
 include("cameras/projective.jl")
 
-include("parser.jl")
-
 include("films/imagefilm.jl")
 include("films/delayfilm.jl")
 
