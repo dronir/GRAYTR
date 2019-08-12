@@ -301,7 +301,7 @@ sample_L(light::DiskLight, p::Point3) = sample_L(light, p, rand(), rand())
 
 function sample_L(light::DiskLight, p::Point3, u1::Real, u2::Real)
     direction = light.light_to_world(disk_light_sample(light.radius, u1, u2))
-    return light.intensity, 1.0, VisibilityTester(p, direction, 2e-5)
+    return light.intensity, 1.0, VisibilityTester(p, direction, 2e-9)
 end
 
 

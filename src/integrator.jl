@@ -44,6 +44,8 @@ function intensity(intgr::WhittedIntegrator, scene::Scene, isect::Intersection,
 end
 
 
+const RAY_EPS = 1e-5
+
 """
     inner_int(light::DirectLight, dg::DifferentialGeometry, mat::BxDF, w1::Vector3, 
               T::Transformation, scene::Scene)
@@ -52,16 +54,16 @@ The inner loop of the `intensity` function, separated for better optimization.
 
 """
 function inner_int(light::DirectLight, dg::DifferentialGeometry, mat::BxDF, w1::Vector3, scene::Scene)
-    light_spectrum, pdf, light_ray = sample_L(light, dg.p)
+    light_spectrum, pdf, light_ray = sample_L(light, dg.p + RAY_EPS * dg.n)
     if isblack(light_spectrum) || pdf ≈ 0.0
         return nolight
     end
-    if intersectP(light_ray, scene)
+    w0 = light_ray.direction
+    if dot(w0, dg.n) < 0.0 || intersectP(light_ray, scene)
         return nolight
     else
-        w0 = -light_ray.direction
         brdf_value = evaluate(mat, dg.T, w1, w0)
-        return (brdf_value .* light_spectrum) .* abs(dot(w0, dg.n))
+        return (brdf_value .* light_spectrum) .* dot(w0, dg.n)
     end
 end
 
