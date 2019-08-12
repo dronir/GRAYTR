@@ -49,20 +49,23 @@ function shape_intersect(R::Ray, cyl::Cylinder)
     hit, tnear, tfar = quadratic(A,B,C)
     
     if !hit || tnear > ray.tmax || tfar < ray.tmin || (tnear < ray.tmin && tfar > ray.tmax)
-        # The ray didn't hit the infinitely long extension of the cylinder.
-        # This it misses the cylinder itself.
+        # The ray didn't even hit the infinitely long extension of the cylinder.
         return nothing, NaN, NaN
     end
     
-    t = tnear > ray.tmin ? tnear : tfar
-    P = ray(t)
+    P1 = ray(tnear)
+    P2 = ray(tfar)
     
-    if P.z < cyl.zmin || P.z > cyl.zmax
-        # The z coordinate of the intersection with the infinite cylinder is outside
-        # of the actual cylinder's extent.
+    if cyl.zmin <= P1.z <= cyl.zmax && tnear >= ray.tmin
+        P = P1
+        t = tnear
+    elseif cyl.zmin <= P2.z <= cyl.zmax && tnear <= ray.tmax
+        P = P2
+        t = tfar
+    else
         return nothing, NaN, NaN
     end
-    
+        
     n = normalize(Normal3(P.x, P.y, 0.0))
     s = Vector3(0.0, 0.0, 1.0)
     
@@ -85,9 +88,11 @@ function intersectP(r::Ray, cyl::Cylinder)
         return false
     end
     
-    t = tnear > ray.tmin ? tnear : tfar
-    P = ray(t)
+    P1 = ray(tnear)
+    P2 = ray(tfar)
     
-    return P.z >= cyl.zmin && P.z <= cyl.zmax
+    return (cyl.zmin <= P1.z <= cyl.zmax && tnear >= ray.tmin) || (cyl.zmin <= P2.z <= cyl.zmax && tnear <= ray.tmax)
+        
+        
 end
 
