@@ -242,4 +242,4 @@ function intersectP(R::Ray, BS::BoundingSphere)
 end
 
 
-cross_section(B::BoundingSphere) = π * B.radius^2
+@inline cross_section(B::BoundingSphere) = π * B.radius^2
