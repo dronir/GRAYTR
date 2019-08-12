@@ -67,6 +67,13 @@ struct SampledSpectrum <: Spectrum
     low::Int64
     high::Int64
     values::Array{Float64,1}
+    delta::Float64
+    invdelta::Float64
+end
+
+function SampledSpectrum(low::Int64, high::Int64, values::Vector{Float64}) 
+    delta = (high-low) / (length(values) - 1)
+    SampledSpectrum(low, high, values, delta, 1/delta)
 end
 
 
@@ -137,15 +144,20 @@ function integrate(S::SampledSpectrum)
     return dl * sum(S.values)
 end
 
+@inline function wavelength(S::SampledSpectrum, i::Integer)
+    return S.low + i * S.delta
+end
+
 function interpolate(S::SampledSpectrum, a::Real)
     if a < S.low
         return S.values[1]
     elseif a >= S.high
         return S.values[end]
     end
-    delta = (S.high - S.low) / (length(S) - 1)
-    N = Int64(fld(a - S.low, delta))
-    return lerp((a - S.low - N*delta) / delta, S.values[N+1], S.values[N+2])
+    
+    i = Int64(fld(a - S.low, S.delta))
+    t = (a - i * S.delta) * S.invdelta
+    return lerp(t, S.values[i+1], S.values[i+2])
 end
 
 function interpolate(S::SampledSpectrum, a::Real, b::Real)
@@ -216,15 +228,16 @@ end
 
 
 function to_XYZ(S::SampledSpectrum)
-    out = [0.0, 0.0, 0.0]
+    x, y, z, ys = 0.0, 0.0, 0.0, 0.0
     for i = 1:N_CIE
         lam = CIE_LAMBDA[i]
         s = interpolate(S, lam)
-        out[1] += s * CIE_X[i]
-        out[2] += s * CIE_Y[i]
-        out[3] += s * CIE_Z[i]
+        x += s * CIE_X[i]
+        y += s * CIE_Y[i]
+        z += s * CIE_Z[i]
+        ys += CIE_Y[i]
     end
-    return out
+    return x/ys, y/ys, z/ys
 end
 
 
