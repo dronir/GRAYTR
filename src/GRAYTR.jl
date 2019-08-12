@@ -21,7 +21,6 @@ include("bounding.jl")
 include("spectrum.jl")
 include("brdf.jl")
 
-include("ray_generators.jl")
 include("lights.jl")
 include("primitives.jl")
 include("dumb_aggregate.jl")
