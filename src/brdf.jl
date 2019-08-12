@@ -217,10 +217,10 @@ Compute the radiation pressure on a surface.
 
 """
 function compute_pressure(B::SpecularDiffuse, w0::Vector3, S::Spectrum)
-    fa = 1.0 - B.fd - B.fs
     if costheta(w0) < 0.0
         return Vector3(0)
     end
-    total_energy = integrate(B.R * S)
+    fa = 1.0 - B.fd - B.fs
+    total_energy = integrate(B.R .* S)
     return -total_energy * ((fa + B.fd) * (w0 + 2/3 * Z_AXIS) + 2*B.fs*costheta(w0) * Z_AXIS)
 end
