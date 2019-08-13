@@ -216,11 +216,11 @@ function run(task::PressureRendererTask, write_lock::Threads.AbstractLock)
                 force += f
                 torque += t
             end
-           task.integrator.counts[task.nlight] += 1
         end
         lock(write_lock)
         task.integrator.force[task.nlight] += force * cross_section(task.sphere)
         task.integrator.torque[task.nlight] += torque * cross_section(task.sphere)
+        task.integrator.counts[task.nlight] += length(samples)
         unlock(write_lock)
     end
 end
