@@ -61,7 +61,7 @@ generate_ray(B::Lambert, w0::Vector3) = nothing
 
 
 """
-    compute_pressure(B::Lambert, w0::Vector3)
+    compute_pressure(B::Lambert, w0::Vector3, S::Spectrum)
 
 Compute the radiation pressure on a surface
 
@@ -138,7 +138,7 @@ end
 
 The Fresnel term of the Ashkhmin-Shirley BRDF (see Wetterer, 2014).
 """
-Fresnel(R::Spectrum, costheta::Real, s::Real) = @. R + (1/s - R) * (1 - costheta)^5
+@inline Fresnel(R::Spectrum, costheta::Real, s::Real) = @. R + (1/s - R) * (1 - costheta)^5
 
 
 """
@@ -146,7 +146,7 @@ Fresnel(R::Spectrum, costheta::Real, s::Real) = @. R + (1/s - R) * (1 - costheta
     
 The Blinn-Phong function used in the Ashkhmin-Shirley BRDF (see Wetterer, 2014).
 """
-BlinnPhong(n::Real, hdn::Real) = (n+1) * hdn^n / 2π
+@inline BlinnPhong(n::Real, hdn::Real) = (n+1) * hdn^n / 2π
 
 
 """

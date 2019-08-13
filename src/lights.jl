@@ -191,7 +191,8 @@ given random sample.
 """
 function generate_ray(light::DistantLight, bounds::BoundingSphere, S::Sample)
     ray = ray_parallel(bounds.radius, S.imgX, S.imgY)
-    return light.light_to_world(ray)
+    shift = translation(bounds.center)
+    return shift(light.light_to_world(ray))
 end
 
 
@@ -277,7 +278,8 @@ Create new `DiskLight` in the desired direction, angular radius and intensity.
 """
 function DiskLight(direction::Vector3, radius::Float64, intensity::Spectrum)
     rot_z = rotate_z_to(direction)
-    return DiskLight(radius, intensity, rot_z, inv(rot_z))
+    Ω = 2π * (1 - cos(radius))
+    return DiskLight(radius, Ω * intensity, rot_z, inv(rot_z))
 end
 
 
@@ -315,5 +317,28 @@ function disk_light_sample(radius::Real, u1::Real, u2::Real)
     r = sqrt(1.0 - z^2)
     return Vector3(r*cos(phi), r*sin(phi), z)
 end
+
+
+"""
+    generate_ray(light::DiskLight, bounds::BoundingSphere, S::Sample)
+
+Returns a ray from the light source at the given `BoundingSphere`, parametrized by the
+given random sample.
+
+"""
+function generate_ray(light::DiskLight, bounds::BoundingSphere, S::Sample)
+    # Pick a direction, i.e. a point on the (infinitely distant) disk
+    # and make the transformation to rotate Z into that direction
+    V = disk_light_sample(light.radius, S.imgX, S.imgY)
+    T = rotate_z_to(V)
+    
+    # Make a ray from infinitely far along the Z axis and rotate it into the direction 
+    # given by T. Also shift it relative to the origin of the bounding sphere.
+    
+    ray = ray_parallel(bounds.radius, S.lensU, S.lensV)
+    shift = translation(bounds.center) * T
+    return shift(light.light_to_world(ray))
+end
+
 
 

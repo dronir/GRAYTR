@@ -49,6 +49,10 @@ ws = normalize(Vector3(-1, 0, 1))
     
     @test GRAYTR.evaluate(R, w0, w1) == GRAYTR.SingleLine(532.0, 1) / π
     @test GRAYTR.rho(R, w0) == GRAYTR.SingleLine(532.0, 1)
+    
+    
+    @test_broken GRAYTR.compute_pressure(R, w0, )
+    
 end
 
 @testset "Lommel-Seeliger" begin
