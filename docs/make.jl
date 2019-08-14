@@ -1,3 +1,7 @@
 using Documenter, GRAYTR
 
-makedocs(sitename="GRAYTR")
+push!(LOAD_PATH,"../src/")
+
+makedocs(
+    sitename = "GRAYTR"
+)
