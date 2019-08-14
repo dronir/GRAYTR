@@ -89,7 +89,7 @@ function add_sample!(F::ImageFilm, sample::Sample, L::Spectrum, isect::Union{Int
         for j = y0:y1
             # TODO: unoptimized way, without using filter table
             w = evaluate(F.filter, (i-dimgX), (j-dimgY))
-            F.pixels[i,j] = add(F.pixels[i,j], w*x, w*y, w*z, w)
+            @inbounds F.pixels[i,j] = add(F.pixels[i,j], w*x, w*y, w*z, w)
         end
     end
 end
@@ -123,7 +123,7 @@ function write_image(F::ImageFilm, fname::String="test.png")
     for i = 1:size(F.pixels,1)
         for j = 1:size(F.pixels,2)
             P = F.pixels[i,j]
-            data[:,i,j] = XYZtoRGB([P.x/P.w, P.y/P.w, P.z/P.w]) * F.gain
+            data[:,i,j] = XYZtoRGB(P.x/P.w, P.y/P.w, P.z/P.w) * F.gain
         end
     end
     img = colorview(RGB, map(clamp01nan, data))

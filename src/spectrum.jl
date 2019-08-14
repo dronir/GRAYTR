@@ -17,11 +17,14 @@ struct LineStyle <: Broadcast.BroadcastStyle end
 const CIE_PATH = joinpath(dirname(pathof(GRAYTR)), "..", "data", "lin2012xyz2e_1_7sf.csv")
 
 const raw_CIE_data = readdlm(CIE_PATH, ',')
-const N_CIE = length(raw_CIE_data[:,1])
-const CIE_LAMBDA = vec(raw_CIE_data[:,1])
-const CIE_X = vec(raw_CIE_data[:,2])
-const CIE_Y = vec(raw_CIE_data[:,3])
-const CIE_Z = vec(raw_CIE_data[:,4])
+const N_CIE = size(raw_CIE_data)[1]
+
+const CIE_DATA = SMatrix{4, N_CIE, Float64}(raw_CIE_data)
+
+#const CIE_LAMBDA = vec(raw_CIE_data[:,1])
+#const CIE_X = vec(raw_CIE_data[:,2])
+#const CIE_Y = vec(raw_CIE_data[:,3])
+#const CIE_Z = vec(raw_CIE_data[:,4])
 
 
 
@@ -157,7 +160,7 @@ function interpolate(S::SampledSpectrum, a::Real)
     
     i = Int64(fld(a - S.low, S.delta))
     t = (a - i * S.delta) * S.invdelta
-    return lerp(t, S.values[i+1], S.values[i+2])
+    return @inbounds lerp(t, S.values[i+1], S.values[i+2])
 end
 
 function interpolate(S::SampledSpectrum, a::Real, b::Real)
@@ -230,12 +233,12 @@ end
 function to_XYZ(S::SampledSpectrum)
     x, y, z, ys = 0.0, 0.0, 0.0, 0.0
     for i = 1:N_CIE
-        lam = CIE_LAMBDA[i]
+        lam = CIE_DATA[1,i]
         s = interpolate(S, lam)
-        x += s * CIE_X[i]
-        y += s * CIE_Y[i]
-        z += s * CIE_Z[i]
-        ys += CIE_Y[i]
+        x += s * CIE_DATA[2,i]
+        y += s * CIE_DATA[3,i]
+        z += s * CIE_DATA[4,i]
+        ys += CIE_DATA[3,i]
     end
     return x/ys, y/ys, z/ys
 end
@@ -392,10 +395,10 @@ broadcast(f, S::SingleLine, y...) = SingleLine(S.wavelength, f(S.intensity, y...
 # ------------------------------------------------
 # Conversion between XYZ and RGB
 
-function XYZtoRGB(xyz::Array{Float64,1})
-    return [3.240479*xyz[1] - 1.537150*xyz[2] - 0.498535*xyz[3],
-           -0.969256*xyz[1] + 1.875991*xyz[2] + 0.041556*xyz[3],
-            0.055648*xyz[1] - 0.204043*xyz[2] + 1.057311*xyz[3]]
+function XYZtoRGB(x, y, z)
+    return [3.240479*x - 1.537150*y - 0.498535*z,
+           -0.969256*x + 1.875991*y + 0.041556*z,
+            0.055648*x - 0.204043*y + 1.057311*z]
 end  
 
 function RGBtoXYZ(rgb::Union{Array{Float64,1}, RGBSpectrum})
