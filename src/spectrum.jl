@@ -37,12 +37,13 @@ struct NoLight <: Spectrum end
 
 const nolight = NoLight()
 
-isblack(N::NoLight) = true
-to_XYZ(S::NoLight) = [0.0, 0.0, 0.0]
+@inline isblack(N::NoLight) = true
+@inline to_XYZ(S::NoLight) = (0.0, 0.0, 0.0)
 
 Base.broadcastable(N::NoLight) = N
 
-interpolate(N::NoLight, x) = nolight
+@inline interpolate(N::NoLight, x) = nolight
+@inline integrate(N::NoLight) = 0.0
 
 @inline Base.broadcasted(::typeof(+), s::NoLight, t::NoLight) = NoLight()
 @inline Base.broadcasted(::typeof(*), n::NoLight, t::NoLight) = NoLight()
