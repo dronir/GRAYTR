@@ -75,6 +75,14 @@ struct SampledSpectrum <: Spectrum
     invdelta::Float64
 end
 
+
+"""
+    SampledSpectrum(low::Int64, high::Int64, values::Vector{Float64}) 
+
+Create a new `SampledSpectrum` object with a wavelength range from `low` to `high`
+nanometres and binned spectrum values given by `values`.
+
+"""
 function SampledSpectrum(low::Int64, high::Int64, values::Vector{Float64}) 
     delta = (high-low) / (length(values) - 1)
     SampledSpectrum(low, high, values, delta, 1/delta)
@@ -279,23 +287,30 @@ broadcast(f, S::RGBSpectrum) = RGBSpectrum(f(S.r), f(S.g), f(S.b))
 # ------------------------------------------------
 # Single line spectra
 
+"""
+    SingleLine(wavelength, value)
+
+Create a `SingleLine` spectrum representing a delta-distribution of a value at a certain
+wavelength.
+
+"""
 struct SingleLine <: Spectrum
     wavelength::Float64
-    intensity::Float64
+    value::Float64
 end
 
-isblack(S::SingleLine) = S.intensity ≈ 0.0
+isblack(S::SingleLine) = S.value ≈ 0.0
 
 # Addition of SingleLine objects
 function +(S1::SingleLine, S2::SingleLine)
     if S1.wavelength != S2.wavelength
         error("Spectrum wavelengths don't match:\n$S1 \n $S2")
     end
-    return SingleLine(S1.wavelength, S1.intensity + S2.intensity)
+    return SingleLine(S1.wavelength, S1.value + S2.value)
 end
-+(S::SingleLine, c::Real) = SingleLine(S.wavelength, S.intensity + c)
++(S::SingleLine, c::Real) = SingleLine(S.wavelength, S.value + c)
 +(c::Real, S::SingleLine) = S+c
--(c::Real, S::SingleLine) = SingleLine(S.wavelength, S.intensity - c)
+-(c::Real, S::SingleLine) = SingleLine(S.wavelength, S.value - c)
 
 
 # Multiplication of SingleLine objects
@@ -303,7 +318,7 @@ function *(S1::SingleLine, S2::SingleLine)
     if S1.wavelength != S2.wavelength
         SingleLine(S1.wavelength, 0.0)
     end
-    return SingleLine(S1.wavelength, S1.intensity * S2.intensity)
+    return SingleLine(S1.wavelength, S1.value * S2.value)
 end
 
 
@@ -315,44 +330,44 @@ Base.broadcastable(S::SingleLine) = S
     if S1.wavelength != S2.wavelength
         return SingleLine(S1.wavelength, 0.0)
     end
-    return SingleLine(S1.wavelength, S1.intensity * S2.intensity)
+    return SingleLine(S1.wavelength, S1.value * S2.value)
 end
 
 @inline function Base.broadcasted(::typeof(*), S1::SingleLine, S2::SampledSpectrum)
-    return SingleLine(S1.wavelength, S1.intensity * interpolate(S2, S1.wavelength))
+    return SingleLine(S1.wavelength, S1.value * interpolate(S2, S1.wavelength))
 end
 @inline function Base.broadcasted(::typeof(*), S2::SampledSpectrum, S1::SingleLine)
-    return SingleLine(S1.wavelength, S1.intensity * interpolate(S2, S1.wavelength))
+    return SingleLine(S1.wavelength, S1.value * interpolate(S2, S1.wavelength))
 end
 @inline function Base.broadcasted(::typeof(*), S1::SingleLine, n::Number)
-    return SingleLine(S1.wavelength, S1.intensity * n)
+    return SingleLine(S1.wavelength, S1.value * n)
 end
 @inline function Base.broadcasted(::typeof(*), n::Number, S1::SingleLine)
-    return SingleLine(S1.wavelength, S1.intensity * n)
+    return SingleLine(S1.wavelength, S1.value * n)
 end
 
 @inline function Base.broadcasted(::typeof(/), S1::SingleLine, n::Number)
-    return SingleLine(S1.wavelength, S1.intensity / n)
+    return SingleLine(S1.wavelength, S1.value / n)
 end
 
 @inline function Base.broadcasted(::typeof(+), S1::SingleLine, S2::SingleLine)
     if S1.wavelength != S2.wavelength
         return SingleLine(S1.wavelength, 0.0)
     end
-    return SingleLine(S1.wavelength, S1.intensity + S2.intensity)
+    return SingleLine(S1.wavelength, S1.value + S2.value)
 end
 
 @inline function Base.broadcasted(::typeof(+), S1::SingleLine, S2::SampledSpectrum)
-    return SingleLine(S1.wavelength, S1.intensity + interpolate(S2, S1.wavelength))
+    return SingleLine(S1.wavelength, S1.value + interpolate(S2, S1.wavelength))
 end
 @inline function Base.broadcasted(::typeof(+), S2::SampledSpectrum, S1::SingleLine)
-    return SingleLine(S1.wavelength, S1.intensity + interpolate(S2, S1.wavelength))
+    return SingleLine(S1.wavelength, S1.value + interpolate(S2, S1.wavelength))
 end
 @inline function Base.broadcasted(::typeof(+), S1::SingleLine, n::Number)
-    return SingleLine(S1.wavelength, S1.intensity + n)
+    return SingleLine(S1.wavelength, S1.value + n)
 end
 @inline function Base.broadcasted(::typeof(+), n::Number, S1::SingleLine)
-    return SingleLine(S1.wavelength, S1.intensity + n)
+    return SingleLine(S1.wavelength, S1.value + n)
 end
 
 
@@ -363,33 +378,33 @@ end
 
 
 function *(S1::SingleLine, S2::SampledSpectrum)
-    return SingleLine(S1.wavelength, S1.intensity * interpolate(S2, S1.wavelength))
+    return SingleLine(S1.wavelength, S1.value * interpolate(S2, S1.wavelength))
 end
 *(S1::SampledSpectrum, S2::SingleLine) = S2*S1
 
-*(c::Real, S::SingleLine) = SingleLine(S.wavelength, c*S.intensity)
+*(c::Real, S::SingleLine) = SingleLine(S.wavelength, c*S.value)
 *(S::SingleLine, c::Real) = c*S
 
-/(S::SingleLine, c::Real) = SingleLine(S.wavelength, S.intensity/c)
+/(S::SingleLine, c::Real) = SingleLine(S.wavelength, S.value/c)
 
-interpolate(S::SingleLine, wavelength::Real) = S.wavelength ≈ wavelength ? S.intensity : 0.0
+interpolate(S::SingleLine, wavelength::Real) = S.wavelength ≈ wavelength ? S.value : 0.0
 
-integrate(S::SingleLine) = S.intensity
+integrate(S::SingleLine) = S.value
 
 function to_XYZ(S::SingleLine)
     x,y,z = 0.0, 0.0, 0.0
     for i = 1:N_CIE-1
         if CIE_LAMBDA[i] < S.wavelength && CIE_LAMBDA[i+1] >= S.wavelength
-            x += S.intensity * (CIE_X[i] + CIE_X[i+1]) / 2
-            y += S.intensity * (CIE_Y[i] + CIE_Y[i+1]) / 2
-            z += S.intensity * (CIE_Z[i] + CIE_Z[i+1]) / 2
+            x += S.value * (CIE_X[i] + CIE_X[i+1]) / 2
+            y += S.value * (CIE_Y[i] + CIE_Y[i+1]) / 2
+            z += S.value * (CIE_Z[i] + CIE_Z[i+1]) / 2
             break
         end
     end
-    return x, y, z
+    return x/y, 1.0, z/y
 end
 
-broadcast(f, S::SingleLine, y...) = SingleLine(S.wavelength, f(S.intensity, y...))
+broadcast(f, S::SingleLine, y...) = SingleLine(S.wavelength, f(S.value, y...))
 
 
 
