@@ -29,12 +29,12 @@ false` and randomly jittered inside the bin if `jitter == true`.
 
 """
 function stratified2D(Nx::Integer, Ny::Integer, jitter::Bool)
-    out = zeros(Float64, (Nx*Ny,2))
+    out = zeros(Float64, (2,Nx*Ny))
     n = 1
     for i = 1:Nx
         for j = 1:Ny
-            out[n,1] = (i-1 + (jitter ? rand() : 0.5))/Nx
-            out[n,2] = (j-1 + (jitter ? rand() : 0.5))/Ny
+            out[1,n] = (i-1 + (jitter ? rand() : 0.5))/Nx
+            out[2,n] = (j-1 + (jitter ? rand() : 0.5))/Ny
             n += 1
         end
     end
@@ -202,15 +202,15 @@ function get_samples!(sampler::StratifiedSampler, state::Integer, out::Array{Cam
     ypos = sampler.ystart + div(state, dy)
     img_samples = stratified2D(sampler.xs, sampler.ys, sampler.jitter)
     lens_samples = stratified2D(sampler.xs, sampler.ys, sampler.jitter)
-    shuffle!(lens_samples[:,1])
-    shuffle!(lens_samples[:,2])
+    shuffle!(lens_samples[1,:])
+    shuffle!(lens_samples[2,:])
     N = sampler.xs * sampler.ys
     for i = 1:N
         out[i] = CameraSample(
-            img_samples[i,1] + xpos - 1,
-            img_samples[i,2] + ypos - 1,
-            lens_samples[i,1],
-            lens_samples[i,2]
+            img_samples[1,i] + xpos - 1,
+            img_samples[2,i] + ypos - 1,
+            lens_samples[1,i],
+            lens_samples[2,i]
         )
     end
     return state+1
