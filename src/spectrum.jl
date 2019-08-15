@@ -20,6 +20,7 @@ const raw_CIE_data = readdlm(CIE_PATH, ',')
 const N_CIE = size(raw_CIE_data)[1]
 
 const CIE_DATA = SMatrix{4, N_CIE, Float64}(raw_CIE_data)
+const CIE_YINT = sum(CIE_DATA[3,:])
 
 #const CIE_LAMBDA = vec(raw_CIE_data[:,1])
 #const CIE_X = vec(raw_CIE_data[:,2])
@@ -94,20 +95,6 @@ Base.minimum(S::SampledSpectrum) = Base.minimum(S.values)
 
 isblack(S::SampledSpectrum) = Base.maximum(S.values) ≈ 0.0
 
-# Addition of SampledSpectrum objects
-function +(S1::SampledSpectrum, S2::SampledSpectrum) 
-    if !(S1.low == S2.low && S1.high == S2.high) 
-        error("Spectrum limits don't match:\n$S1 \n $S2")
-    end
-    return typeof(S1)(S1.low, S2.high, S1.values + S2.values)
-end
-
-function -(S1::SampledSpectrum, S2::SampledSpectrum)
-    if !(S1.low == S2.low && S1.high == S2.high) 
-        error("Spectrum limits don't match:\n$S1 \n $S2")
-    end
-    return SampledSpectrum(S1.low, S2.high, S1.values - S2.values)
-end
 
 
 # Various functions
@@ -240,16 +227,15 @@ end
 
 
 function to_XYZ(S::SampledSpectrum)
-    x, y, z, ys = 0.0, 0.0, 0.0, 0.0
+    x, y, z = 0.0, 0.0, 0.0
     for i = 1:N_CIE
         lam = CIE_DATA[1,i]
         s = interpolate(S, lam)
         x += s * CIE_DATA[2,i]
         y += s * CIE_DATA[3,i]
         z += s * CIE_DATA[4,i]
-        ys += CIE_DATA[3,i]
     end
-    return x/ys, y/ys, z/ys
+    return x/CIE_YINT, y/CIE_YINT, z/CIE_YINT
 end
 
 
@@ -394,14 +380,14 @@ integrate(S::SingleLine) = S.value
 function to_XYZ(S::SingleLine)
     x,y,z = 0.0, 0.0, 0.0
     for i = 1:N_CIE-1
-        if CIE_LAMBDA[i] < S.wavelength && CIE_LAMBDA[i+1] >= S.wavelength
-            x += S.value * (CIE_X[i] + CIE_X[i+1]) / 2
-            y += S.value * (CIE_Y[i] + CIE_Y[i+1]) / 2
-            z += S.value * (CIE_Z[i] + CIE_Z[i+1]) / 2
+        if CIE_DATA[1,i] < S.wavelength && CIE_DATA[1,i+1] >= S.wavelength
+            x += S.value * (CIE_DATA[2,i] + CIE_DATA[2,i+1]) / 2
+            y += S.value * (CIE_DATA[3,i] + CIE_DATA[3,i+1]) / 2
+            z += S.value * (CIE_DATA[4,i] + CIE_DATA[4,i+1]) / 2
             break
         end
     end
-    return x/y, 1.0, z/y
+    return x/CIE_YINT, y/CIE_YINT, z/CIE_YINT
 end
 
 broadcast(f, S::SingleLine, y...) = SingleLine(S.wavelength, f(S.value, y...))
