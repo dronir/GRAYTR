@@ -47,13 +47,12 @@ end
 const RAY_EPS = 1e-5
 
 """
-    inner_int(light::DirectLight, dg::DifferentialGeometry, mat::BxDF, w1::Vector3, 
-              T::Transformation, scene::Scene)
+    inner_int(light::LightSource, dg::DifferentialGeometry, mat::BxDF, w1::Vector3, scene::Scene)
                  
 The inner loop of the `intensity` function, separated for better optimization.
 
 """
-function inner_int(light::DirectLight, dg::DifferentialGeometry, mat::BxDF, w1::Vector3, scene::Scene)
+function inner_int(light::LightSource, dg::DifferentialGeometry, mat::BxDF, w1::Vector3, scene::Scene)
     light_spectrum, pdf, light_ray = sample_L(light, dg.p + RAY_EPS * dg.n)
     if isblack(light_spectrum) || pdf ≈ 0.0
         return nolight
@@ -66,20 +65,6 @@ function inner_int(light::DirectLight, dg::DifferentialGeometry, mat::BxDF, w1::
         return (brdf_value .* light_spectrum) .* dot(w0, dg.n)
     end
 end
-
-
-"""
-    inner_int(light::IndirectLight, dg::DifferentialGeometry, 
-              mat::BxDF, w1::Vector3, T::Transformation, scene::Scene)
-                 
-The inner loop of the `intensity` function, separated for better optimization. For an
-`IndirectLight` this is always `nolight`.
-
-"""
-function inner_int(light::IndirectLight, dg::DifferentialGeometry, mat::BxDF, w1::Vector3, T::Transformation, scene::Scene)
-    return nolight
-end
-
 
 
 

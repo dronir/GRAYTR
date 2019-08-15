@@ -10,16 +10,22 @@ The `Scene` type contains the root node of the object hierarchy, a list of the l
 sources in the scene, and the global bounding box.
 
 """
-struct Scene{T<:Aggregate}
+struct Scene{T<:Aggregate, S<:Spectrum}
     aggregate::T
     lights::Array{LightSource,1}
     bounds::BoundingBox
+    background::S
 end
 
-Scene(agg::Aggregate, lights::Array{LightSource,1}) = Scene(agg, lights, world_bounds(agg))
+Scene(agg::Aggregate, lights::Array{LightSource,1}) = Scene(agg, lights, world_bounds(agg), nolight)
+Scene(agg::Aggregate, lights::Array{LightSource,1}, background::Spectrum) = Scene(agg, lights, world_bounds(agg), background)
 
 function Scene(primitives::Array{GeometricPrimitive}, lights::Array{LightSource,1})
     return Scene(BVHAccelerator(primitives), lights)
+end
+
+function Scene(primitives::Array{GeometricPrimitive}, lights::Array{LightSource,1}, background::Spectrum)
+    return Scene(BVHAccelerator(primitives), lights, background)
 end
 
 

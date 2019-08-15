@@ -32,8 +32,6 @@ abstract type SurfaceIntegrator <: Integrator end
 
 # For lights.jl
 abstract type LightSource end
-abstract type IndirectLight <: LightSource end
-abstract type DirectLight <: LightSource end
 
 # For cameras.jl
 abstract type Camera end

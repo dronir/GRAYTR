@@ -120,10 +120,13 @@ function run(task::SamplerRendererTask, write_lock::Threads.AbstractLock)
                 if maybe_isect != nothing
                     Ls = weight .* intensity(task.integrator, task.scene, maybe_isect, 
                                             ray, samples[i])
-                    lock(write_lock)
-                    add_sample!(task.camera.film, samples[i], Ls, maybe_isect)
-                    unlock(write_lock)
+                else
+                    Ls = task.scene.background
                 end
+                lock(write_lock)
+                add_sample!(task.camera.film, samples[i], Ls, maybe_isect)
+                unlock(write_lock)
+                
             end
         end
     end

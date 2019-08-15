@@ -31,18 +31,6 @@ end
 
 
 
-################################
-# No background for direct light sources
-
-"""
-    background(L::DirectLight)
-
-Give the background contribution of the given light source. Return `nolight` for a
-`DirectLight`.
-
-"""
-@inline background(L::DirectLight) = nolight
-
 
 
 
@@ -51,7 +39,7 @@ Give the background contribution of the given light source. Return `nolight` for
 
 
 """
-    PointLight{S<:Spectrum} <: DirectLight
+    PointLight{S<:Spectrum} <: LightSource
 
 Point light source. It's located at a given point and radiates isotropically. The intensity
 value given is interpreted as the intensity in Watts/m^2 at a distance of 1 meter.
@@ -65,7 +53,7 @@ value given is interpreted as the intensity in Watts/m^2 at a distance of 1 mete
 - `world_to_light::Transformation`, inverse transformation of the above.
 
 """
-struct PointLight{S<:Spectrum} <: DirectLight
+struct PointLight{S<:Spectrum} <: LightSource
     position::Point3
     intensity::S
     light_to_world::Transformation
@@ -127,7 +115,7 @@ end
 # Distanct light source
 
 """
-    DistantLight{S<:Spectrum} <: DirectLight
+    DistantLight{S<:Spectrum} <: LightSource
     
 A point light source infinitely far away, i.e. parallel rays with a given intensity spectrum
 interpreted as Watts / m^2.
@@ -144,7 +132,7 @@ the light rays travel in the -Z direction.
 
 
 """
-struct DistantLight{S<:Spectrum} <: DirectLight
+struct DistantLight{S<:Spectrum} <: LightSource
     intensity::S
     light_to_world::Transformation
     world_to_light::Transformation
@@ -199,40 +187,6 @@ end
 
 
 
-################################
-# Background light source
-
-"""
-    Background{S<:Spectrum} <: IndirectLight
-    
-Background light. If one of these is in the scene, every ray that escapes to infinity hits
-this light source.
-
-"""
-struct Background{S<:Spectrum} <: IndirectLight
-    intensity::S
-end
-
-
-"""
-    sample_L(light::Background, p::Point3)
-
-Generate a sample from light source. Return `nolight` because background lights do not
-contribute through this process (they are not direct lights).
-
-"""
-sample_L(light::Background, p::Point3) = nolight
-
-
-"""
-    background(L::Background)
-    
-Returns the background light produced by the lightsource. Returns the intensity of a
-`Background` source.
-
-"""
-background(L::Background) = L.intensity
-
 
 
 
@@ -247,7 +201,7 @@ struct AreaLight <: LightSource end
 # Disk Light (TODO)
 
 """
-    DiskLight{S<:Spectrum} <: DirectLight 
+    DiskLight{S<:Spectrum} <: LightSource
 
 A light source which is a uniformly illuminated disk far away. Expressed in terms of its
 angular radius. By default it's in the positive Z direction, and can be rotated with
@@ -262,7 +216,7 @@ a transformation.
 - `world_to_light::Transformation`, inverse transformation of the above
 
 """
-struct DiskLight{S<:Spectrum} <: DirectLight 
+struct DiskLight{S<:Spectrum} <: LightSource 
     radius::Float64
     intensity::S
     light_to_world::Transformation
@@ -287,14 +241,6 @@ end
 @inline solid_angle(D::DiskLight) = 2π * (1 - cos(D.radius))
 
 
-"""
-    background(L::DiskLight)
-    
-Returns the background light produced by the light source. Returns `nolight` for a
-`DiskLight` source.
-
-"""
-background(L::DiskLight) = nolight
 
 
 sample_L(light::DiskLight, p::Point3) = sample_L(light, p, rand(), rand())
