@@ -241,34 +241,7 @@ function to_XYZ(S::SampledSpectrum)
 end
 
 
-# ------------------------------------------------
-# The RGBSpectrum type and 
 
-struct RGBSpectrum <: Spectrum
-    r::Float64
-    g::Float64
-    b::Float64
-end
-
-import Base.getindex
-getindex(S::RGBSpectrum, i::Integer) = i==1 ? S.r : i==2 ? S.g : i==3 ? S.b : error("Out ouf bounds index for RGBSpectrum: $i")
-
-zero(T::Type{RGBSpectrum}) = RGBSpectrum(0.0, 0.0, 0.0)
-zero(T::RGBSpectrum) = RGBSpectrum(0.0, 0.0, 0.0)
-convert(T::Type{RGBSpectrum}, N::NoLight) = RGBSpectrum(0.0, 0.0, 0.0)
-
-isblack(S::RGBSpectrum) = S.r == 0.0 && S.g == 0.0 && S.b == 0.0
-
-to_XYZ(S::RGBSpectrum) = RGBtoXYZ(S)
-to_RGB(S::RGBSpectrum) = S
-
-+(a::RGBSpectrum, b::RGBSpectrum) = RGBSpectrum(a.r+b.r, a.g+b.g, a.b+b.b)
--(n::Real, S::RGBSpectrum) = RGBSpectrum(1-S.r, 1-S.g, 1-S.b)
-*(x::Number, S::RGBSpectrum) = RGBSpectrum(x*S.r, x*S.g, x*S.b)
-*(S::RGBSpectrum, x::Number) = x*S
-/(S::RGBSpectrum, x::Number) = RGBSpectrum(S.r/x, S.g/x, S.b/x)
-*(a::RGBSpectrum, b::RGBSpectrum) = RGBSpectrum(a.r*b.r, a.g*b.g, a.b*b.b)
-broadcast(f, S::RGBSpectrum) = RGBSpectrum(f(S.r), f(S.g), f(S.b))
 
 
 
