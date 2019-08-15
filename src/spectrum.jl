@@ -19,7 +19,7 @@ const CIE_PATH = joinpath(dirname(pathof(GRAYTR)), "..", "data", "lin2012xyz2e_1
 const raw_CIE_data = readdlm(CIE_PATH, ',')
 const N_CIE = size(raw_CIE_data)[1]
 
-const CIE_DATA = SMatrix{4, N_CIE, Float64}(raw_CIE_data)
+const CIE_DATA = SMatrix{4, N_CIE, Float64}(raw_CIE_data')
 const CIE_YINT = sum(CIE_DATA[3,:])
 
 #const CIE_LAMBDA = vec(raw_CIE_data[:,1])
@@ -27,6 +27,8 @@ const CIE_YINT = sum(CIE_DATA[3,:])
 #const CIE_Y = vec(raw_CIE_data[:,3])
 #const CIE_Z = vec(raw_CIE_data[:,4])
 
+function make_CIE_functions(low, high, N)
+end
 
 
 
@@ -381,9 +383,10 @@ function to_XYZ(S::SingleLine)
     x,y,z = 0.0, 0.0, 0.0
     for i = 1:N_CIE-1
         if CIE_DATA[1,i] < S.wavelength && CIE_DATA[1,i+1] >= S.wavelength
-            x += S.value * (CIE_DATA[2,i] + CIE_DATA[2,i+1]) / 2
-            y += S.value * (CIE_DATA[3,i] + CIE_DATA[3,i+1]) / 2
-            z += S.value * (CIE_DATA[4,i] + CIE_DATA[4,i+1]) / 2
+            t = (CIE_DATA[1,i+1] - S.wavelength) / (CIE_DATA[1,i+1] - CIE_DATA[1,i])
+            x += S.value * lerp(t, CIE_DATA[2,i], CIE_DATA[2,i+1])
+            y += S.value * lerp(t, CIE_DATA[3,i], CIE_DATA[3,i+1])
+            z += S.value * lerp(t, CIE_DATA[4,i], CIE_DATA[4,i+1])
             break
         end
     end
