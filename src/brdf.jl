@@ -70,7 +70,7 @@ function compute_pressure(B::Lambert, w0::Vector3, S::Spectrum)
     if costheta(w0) < 0.0
         return Vector3(0)
     end
-    total_energy = integrate(B.R * S)
+    total_energy = integrate(B.R .* S)
     return -total_energy * (w0 + 2/3 * Z_AXIS)
 end
 
