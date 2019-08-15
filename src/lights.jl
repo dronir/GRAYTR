@@ -279,14 +279,18 @@ Create new `DiskLight` in the desired direction, angular radius and intensity.
 function DiskLight(direction::Vector3, radius::Float64, intensity::Spectrum)
     rot_z = rotate_z_to(direction)
     Ω = 2π * (1 - cos(radius))
-    return DiskLight(radius, Ω * intensity, rot_z, inv(rot_z))
+    return DiskLight(radius, Ω.*intensity, rot_z, inv(rot_z))
 end
+
+
+
+@inline solid_angle(D::DiskLight) = 2π * (1 - cos(D.radius))
 
 
 """
     background(L::DiskLight)
     
-Returns the background light produced by the lightsource. Returns `nolight` for a
+Returns the background light produced by the light source. Returns `nolight` for a
 `DiskLight` source.
 
 """
@@ -329,15 +333,15 @@ given random sample.
 function generate_ray(light::DiskLight, bounds::BoundingSphere, S::Sample)
     # Pick a direction, i.e. a point on the (infinitely distant) disk
     # and make the transformation to rotate Z into that direction
-    V = disk_light_sample(light.radius, S.imgX, S.imgY)
-    T = rotate_z_to(V)
+    V = disk_light_sample(light.radius, S.lensU, S.lensV)
+    rot = light.light_to_world * rotate_z_to(V)
     
     # Make a ray from infinitely far along the Z axis and rotate it into the direction 
     # given by T. Also shift it relative to the origin of the bounding sphere.
     
-    ray = ray_parallel(bounds.radius, S.lensU, S.lensV)
-    shift = translation(bounds.center) * T
-    return shift(light.light_to_world(ray))
+    ray = ray_parallel(bounds.radius, S.imgX, S.imgY)
+    T = translation(bounds.center) * rot
+    return T(ray)
 end
 
 
