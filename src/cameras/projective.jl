@@ -43,6 +43,16 @@ end
 
 
 """
+    OrthographicCamera(cam2world, Xwidth, Ywidth, lensR, focal_depth, film)
+
+Construct an orthographic camera.
+"""
+function OrthographicCamera(cam2w::Transformation, Xwidth::Real, Ywidth::Real, lensr::Float64, focald::Float64, f::Film)
+    ProjectiveCamera(cam2w, orthographic(0.0, 1.0), [-Xwidth/2, Xwidth/2, -Ywidth/2, Ywidth/2], lensr, focald, f)
+end
+
+
+"""
     orthographic(znear::Real, zfar::Real)
     
 Computes the orthographic projection transformation given near and far distances.
