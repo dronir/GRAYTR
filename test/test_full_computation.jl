@@ -19,7 +19,7 @@ function full_computation()
     sph = Sphere(1, 1.0, Tsph)
     
     # Create open cylinder
-    Tcyl = translation(2.0, 2.0, 0.0) * scaling(1.0, 1.0, 2.0)
+    Tcyl = translation(2.0, 1.0, 0.0) * scaling(1.0, 1.0, 2.0)
     cyl = Cylinder(Tcyl)
     
     # Create primitive combining shape and material
@@ -33,7 +33,7 @@ function full_computation()
     stuff = BVHAccelerator(primitives)
     
     # Create a distant light source with a single-line 532 nm spectrum
-    p_light = DistantLight(redspec, IDENTITY_TRANSFORM)
+    p_light = DistantLight(redspec, rotation(Z_AXIS, π/8) * rotation(X_AXIS, π/2))
     
     # Create scene with bounding box hierarchy and light source
     scene = Scene(stuff, LightSource[p_light])
@@ -41,11 +41,11 @@ function full_computation()
     # Make a camera
     resX = 1024
     resY = 1024
-    width = 2.5
-    window = [-width, width, -width, width]
-    F = ImageFilm(resX, resY, 0.75, TriangleFilter(1, 1))
-    shift = translation(0.0, 0.0, -2.0)
-    image_cam = OrthographicCamera(shift, window, 0.0, 0.0, F)
+    widthX = 5
+    widthY = 5
+    F = ImageFilm(resX, resY, 1.0, TriangleFilter(1, 1))
+    camera_position = rotation(Y_AXIS, π/2) * translation(0.0, 0.0, -3.0)
+    image_cam = OrthographicCamera(camera_position, widthX, widthY, 0.0, 0.0, F)
     
     # Set up pixel sampler with 9 rays per pixel (3 rays in both X and Y directions)
     sampler = StratifiedSampler(resX, resY, 3)
@@ -54,7 +54,7 @@ function full_computation()
     whitted = WhittedIntegrator(1)
     
     # Run the renderer
-    @time render(scene, image_cam, whitted, sampler ; debug=true)
+    @time render(scene, image_cam, whitted, sampler ; debug=false)
     
     # Write the output
     write_image(F, "test.png")
