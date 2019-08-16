@@ -150,10 +150,8 @@ end
 end
 
 function interpolate(S::SampledSpectrum, a::Real)
-    if a < S.low
-        return S.values[1]
-    elseif a >= S.high
-        return S.values[end]
+    if a < S.low || a > S.high
+        return 0.0
     end
     
     i = Int64(fld(a - S.low, S.delta))
@@ -369,18 +367,18 @@ end
 broadcast(f, S::SingleLine, y...) = SingleLine(S.wavelength, f(S.value, y...))
 
 
+const Adobe_RGB = reshape([2.0413690, -0.5649464, -0.3446944,-0.9692660,  1.8760108,  0.0415560, 0.0134474, -0.1183897,  1.0154096], (3,3))'
+const CIE_RGB = reshape([2.3706743, -0.9000405, -0.4706338,-0.5138850,  1.4253036,  0.0885814, 0.0052982, -0.0146949,  1.0093968], (3,3))'
+
 
 # ------------------------------------------------
 # Conversion between XYZ and RGB
 
-function XYZtoRGB(x, y, z)
-    return [3.240479*x - 1.537150*y - 0.498535*z,
-           -0.969256*x + 1.875991*y + 0.041556*z,
-            0.055648*x - 0.204043*y + 1.057311*z]
-end  
+XYZtoRGB(xyz::Vector) = CIE_RGB * xyz
 
-function RGBtoXYZ(rgb::Union{Array{Float64,1}, RGBSpectrum})
-    return [0.412453*rgb[1] + 0.357580*rgb[2] + 0.180423*rgb[3],
-            0.212671*rgb[1] + 0.715160*rgb[2] + 0.072169*rgb[3],
-            0.019334*rgb[1] + 0.119193*rgb[2] + 0.950227*rgb[3]]
-end
+
+function XYZtoRGB(x, y, z)
+    return [2.3706743*x - 0.9000405*y - 0.4706338*z,
+           -0.5138850*x + 1.4253036*y + 0.0885814*z,
+            0.0052982*x - 0.0146949*y + 1.0093968*z]
+end  
