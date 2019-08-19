@@ -4,13 +4,13 @@ struct Triangle <: Shape
     p1::Point3
     p2::Point3
     p3::Point3
-    inverted::Bool
     obj_to_world::Transformation
     world_to_obj::Transformation
 end
 
-Triangle(T::Transformation) = Triangle(1, Point3(0,0,0), Point3(1,0,0), Point3(0,1,0), false, T, inv(T))
-Triangle(p1::Point3, p2::Point3, p3::Point3, T::Transformation) = Triangle(1, p1, p2, p3, false, T, inv(T))
+Triangle(T::Transformation) = Triangle(1, Point3(0,0,0), Point3(1,0,0), Point3(0,1,0), T, inv(T))
+Triangle(p1::Point3, p2::Point3, p3::Point3, T::Transformation) = Triangle(1, p1, p2, p3, T, inv(T))
+Triangle(id::Integer, p1::Point3, p2::Point3, p3::Point3, T::Transformation) = Triangle(id, p1, p2, p3, T, inv(T))
 Triangle(p1::Point3, p2::Point3, p3::Point3) = Triangle(p1, p2, p3, Transformation())
 
 
@@ -27,13 +27,11 @@ end
 
 function (T::Transformation)(C::Triangle)
     T2 = T * C.obj_to_world
-    Triangle(C.id, C.p1, C.p2, C.p3, C.inverted, T2, inv(T2))
+    Triangle(C.id, C.p1, C.p2, C.p3, T2, inv(T2))
 end
 
 
 function shape_intersect(R::Ray, T::Triangle)
-    ray = T.world_to_obj(R)
-    
     ray = T.world_to_obj(R)
     
     e1 = T.p2 - T.p1
