@@ -114,6 +114,8 @@ function evaluate(B::LommelSeeliger, w0::Vector3, w1::Vector3)
 end
 
 
+SpectrumLike = Union{T,R} where T <: Spectrum where R <: Real
+
 
 ######################################################################
 
@@ -125,9 +127,9 @@ The Ashkhmin-Shirley BRDF where `R` is a spectrum, `d` is the diffuse component 
 and `n` is the specular reflection width parameter. See Wetterer (2014).
 
 """
-struct AshkhminShirleySingle{T<:Spectrum} <: BxDF
-    R::T
-    d::Float64
+struct AshkhminShirleySingle{S<:SpectrumLike, T<:SpectrumLike} <: BxDF
+    Rs::T
+    Rd::S
     n::Float64
 end
 
@@ -138,7 +140,7 @@ end
 
 The Fresnel term of the Ashkhmin-Shirley BRDF (see Wetterer, 2014).
 """
-@inline Fresnel(R::Spectrum, costheta::Real, s::Real) = @. R + (1/s - R) * (1 - costheta)^5
+@inline Fresnel(Rs::SpectrumLike, x::Real) = Rs .+ (1.0 .- Rs) .* (1.0 - x)^5
 
 
 """
@@ -146,7 +148,11 @@ The Fresnel term of the Ashkhmin-Shirley BRDF (see Wetterer, 2014).
     
 The Blinn-Phong function used in the Ashkhmin-Shirley BRDF (see Wetterer, 2014).
 """
-@inline BlinnPhong(n::Real, hdn::Real) = (n+1) * hdn^n / 2π
+@inline BlinnPhong(n::SpectrumLike, hdn::Real) = (n .+ 1) .* hdn^n ./ 8π
+
+
+
+@inline f5(x) = (one(x) - (one(x) - x/2)^5)
 
 
 """
@@ -156,18 +162,15 @@ Evaluate Ashkhmin-Shirley BRDF for given direction vectors.
 
 """
 function evaluate(B::AshkhminShirleySingle, w0::Vector3, w1::Vector3)
-    d = B.d
-    s = 1.0 - d
     h = normalize((w0 + w1) / 2.0)
+    
+    diffuse = (B.Rd .* (1 .- B.Rs)) .* (28/23π * f5(costheta(w0)) * f5(costheta(w1)))
+    
     D = BlinnPhong(B.n, h.z)
+    F = Fresnel(B.Rs, costheta(w1))
+    specular = F .* (D ./ (dot(h,w1) * max(costheta(w0), costheta(w1))))
     
-    Cdiff = (28/23π * (1 - (1 - costheta(w0)/2)^5) * (1 - (1 - costheta(w1)/2)^5))
-    diffuse = @. Cdiff * (B.R - s * B.R^2)
-    
-    F = Fresnel(B.R, costheta(w1), s)
-    specular = F .* (D / (4π * dot(h,w1) * max(costheta(w0), costheta(w1))))
-    
-    return d .* specular .+ s .* diffuse
+    return diffuse .+ specular
 end
 
 
@@ -203,9 +206,9 @@ TODO: normalization is probably off...
 """
 function evaluate(B::SpecularDiffuse, w0::Vector3, w1::Vector3)
     if normalize(w0 + w1) ≈ Z_AXIS
-        return (B.fd/π + B.fs) * B.R
+        return (B.fd / π + B.fs) .* B.R
     else
-        return B.fd/π * B.R
+        return B.fd / π .* B.R
     end
 end
 
