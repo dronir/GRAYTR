@@ -12,6 +12,8 @@ end
 
 
 function DifferentialGeometry(p::Point3, n::Normal3, s::Vector3)
+    n = normalize(n)
+    s = normalize(s)
     return DifferentialGeometry(p, n, local_transformation(n, s))
 end
 

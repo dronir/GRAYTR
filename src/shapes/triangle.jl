@@ -64,11 +64,10 @@ function shape_intersect(R::Ray, T::Triangle)
     P = ray(t)
     
     n = normalize(Normal3(cross(e1, e2)))
-    s = normalize(e1)
     
     n = flip_normal(n, ray.direction)
     
-    DG = DifferentialGeometry(T.obj_to_world(P), T.obj_to_world(n), T.obj_to_world(s))
+    DG = DifferentialGeometry(T.obj_to_world(P), T.obj_to_world(n), T.obj_to_world(e1))
     
     return DG, t, 5e-4 * t
 end
