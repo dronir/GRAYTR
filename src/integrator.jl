@@ -54,9 +54,6 @@ The inner loop of the `intensity` function, separated for better optimization.
 """
 function inner_int(light::LightSource, dg::DifferentialGeometry, mat::BxDF, w1::Vector3, scene::Scene)
     light_spectrum, pdf, light_ray = sample_L(light, dg.p + RAY_EPS * dg.n)
-    if isblack(light_spectrum) || pdf ≈ 0.0
-        return nolight
-    end
     w0 = light_ray.direction
     if dot(w0, dg.n) < 0.0 || intersectP(light_ray, scene)
         return nolight
