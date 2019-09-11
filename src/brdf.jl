@@ -128,9 +128,9 @@ and `n` is the specular reflection width parameter. See Wetterer (2014).
 
 """
 struct AshkhminShirleySingle{S<:SpectrumLike, T<:SpectrumLike} <: BxDF
-    Rs::T
-    Rd::S
-    n::Float64
+    R::T
+    specularity::S
+    peak::Float64
 end
 
 
@@ -163,12 +163,10 @@ Evaluate Ashkhmin-Shirley BRDF for given direction vectors.
 """
 function evaluate(B::AshkhminShirleySingle, w0::Vector3, w1::Vector3)
     h = normalize((w0 + w1) / 2.0)
-    
-    diffuse = (B.Rd .* (1 .- B.Rs)) .* (28/23π * f5(costheta(w0)) * f5(costheta(w1)))
-    
-    D = BlinnPhong(B.n, h.z)
-    F = Fresnel(B.Rs, costheta(w1))
+    D = BlinnPhong(B.peak, h.z)
+    F = Fresnel(B.R, costheta(w1))
     specular = F .* (D ./ (dot(h,w1) * max(costheta(w0), costheta(w1))))
+    diffuse = B.R .* (1 .- B.specularity) .* (28/23π * f5(costheta(w0)) * f5(costheta(w1)))
     
     return diffuse .+ specular
 end
