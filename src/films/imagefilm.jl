@@ -4,25 +4,6 @@ using Images
 
 
 
-"""
-    Pixel
-
-Representation of a pixel. A wrapper for the XYZ colors and a weight.
-"""
-struct Pixel
-    x::Float64
-    y::Float64
-    z::Float64
-    w::Float64
-end
-
-import Base.zero
-zero(::Type{Pixel}) = Pixel(0.0,0.0,0.0,0.0)
-add(P::Pixel, S::Array{Float64,1}) = Pixel(P.x+S[1], P.y+S[2], P.z+S[3], P.w+S[4])
-add(P::Pixel, S::Array{Float64,1}, w::Float64) = Pixel(P.x+S[1], P.y+S[2], P.z+S[3], P.w+w)
-add(P::Pixel, x, y, z, w) = Pixel(P.x+x, P.y+y, P.z+z, P.w+w)
-
-
 
 """
     ImageFilm
@@ -35,7 +16,7 @@ struct ImageFilm{T<:Filter} <: Film
     resY::Int64
     gain::Float64
     filter::T
-    pixels::Array{Pixel,2}
+    pixels::Array{Float64,3}
     filtertable::Array{Float64,2}
     CIE_table::CIE_Table
 end
@@ -58,7 +39,7 @@ function make_filtertable(f::Filter)
 end
 
 ImageFilm(x::Integer, y::Integer, gain::Real, f::Filter, CIE_table::CIE_Table) = ImageFilm(x, y, gain, f, 
-                                                            zeros(Pixel,(x,y)), 
+                                                            zeros(4,x,y), 
                                                             make_filtertable(f), CIE_table::CIE_Table)
 
 
@@ -90,7 +71,10 @@ function add_sample!(F::ImageFilm, sample::Sample, L::Spectrum, isect::Union{Int
         for j = y0:y1
             # TODO: unoptimized way, without using filter table
             w = evaluate(F.filter, (i-dimgX), (j-dimgY))
-            @inbounds F.pixels[i,j] = add(F.pixels[i,j], w*x, w*y, w*z, w)
+            F.pixels[1,i,j] = w*x
+            F.pixels[2,i,j] = w*y
+            F.pixels[3,i,j] = w*z
+            F.pixels[4,i,j] = w
         end
     end
 end
@@ -105,11 +89,7 @@ between.
 
 """
 function reset!(F::ImageFilm)
-    for i = 1:F.resX
-        for j = 1:F.resY
-            F.pixels[i,j] = zero(Pixel)
-        end
-    end
+    F.pixels .= 0.0
     nothing
 end
 
@@ -120,15 +100,15 @@ end
 Write the given image into a file determined by the filename.
 """
 function write_image(F::ImageFilm, fname::String="test.png")
-    data = zeros(Float64, (3, size(F.pixels)...))
-    for i = 1:size(F.pixels,1)
-        for j = 1:size(F.pixels,2)
-            P = F.pixels[i,j]
-            r, g, b = XYZtoRGB(F.gain*P.x/P.w, F.gain*P.y/P.w, F.gain*P.z/P.w) 
+    data = zeros(Float64, (3, size(F.pixels,2), size(F.pixels, 3)))
+    for i = 1:size(F.pixels,2)
+        for j = 1:size(F.pixels,3)
+            x,y,z,w = F.pixels[:,i,j]
+            W = F.gain / w
+            r, g, b = XYZtoRGB(W*x, W*y, W*z) 
             data[1,i,j] = r
             data[2,i,j] = g
             data[3,i,j] = b
-            
         end
     end
     img = colorview(RGB, map(clamp01nan, data))
