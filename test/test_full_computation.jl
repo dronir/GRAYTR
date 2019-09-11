@@ -10,8 +10,8 @@ as an `ImageFilm` camera, renders the image and writes it to disk.
 function full_computation()
     
     # Create material with flat white spectrum
-    whitespec = SampledSpectrum(300, 800, [1.0 for i = 1:256])
-    redspec = SampledSpectrum(300, 800, collect(range(0.0, 1.0, length=256)))
+    whitespec = SampledSpectrum(300, 850, [1.0 for i = 1:100])
+    redspec = SampledSpectrum(300, 850, collect(range(0.0, 1.0, length=100)))
     mat = Lambert(whitespec)
     
     # Create sphere shape
