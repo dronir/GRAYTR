@@ -1,6 +1,6 @@
 import Base.+, Base.-, Base.*, Base./, Base.convert, Base.zero, Base.one
 
-export SampledSpectrum, SingleLine, NoLight, nolight
+export SampledSpectrum, SingleLine, NoLight, nolight, make_CIE_table
 
 using Pkg
 using DelimitedFiles
@@ -22,27 +22,88 @@ const N_CIE = size(raw_CIE_data)[1]
 const CIE_DATA = SMatrix{4, N_CIE, Float64}(raw_CIE_data')
 const CIE_YINT = sum(CIE_DATA[3,:])
 
-#const CIE_LAMBDA = vec(raw_CIE_data[:,1])
-#const CIE_X = vec(raw_CIE_data[:,2])
-#const CIE_Y = vec(raw_CIE_data[:,3])
-#const CIE_Z = vec(raw_CIE_data[:,4])
 
-function make_CIE_functions(low, high, N)
-    data = zeros(3, N)
-    delta = (high - low) / (N-1)
-    for i = 1:N
-        l = low + i * delta
-        
-        for k = 1:N_CIE
-            if CIE_DATA[1,k] <= l && CIE_DATA[1,k+1] >= l
-                break
-            end
-        end
-        
-        data[1,i] = 0
-    end
-    data = SMatrix{4, N, Float64}(data)
+struct CIE_Table
+    data::Array{Float64,2}
+    yint::Float64
 end
+
+CIE_Table(data) = CIE_Table(data, sum(data[:,2]))
+
+
+
+
+# ------------------------------------------------
+# Utility functions used when integrating spectral data
+
+function find_bin(data, x)
+    N_DATA = size(data)[1]
+    for i = 1:N_DATA-1
+        if data[i,1] <= x && data[i+1,1] > x
+            return i
+        end
+    end
+    nothing
+end
+
+
+function get_midpoint(DATA, x, n)
+    a = DATA[n,1]
+    b = DATA[n+1,1]
+    t = (x - a) / (b - a)
+    y = lerp(t, DATA[n,2], DATA[n+1,2])
+    return t,y
+end
+
+
+function integrate(X, Y)
+    deltas = X[2:end] - X[1:end-1]
+    means = (Y[1:end-1] + Y[2:end]) / 2
+    return sum(deltas .* means)
+end
+
+
+"""
+    compute_bin(DATA; low, high ; averaged = false)
+
+Compute the bin value by integrating over a (hopefully) higher-resolution spectrum.
+
+- `DATA` is a `(N, 2)` array with wavelengths (in nm) in the first column and values in the second.
+- `low` and `high` are the wavelength limits of the bin.
+- `averaged` optionally returns an average over the spectrum instead of an integral 
+  (i.e. it divides the result by the bin length).
+
+"""
+function compute_bin(DATA, low, high ; averaged = false)
+    nlow = find_bin(DATA, low)
+    nhigh = find_bin(DATA, high)
+    
+    if nlow == nothing || nhigh == nothing
+        return 0.0
+    end
+    
+    if nlow == nhigh
+        # There is only one data value in the range.
+        # Return it if average, or return it times the interval if non-averaged
+        low_t, low_y = get_midpoint(DATA, low, nlow)
+        high_t, high_y = get_midpoint(DATA, high, nhigh)
+        return 0.5 * (low_y + high_y) * (high - low)
+    end
+    
+    low_t, low_y = get_midpoint(DATA, low, nlow)
+    high_t, high_y = get_midpoint(DATA, high, nhigh)
+    
+    
+    low_part =  0.5 * (low_y + DATA[nlow+1,2]) * (DATA[nlow+1,1] - low)
+    high_part = 0.5 * (high_y + DATA[nlow,2]) * (high - DATA[nhigh,1])
+    
+    mid_part = integrate(DATA[nlow+1 : nhigh, 1], DATA[nlow+1 : nhigh, 2])
+
+    S = low_part + mid_part + high_part
+
+    return averaged ? S / (high - low) : S
+end
+
 
 
 
@@ -56,6 +117,7 @@ const nolight = NoLight()
 
 @inline isblack(N::NoLight) = true
 @inline to_XYZ(S::NoLight) = (0.0, 0.0, 0.0)
+to_XYZ(S::NoLight, C::CIE_Table) = (0.0, 0.0, 0.0)
 
 Base.broadcastable(N::NoLight) = N
 
@@ -175,6 +237,38 @@ function interpolate(S::SampledSpectrum, a::Real)
 #    t = (a - i * S.delta) / S.delta
 #    return @inbounds lerp(t, S.values[i+1], S.values[i+2])
 end
+
+
+
+function make_CIE_table(S::SampledSpectrum)
+    N = length(S)
+    data = zeros(N,3)
+    delta = (S.high - S.low) / N
+    CIE_lambda = raw_CIE_data[:,1]
+    for n = 1:N
+        # (low_x, high_x) are the wavelength limits of the bin; compute average over that
+        low_x = S.low + (n-1) * delta
+        high_x = S.low + n * delta
+        data[n,1] = compute_bin(hcat(CIE_lambda, raw_CIE_data[:,2]), low_x, high_x ; averaged = true)
+        data[n,2] = compute_bin(hcat(CIE_lambda, raw_CIE_data[:,3]), low_x, high_x ; averaged = true)
+        data[n,3] = compute_bin(hcat(CIE_lambda, raw_CIE_data[:,4]), low_x, high_x ; averaged = true)
+    end
+    return CIE_Table(data)
+end
+
+
+
+function to_XYZ(S::SampledSpectrum, C::CIE_Table)
+    x =y = z = 0.0
+    for i = 1:length(S)
+        x += S.values[i] * C.data[i,1]
+        y += S.values[i] * C.data[i,2]
+        z += S.values[i] * C.data[i,3]
+    end
+    return x/C.yint, y/C.yint, z/C.yint
+end
+
+
 
 
 
@@ -330,7 +424,7 @@ XYZtoRGB(xyz::Vector) = CIE_RGB * xyz
 
 
 function XYZtoRGB(x, y, z)
-    return [2.3706743*x - 0.9000405*y - 0.4706338*z,
+    return 2.3706743*x - 0.9000405*y - 0.4706338*z,
            -0.5138850*x + 1.4253036*y + 0.0885814*z,
-            0.0052982*x - 0.0146949*y + 1.0093968*z]
+            0.0052982*x - 0.0146949*y + 1.0093968*z
 end  

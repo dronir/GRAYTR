@@ -37,6 +37,7 @@ struct ImageFilm{T<:Filter} <: Film
     filter::T
     pixels::Array{Pixel,2}
     filtertable::Array{Float64,2}
+    CIE_table::CIE_Table
 end
 
 
@@ -56,9 +57,9 @@ function make_filtertable(f::Filter)
     ftbl
 end
 
-ImageFilm(x::Integer, y::Integer, gain::Real, f::Filter) = ImageFilm(x, y, gain, f, 
+ImageFilm(x::Integer, y::Integer, gain::Real, f::Filter, CIE_table::CIE_Table) = ImageFilm(x, y, gain, f, 
                                                             zeros(Pixel,(x,y)), 
-                                                            make_filtertable(f))
+                                                            make_filtertable(f), CIE_table::CIE_Table)
 
 
 """
@@ -84,7 +85,7 @@ function add_sample!(F::ImageFilm, sample::Sample, L::Spectrum, isect::Union{Int
     if (x1-x0) < 0 || (y1-y0) < 0
         return
     end
-    x, y, z = to_XYZ(L)
+    x, y, z = to_XYZ(L, F.CIE_table)
     for i = x0:x1
         for j = y0:y1
             # TODO: unoptimized way, without using filter table
@@ -123,7 +124,11 @@ function write_image(F::ImageFilm, fname::String="test.png")
     for i = 1:size(F.pixels,1)
         for j = 1:size(F.pixels,2)
             P = F.pixels[i,j]
-            data[:,i,j] = XYZtoRGB(P.x/P.w, P.y/P.w, P.z/P.w) * F.gain
+            r, g, b = XYZtoRGB(F.gain*P.x/P.w, F.gain*P.y/P.w, F.gain*P.z/P.w) 
+            data[1,i,j] = r
+            data[2,i,j] = g
+            data[3,i,j] = b
+            
         end
     end
     img = colorview(RGB, map(clamp01nan, data))
