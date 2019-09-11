@@ -1,5 +1,5 @@
 
-export AshkhminShirleySingle, Lambert, LommelSeeliger
+export AshikhminShirleySingle, Lambert, LommelSeeliger
 
 # Utility functions
 costheta(w::Vector3) = w.z
@@ -121,13 +121,13 @@ SpectrumLike = Union{T,R} where T <: Spectrum where R <: Real
 
 
 """
-    AshkhminShirleySingle{T<:Spectrum} <: BxDF
+    AshikhminShirleySingle{T<:Spectrum} <: BxDF
 
-The Ashkhmin-Shirley BRDF where `R` is a spectrum, `d` is the diffuse component weigth
+The Ashikhmin-Shirley BRDF where `R` is a spectrum, `d` is the diffuse component weigth
 and `n` is the specular reflection width parameter. See Wetterer (2014).
 
 """
-struct AshkhminShirleySingle{S<:SpectrumLike, T<:SpectrumLike} <: BxDF
+struct AshikhminShirleySingle{S<:SpectrumLike, T<:SpectrumLike} <: BxDF
     R::T
     specularity::S
     peak::Float64
@@ -138,7 +138,7 @@ end
 """
     Fresnel(R::Spectrum, costheta::Real, s::Real)
 
-The Fresnel term of the Ashkhmin-Shirley BRDF (see Wetterer, 2014).
+The Fresnel term of the Ashikhmin-Shirley BRDF (see Wetterer, 2014).
 """
 @inline Fresnel(Rs::SpectrumLike, x::Real) = Rs .+ (1.0 .- Rs) .* (1.0 - x)^5
 
@@ -146,7 +146,7 @@ The Fresnel term of the Ashkhmin-Shirley BRDF (see Wetterer, 2014).
 """
     BlinnPhong(n::Real, hdn::Real)
     
-The Blinn-Phong function used in the Ashkhmin-Shirley BRDF (see Wetterer, 2014).
+The Blinn-Phong function used in the Ashikhmin-Shirley BRDF (see Wetterer, 2014).
 """
 @inline BlinnPhong(n::SpectrumLike, hdn::Real) = (n .+ 1) .* hdn^n ./ 8π
 
@@ -156,12 +156,12 @@ The Blinn-Phong function used in the Ashkhmin-Shirley BRDF (see Wetterer, 2014).
 
 
 """
-    evaluate(B::AshkhminShirleySingle, w0::Vector3, w1::Vector3)
+    evaluate(B::AshikhminShirleySingle, w0::Vector3, w1::Vector3)
 
-Evaluate Ashkhmin-Shirley BRDF for given direction vectors.
+Evaluate Ashikhmin-Shirley BRDF for given direction vectors.
 
 """
-function evaluate(B::AshkhminShirleySingle, w0::Vector3, w1::Vector3)
+function evaluate(B::AshikhminShirleySingle, w0::Vector3, w1::Vector3)
     h = normalize((w0 + w1) / 2.0)
     D = BlinnPhong(B.peak, h.z)
     F = Fresnel(B.R, costheta(w1))

@@ -64,8 +64,8 @@ end
     
 end
 
-@testset "Ashkhmin-Shirley" begin
-#    R = GRAYTR.AshkhminShirleySingle(spec, 0.5, 100.0)
+@testset "Ashikhmin-Shirley" begin
+#    R = GRAYTR.AshikhminShirleySingle(spec, 0.5, 100.0)
 #    @test GRAYTR.evaluate(R, w0, w1) <: GRAYTR.Spectrum    
 end
 
