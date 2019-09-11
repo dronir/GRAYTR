@@ -6,7 +6,7 @@ using Pkg
 using DelimitedFiles
 
 
-struct SpectrumStyle <: Broadcast.BroadcastStyle end
+struct SpectrumStyle <: Broadcast.AbstractArrayStyle{1} end
 struct LineStyle <: Broadcast.BroadcastStyle end
 
 
@@ -28,6 +28,20 @@ const CIE_YINT = sum(CIE_DATA[3,:])
 #const CIE_Z = vec(raw_CIE_data[:,4])
 
 function make_CIE_functions(low, high, N)
+    data = zeros(3, N)
+    delta = (high - low) / (N-1)
+    for i = 1:N
+        l = low + i * delta
+        
+        for k = 1:N_CIE
+            if CIE_DATA[1,k] <= l && CIE_DATA[1,k+1] >= l
+                break
+            end
+        end
+        
+        data[1,i] = 0
+    end
+    data = SMatrix{4, N, Float64}(data)
 end
 
 
@@ -75,7 +89,6 @@ struct SampledSpectrum <: Spectrum
     high::Int64
     values::Array{Float64,1}
     delta::Float64
-    invdelta::Float64
 end
 
 
@@ -87,8 +100,8 @@ nanometres and binned spectrum values given by `values`.
 
 """
 function SampledSpectrum(low::Int64, high::Int64, values::Vector{Float64}) 
-    delta = (high-low) / (length(values) - 1)
-    SampledSpectrum(low, high, values, delta, 1/delta)
+    delta = (high-low) / length(values)
+    SampledSpectrum(low, high, values, delta)
 end
 
 
@@ -115,120 +128,59 @@ Base.broadcastable(S::SampledSpectrum) = S
 Base.BroadcastStyle(::Type{<:SampledSpectrum}) = SpectrumStyle()
 Base.BroadcastStyle(::SpectrumStyle, ::SpectrumStyle) = SpectrumStyle()
 Base.BroadcastStyle(::SpectrumStyle, ::Broadcast.AbstractArrayStyle{0}) = SpectrumStyle()
+Base.BroadcastStyle(::SpectrumStyle, ::Broadcast.DefaultArrayStyle{0}) = SpectrumStyle()
 
 
 function Base.similar(bc::Broadcast.Broadcasted{SpectrumStyle}, ::Type{ElType}) where ElType
-#    flat = Broadcast.flatten(bc)
-#    if !check_limits(flat.args)
-#        error("Spectrum bounds mismatch")
-#    end
-    first = find_first(bc)
+    flat = Broadcast.flatten(bc)
+    first = find_first(flat)
+    l = first.low
+    h = first.high
+    N = length(first.values)
+    
+    for x in flat.args
+        if isa(x, SampledSpectrum)
+            if (x.low != l) || (x.high != h) || (length(x.values) != N)
+                error("Spectral shape mismatch!")
+            end
+        end
+    end
+    
     return SampledSpectrum(first.low, first.high, similar(Array{ElType}, axes(bc)))
 end
 
 find_first(bc::Base.Broadcast.Broadcasted) = find_first(bc.args)
 find_first(args::Tuple) = find_first(find_first(args[1]), Base.tail(args))
+find_first(args::Tuple{}) = nothing
 find_first(x) = x
 find_first(a::SampledSpectrum, rest) = a
 find_first(::Any, rest) = find_first(rest)
 
-check_limits(x) = true
-check_limits(args::Tuple{Any}) = true
-check_limits(args::Tuple) = check_limits(args[1], check_limits(Base.tail(args)))
-check_limits(S1::SampledSpectrum, S2::SampledSpectrum) = (S1.low == S2.low) && (S1.high == S2.high)
-check_limits(S::SampledSpectrum, ::Any) = true
-check_limits(::Any, ::Any) = true
+
+@inline isSS(S::Any) = false
+@inline isSS(S::SampledSpectrum) = true
 
 
-function integrate(S::SampledSpectrum)
-    dl = (S.high - S.low) / length(S.values)
-    return dl * sum(S.values)
-end
 
-@inline function wavelength(S::SampledSpectrum, i::Integer)
-    return S.low + i * S.delta
-end
+integrate(S::SampledSpectrum) = sum(S.values)
+
 
 function interpolate(S::SampledSpectrum, a::Real)
-    if a < S.low || a > S.high
+    if a <= S.low || a >= S.high
         return 0.0
     end
     
     i = Int64(fld(a - S.low, S.delta))
-    t = (a - i * S.delta) * S.invdelta
-    return @inbounds lerp(t, S.values[i+1], S.values[i+2])
+    return S.values[i+1]
+#    t = (a - i * S.delta) / S.delta
+#    return @inbounds lerp(t, S.values[i+1], S.values[i+2])
 end
 
-function interpolate(S::SampledSpectrum, a::Real, b::Real)
-    # We are assuming that a < b
-    if b <= S.low
-        return S.values[1]
-    elseif a >= S.high
-        return S.values[end]
-    end
-    N = length(S)
-    delta = (S.high - S.low) / (N - 1)
-
-    # The N values tell how many full deltas are between S.low and a or b
-    Na = Int64(fld(a - S.low, delta))
-    Nb = Int64(fld(b - S.low, delta))
-
-    # Cases:
-    # 1. Both a and b under the low limit; handled above
-    # 2. Both a and b over the high limit; handled above
-    # 3. a under low, b inside the limits: "low" Ia + mid + Ib
-    # 4. a inside the limits, b over high: Ia + mid + "high" Ib
-    # 5. both inside the limits, same bin: special case
-    # 6. both inside the limits, different bin:  Ia + mid + Ib
-    # 7. a under low and b over high: "low" Ia + mid + "high" Ib
-    
-    # Case 5:
-    if Na == Nb
-        # a and b are in the same spectrum interval, just linearly integrate between them.
-        ya = lerp((a - S.low - Na*delta) / delta, S.values[Na+1], S.values[Na+2])
-        yb = lerp((b - S.low - Na*delta) / delta, S.values[Na+1], S.values[Na+2])
-        return 0.5 * (ya + yb)
-    end
-    
-    if Na < 0
-        # Cases 3 and 7
-        # a is below the low end, first integral is constant low value over [a, S.low]
-        Ia = S.values[1] * (S.low - a)
-        k0 = 1
-    else
-        # Cases 4 and 6
-        da = (S.low + (Na+1)*delta) - a
-        ya = lerp(1 - da / delta, S.values[Na+1], S.values[Na+2])
-        Ia = 0.5 * da * (ya + S.values[Na+2])
-        k0 = Na+2
-    end
-    if Nb >= length(S.values)-1
-        # Cases 4 and 7
-        # b is above high end, last integral is constant high value over [S.high, b]
-        Ib = S.values[end] * (b - S.high)
-        k1 = N-1
-    else
-        # Cases 3 and 6
-        db = b - (S.low + Nb*delta)
-        yb = lerp(db / delta, S.values[Nb+1], S.values[Nb+2])
-        Ib = 0.5 * db * (S.values[Nb+1] + yb)
-        k1 = Nb
-    end
-    
-    Imid = 0.0
-    if (Nb-Na) != 1
-        for i = k0:k1
-            Imid += 0.5*delta*(S.values[i] + S.values[i+1])
-        end
-    end
-    
-    return (Ia + Imid + Ib) / (b - a)
-end
 
 
 function to_XYZ(S::SampledSpectrum)
     x, y, z = 0.0, 0.0, 0.0
-    for i = 1:N_CIE
+    @inbounds for i = 1:N_CIE
         lam = CIE_DATA[1,i]
         s = interpolate(S, lam)
         x += s * CIE_DATA[2,i]
