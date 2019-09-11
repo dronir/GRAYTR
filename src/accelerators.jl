@@ -188,7 +188,7 @@ The Bounding Volume Hierarchy accelerator keeps the list of primitives, and a li
 `LinearBVHNode` objects, which contain all the information about the tree structure.
 
 """
-struct BVHAccelerator{P<:Primitive} <: Aggregate
+struct BVHAccelerator{P<:GeometricPrimitive} <: Aggregate
     primitives::Array{P,1}
     nodes::Array{LinearBVHNode,1}
 end
@@ -246,6 +246,12 @@ const TODO_ARRAY = zeros(Int64, 64)
 const dir_is_neg = zeros(Bool, 3)
 
 
+IntersectionTypes = Union{
+                    Nothing,
+                    Intersection{Lambert{SampledSpectrum}},
+                    Intersection{SpecularDiffuse{SampledSpectrum}},
+                    Intersection{AshikhminShirleySingle{SampledSpectrum}}
+                    }
 
 """
     intersect(ray::Ray, BVH::BVHAccelerator)
@@ -281,8 +287,8 @@ function intersect(ray::Ray, BVH::BVHAccelerator)
             if node.leaf
                 # This is a leaf node.
                 # Check intersection with the primitive in the node and keep best intersection.
-                isect = intersect(ray, BVH.primitives[node.offset])
-                best_isect = update_isect(isect, best_isect)
+                isect = intersect(ray, BVH.primitives[node.offset])::IntersectionTypes
+                best_isect = update_isect(isect, best_isect)::IntersectionTypes
 
                 # If there's nothing in the todo queue, we exit the loop.
                 if todo_offset == 0

@@ -112,7 +112,9 @@ update_isect(isect::Nothing, best_isect::Intersection) = best_isect
 
 Always return `isect` when `best_isect` is `nothing`.
 """
-update_isect(isect, best_isect::Nothing) = isect
+update_isect(isect::Intersection, best_isect::Nothing) = isect
+
+update_isect(isect::Nothing, best_isect::Nothing) = nothing
 
 
 
