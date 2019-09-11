@@ -12,6 +12,9 @@ function full_computation()
     # Create material with flat white spectrum
     whitespec = SampledSpectrum(300, 850, [1.0 for i = 1:100])
     redspec = SampledSpectrum(300, 850, collect(range(0.0, 1.0, length=100)))
+    
+    CIE_table = make_CIE_table(whitespec)
+    
     mat = Lambert(whitespec)
     
     # Create sphere shape
@@ -43,7 +46,7 @@ function full_computation()
     resY = 1024
     widthX = 5
     widthY = 5
-    F = ImageFilm(resX, resY, 1.0, TriangleFilter(1, 1))
+    F = ImageFilm(resX, resY, 1.0, TriangleFilter(1, 1), CIE_table)
     camera_position = rotation(Y_AXIS, π/2) * translation(0.0, 0.0, -3.0)
     image_cam = OrthographicCamera(camera_position, widthX, widthY, 0.0, 0.0, F)
     
