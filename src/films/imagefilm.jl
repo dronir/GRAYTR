@@ -53,13 +53,13 @@ function add_sample!(F::ImageFilm, sample::Sample, L::Spectrum, isect::Union{Int
         error("This shouldn't happen? Sample: $sample")
     end
     x, y, z = to_XYZ(L, F.CIE_table)
-    for i = x0:x1
-        for j = y0:y1
+    for j = y0:y1
+        for i = x0:x1
             w = evaluate(F.filter, i-dimgX, j-dimgY)
-            F.pixels[1,i,j] = w*x
-            F.pixels[2,i,j] = w*y
-            F.pixels[3,i,j] = w*z
-            F.pixels[4,i,j] = w
+            F.pixels[1,i,j] += w*x
+            F.pixels[2,i,j] += w*y
+            F.pixels[3,i,j] += w*z
+            F.pixels[4,i,j] += w
         end
     end
 end
@@ -86,8 +86,8 @@ Write the given image into a file determined by the filename.
 """
 function write_image(F::ImageFilm, fname::String="test.png")
     data = zeros(Float64, (3, size(F.pixels,2), size(F.pixels, 3)))
-    @inbounds for i = 1:size(F.pixels,2)
-        for j = 1:size(F.pixels,3)
+    @inbounds for j = 1:size(F.pixels,3)
+        for i = 1:size(F.pixels,2)
             x,y,z,w = F.pixels[:,i,j]
             W = F.gain / w
             r, g, b = XYZtoRGB(W*x, W*y, W*z) 
