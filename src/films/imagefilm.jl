@@ -39,8 +39,8 @@ depending on the filter included in the film. `isect` is not used, but it's part
 
 """
 function add_sample!(F::ImageFilm, sample::Sample, L::Spectrum, isect::Union{Intersection,Nothing})
-    dimgX = sample.imgX - 0.5
-    dimgY = sample.imgY - 0.5
+    dimgX = sample.imgX + 0.5
+    dimgY = sample.imgY + 0.5
     x0 = ceil(Int64, dimgX - F.filter.xwidth)
     x1 = floor(Int64, dimgX + F.filter.xwidth)
     y0 = ceil(Int64, dimgY - F.filter.ywidth)
@@ -50,12 +50,12 @@ function add_sample!(F::ImageFilm, sample::Sample, L::Spectrum, isect::Union{Int
     y0 = max(y0, 1)
     y1 = min(y1, F.resY)
     if (x1-x0) < 0 || (y1-y0) < 0
-        return
+        error("This shouldn't happen? Sample: $sample")
     end
     x, y, z = to_XYZ(L, F.CIE_table)
     for i = x0:x1
         for j = y0:y1
-            w = evaluate(F.filter, (i-dimgX), (j-dimgY))
+            w = evaluate(F.filter, i-dimgX, j-dimgY)
             F.pixels[1,i,j] = w*x
             F.pixels[2,i,j] = w*y
             F.pixels[3,i,j] = w*z
