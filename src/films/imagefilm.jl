@@ -9,7 +9,8 @@ using Images
     ImageFilm
 
 A film that produces a resolved image. The resolution of the image is `(resX, resY)`,
-the `gain` value will be used 
+the `gain` will be multiplied to scale all the XYZ (and also the resulting RGB) values.
+
 """
 struct ImageFilm{T<:Filter} <: Film
     resX::Int64
@@ -17,30 +18,15 @@ struct ImageFilm{T<:Filter} <: Film
     gain::Float64
     filter::T
     pixels::Array{Float64,3}
-    filtertable::Array{Float64,2}
     CIE_table::CIE_Table
 end
 
 
 
 
-const FILTERTABLE_SIZE = 16
-
-function make_filtertable(f::Filter)
-    ftbl = zeros(Float64, (FILTERTABLE_SIZE, FILTERTABLE_SIZE))
-    for j = 1:FILTERTABLE_SIZE
-        fy = (j + 0.5) * f.ywidth / FILTERTABLE_SIZE
-        for i = 1:FILTERTABLE_SIZE
-            fx = (i + 0.5) * f.xwidth / FILTERTABLE_SIZE
-            ftbl[i,j] = evaluate(f, fx, fy)
-        end
-    end
-    ftbl
+function ImageFilm(x::Integer, y::Integer, gain::Real, f::Filter, CIE_table::CIE_Table) 
+    ImageFilm(x, y, gain, f, zeros(4,x,y), CIE_table)
 end
-
-ImageFilm(x::Integer, y::Integer, gain::Real, f::Filter, CIE_table::CIE_Table) = ImageFilm(x, y, gain, f, 
-                                                            zeros(4,x,y), 
-                                                            make_filtertable(f), CIE_table::CIE_Table)
 
 
 """
@@ -69,7 +55,6 @@ function add_sample!(F::ImageFilm, sample::Sample, L::Spectrum, isect::Union{Int
     x, y, z = to_XYZ(L, F.CIE_table)
     for i = x0:x1
         for j = y0:y1
-            # TODO: unoptimized way, without using filter table
             w = evaluate(F.filter, (i-dimgX), (j-dimgY))
             F.pixels[1,i,j] = w*x
             F.pixels[2,i,j] = w*y
@@ -101,7 +86,7 @@ Write the given image into a file determined by the filename.
 """
 function write_image(F::ImageFilm, fname::String="test.png")
     data = zeros(Float64, (3, size(F.pixels,2), size(F.pixels, 3)))
-    for i = 1:size(F.pixels,2)
+    @inbounds for i = 1:size(F.pixels,2)
         for j = 1:size(F.pixels,3)
             x,y,z,w = F.pixels[:,i,j]
             W = F.gain / w
