@@ -36,7 +36,7 @@ Get the bounding box of the entire scene (this just asks for the bounding box of
 scene's acceleration aggregate.)
 
 """
-world_bounds(S::Scene) = Scene.bounds
+world_bounds(S::Scene) = scene.bounds
 
 
 """
