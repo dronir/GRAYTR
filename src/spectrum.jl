@@ -260,7 +260,7 @@ end
 
 function to_XYZ(S::SampledSpectrum, C::CIE_Table)
     x =y = z = 0.0
-    for i = 1:length(S)
+    @inbounds for i = 1:length(S)
         x += S.values[i] * C.data[i,1]
         y += S.values[i] * C.data[i,2]
         z += S.values[i] * C.data[i,3]
