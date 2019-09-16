@@ -242,8 +242,8 @@ end
 # Two arrays that are reused by the `intersect` and `intersectP` methods to
 # avoid reallocating them every time those functions are called (which is very
 # often). A significant optimization.
-const TODO_ARRAY = zeros(Int64, 64)
-const dir_is_neg = zeros(Bool, 3)
+const TODO_ARRAY = zeros(Int64, (64, Threads.nthreads()))
+const dir_is_neg = zeros(Bool, (3, Threads.nthreads()))
 
 
 IntersectionTypes = Union{
@@ -266,14 +266,15 @@ function intersect(ray::Ray, BVH::BVHAccelerator)
     if length(BVH.nodes) == 0
         return nothing
     end
+    thread_id = Threads.threadid()
     nodeN = 1
     todo_offset = 0
     todo = TODO_ARRAY
     for i = 1:64
-        todo[i] = 0
+        todo[i,thread_id] = 0
     end
     for i = 1:3
-        dir_is_neg[i] = ray.direction[i] < 0.0
+        dir_is_neg[i,thread_id] = ray.direction[i] < 0.0
     end
     
     tmin = Inf
@@ -295,20 +296,20 @@ function intersect(ray::Ray, BVH::BVHAccelerator)
                     break
                 end
                 # Othewise, set nodeN based on current todo value and shift todo queue left.
-                nodeN = todo[todo_offset]
+                nodeN = todo[todo_offset,thread_id]
                 todo_offset -= 1
             else
                 # This is not a leaf node. 
                 # We point nodeN to either the left or right child node, depending on the ray 
                 # direction. We shift right in the todo queue and put the other node there.
                 todo_offset += 1
-                if dir_is_neg[node.axis]
+                if dir_is_neg[node.axis,thread_id]
                     # Put left child in todo queue and set nodeN to right child.
-                    todo[todo_offset] = nodeN + 1
+                    todo[todo_offset,thread_id] = nodeN + 1
                     nodeN = node.offset
                 else
                     # Put right child in todo queue and set nodeN to left child.
-                    todo[todo_offset] = node.offset
+                    todo[todo_offset,thread_id] = node.offset
                     nodeN = nodeN + 1
                 end
             end
@@ -319,7 +320,7 @@ function intersect(ray::Ray, BVH::BVHAccelerator)
                 break
             end
             # Otherwise, set nodeN based on current todo value and shift left in the todo queue.
-            nodeN = todo[todo_offset]
+            nodeN = todo[todo_offset,thread_id]
             todo_offset -= 1
             
         end
@@ -342,14 +343,15 @@ function intersectP(ray::Ray, BVH::BVHAccelerator)
     if length(BVH.nodes) == 0
         return false
     end
+    thread_id = Threads.threadid()
     nodeN = 1
     todo_offset = 0
     todo = TODO_ARRAY
     for i = 1:64
-        todo[i] = 0
+        todo[i,thread_id] = 0
     end
     for i = 1:3
-        dir_is_neg[i] = ray.direction[i] < 0.0
+        dir_is_neg[i,thread_id] = ray.direction[i] < 0.0
     end
     while true
         node = BVH.nodes[nodeN]
@@ -361,15 +363,15 @@ function intersectP(ray::Ray, BVH::BVHAccelerator)
                 if todo_offset == 0
                     break
                 end
-                nodeN = todo[todo_offset]
+                nodeN = todo[todo_offset,thread_id]
                 todo_offset -= 1
             else
                 todo_offset += 1
-                if dir_is_neg[node.axis]
-                    todo[todo_offset] = nodeN + 1
+                if dir_is_neg[node.axis,thread_id]
+                    todo[todo_offset,thread_id] = nodeN + 1
                     nodeN = node.offset
                 else
-                    todo[todo_offset] = node.offset
+                    todo[todo_offset,thread_id] = node.offset
                     nodeN = nodeN + 1
                 end
             end
@@ -377,7 +379,7 @@ function intersectP(ray::Ray, BVH::BVHAccelerator)
             if todo_offset == 0
                 break
             end
-            nodeN = todo[todo_offset]
+            nodeN = todo[todo_offset,thread_id]
             todo_offset -= 1
             
         end
