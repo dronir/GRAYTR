@@ -221,6 +221,8 @@ function BoundingSphere(BB::BoundingBox ; r_eps=1e-15)
     return BoundingSphere(c, r)
 end
 
+BoundingSphere(stuff ; r_eps=1e-15) = BoundingSphere(BoundingBox(stuff) ; r_eps = r_eps)
+
 
 """
     intersectP(R::Ray, BS::BoundingSphere)
